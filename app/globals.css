@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+/* ── Costa Companion · Design tokens ── */
+:root {
+  --bone:        #F7F4EF;
+  --bone-2:      #EFEAE1;
+  --green:       #2C4A3B;
+  --green-deep:  #22392E;
+  --terra:       #C97B4A;
+  --terra-soft:  #E0A877;
+  --ink:         #2B2724;
+  --line:        rgba(43, 39, 36, 0.14);
+}
+
+@theme inline {
+  --color-bone:        var(--bone);
+  --color-bone-2:      var(--bone-2);
+  --color-green:       var(--green);
+  --color-green-deep:  var(--green-deep);
+  --color-terra:       var(--terra);
+  --color-terra-soft:  var(--terra-soft);
+  --color-ink:         var(--ink);
+  --color-line:        var(--line);
+
+  --font-display: var(--font-fraunces);
+  --font-sans:    var(--font-jakarta);
+}
+
+body {
+  background-color: var(--bone);
+  color: var(--ink);
+  font-family: var(--font-jakarta), "Plus Jakarta Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
