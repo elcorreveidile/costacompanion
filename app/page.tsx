@@ -1,4 +1,5 @@
 import { LogoSymbol } from "@/components/icons/LogoSymbol";
+import Link from "next/link";
 
 const CLAIM = {
   es: "a tu lado, en tu idioma",
@@ -70,7 +71,17 @@ export default function Home() {
           className="inline-block w-2 h-2 rounded-full shrink-0"
           style={{ background: "var(--green)" }}
         />
-        Next.js 15 · Supabase · Tailwind v4 · Fraunces + Plus Jakarta Sans
+        Next.js 16 · Supabase · Tailwind v4 · Fraunces + Plus Jakarta Sans
+      </div>
+
+      {/* Botón de acción */}
+      <div className="mt-10">
+        <Link
+          href="/auth/login"
+          className="inline-flex items-center justify-center px-8 py-4 bg-(--terra) hover:bg-(--terra-soft) text-(--bone) font-medium rounded-md transition-colors duration-200 text-lg"
+        >
+          Acceder con Magic Link
+        </Link>
       </div>
     </div>
   );
