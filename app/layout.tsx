@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   },
   description:
     "Plataforma de acompañamiento lingüístico para residentes y visitantes de la Costa del Sol.",
+  icons: {
+    icon: [{ url: '/icon', type: 'image/png', sizes: '32x32' }],
+    shortcut: '/icon',
+    apple: '/icon',
+  },
 };
 
 export default function RootLayout({
