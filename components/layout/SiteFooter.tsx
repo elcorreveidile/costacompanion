@@ -60,8 +60,6 @@ export function SiteFooter() {
               {waNum && (
                 <a
                   href={waHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="text-sm transition-opacity hover:opacity-70 flex items-center gap-2"
                   style={{ color: 'rgba(247,244,239,0.75)' }}
                 >

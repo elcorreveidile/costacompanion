@@ -43,8 +43,6 @@ export default async function AdminAcompananteEditPage({ params }: PageProps) {
           </div>
           <a
             href={`/${acompanante.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="text-sm text-(--green) hover:opacity-70 transition-opacity mt-1"
           >
             Ver microsite →

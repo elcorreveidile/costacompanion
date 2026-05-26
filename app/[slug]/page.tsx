@@ -318,8 +318,6 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
             {acompanante.whatsapp && (
               <a
                 href={`https://wa.me/${acompanante.whatsapp.replace(/\D/g, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
                 style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
               >

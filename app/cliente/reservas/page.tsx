@@ -172,8 +172,6 @@ export default async function ClienteReservasPage() {
                         {reserva.estado === 'confirmada' && reserva.acompanantes.whatsapp && (
                           <a
                             href={`https://wa.me/${reserva.acompanantes.whatsapp.replace(/\D/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg border transition-opacity hover:opacity-80"
                             style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}
                           >

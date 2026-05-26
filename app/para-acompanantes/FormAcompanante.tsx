@@ -176,8 +176,6 @@ export function FormAcompanante({ waHref }: { waHref: string }) {
         {waHref && waHref !== '#' && (
           <a
             href={waHref}
-            target="_blank"
-            rel="noopener noreferrer"
             className="text-sm transition-opacity hover:opacity-70"
             style={{ color: 'var(--terra)' }}
           >

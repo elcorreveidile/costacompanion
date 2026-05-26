@@ -188,8 +188,6 @@ export default async function ServiciosPage() {
           {waNum ? (
             <a
               href={waHref}
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
               style={{ background: 'var(--green)', color: 'var(--bone)' }}
             >

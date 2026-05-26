@@ -124,8 +124,6 @@ export default async function AcompananteDashboard() {
         {fichaData?.slug && (
           <a
             href={`/${fichaData.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="flex items-center justify-between gap-4 rounded-xl border px-6 py-4 mb-6 transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--green)' }}
           >
