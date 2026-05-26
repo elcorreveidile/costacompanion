@@ -238,24 +238,31 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
         {/* ── CTA de contacto ── */}
         <section id="contacto" className="rounded-xl border p-8 text-center shadow-sm" style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}>
           <h2 className="font-display text-2xl font-medium text-(--green) mb-3">
-            ¿Listo para contactar?
+            ¿Listo para empezar?
           </h2>
-          <p className="text-(--ink)/70 mb-6 max-w-md mx-auto">
-            Solicita cita o contacta directamente para resolver cualquier duda.
+          <p className="text-(--ink)/70 mb-3 max-w-lg mx-auto">
+            Reservar cita: elige un servicio y una franja horaria. Solicitud a medida: describe lo que necesitas y el acompañante te propone condiciones.
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-3 mb-6">
             <a
-              href="#contacto"
+              href={`/${slug}/reservar`}
               className="px-6 py-3 rounded-lg font-medium text-sm transition-opacity hover:opacity-80"
               style={{ background: 'var(--green)', color: 'var(--bone)' }}
             >
-              Solicitar cita
+              Reservar cita
+            </a>
+            <a
+              href={`/${slug}/solicitar`}
+              className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
+              style={{ borderColor: 'var(--green)', color: 'var(--green)' }}
+            >
+              Solicitud a medida
             </a>
             {acompanante.email_contacto && (
               <a
                 href={`mailto:${acompanante.email_contacto}`}
                 className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
-                style={{ borderColor: 'var(--green)', color: 'var(--green)' }}
+                style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
               >
                 Enviar email
               </a>

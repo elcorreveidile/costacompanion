@@ -55,6 +55,28 @@ export default async function AcompananteDashboard() {
       ),
       color: 'var(--terra)',
     },
+    {
+      href: '/acompanante/reservas',
+      title: 'Reservas',
+      description: 'Gestiona las reservas de cita recibidas: confirma, rechaza o marca como completadas.',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+      ),
+      color: 'var(--green)',
+    },
+    {
+      href: '/acompanante/solicitudes',
+      title: 'Solicitudes',
+      description: 'Revisa las solicitudes a medida de tus clientes y propón condiciones.',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+        </svg>
+      ),
+      color: 'var(--terra)',
+    },
   ];
 
   return (
@@ -71,7 +93,7 @@ export default async function AcompananteDashboard() {
         </div>
 
         {/* Cards de navegación */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {panelSections.map((section) => (
             <Link
               key={section.href}
