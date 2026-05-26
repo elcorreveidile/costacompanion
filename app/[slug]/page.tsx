@@ -11,7 +11,7 @@ interface ServicioConExtras extends Servicio {
 }
 
 interface ResenaConProfile extends Resena {
-  profiles: { nombre: string | null } | null;
+  cliente: { nombre: string | null } | null;
 }
 
 interface PageProps {
@@ -135,7 +135,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
   // Cargar reseñas aprobadas
   const { data: resenasData } = await supabase
     .from('resenas')
-    .select('*, profiles(nombre)')
+    .select('*, cliente:profiles!resenas_cliente_id_fkey(nombre)')
     .eq('acompanante_id', acompanante.id)
     .eq('aprobada', true)
     .order('created_at', { ascending: false });
@@ -442,7 +442,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
                       <p className="font-medium text-(--ink)">
-                        {resena.profiles?.nombre ?? 'Cliente verificado'}
+                        {resena.cliente?.nombre ?? 'Cliente verificado'}
                       </p>
                       <p className="text-xs text-(--ink)/40">
                         {new Date(resena.created_at).toLocaleDateString('es-ES', {
