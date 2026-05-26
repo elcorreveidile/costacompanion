@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import type { Acompanante, ServiceCategory } from '@/types/supabase';
+import { LocalPartnersDestacados } from '@/components/LocalPartnersDestacados';
 
 export const metadata = {
   title: 'Nuestros acompañantes | Costa Companion',
@@ -354,6 +355,8 @@ export default async function DirectorioPage({ searchParams }: PageProps) {
             </div>
           </>
         )}
+
+        <LocalPartnersDestacados />
       </div>
     </div>
   );
