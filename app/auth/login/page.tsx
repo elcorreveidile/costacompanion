@@ -68,6 +68,9 @@ export default async function LoginPage({
             </div>
           ) : (
             <form action={signInWithMagicLink} className="space-y-6">
+              {params.redirect && (
+                <input type="hidden" name="redirect" value={params.redirect} />
+              )}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-(--ink) mb-2">
                   Email

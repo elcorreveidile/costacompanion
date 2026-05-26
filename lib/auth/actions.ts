@@ -14,16 +14,19 @@ const IDIOMAS_VALIDOS: IdiomaPreferido[] = ["es", "en", "fr", "de", "nl"];
 export async function signInWithMagicLink(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const email = formData.get("email") as string;
+  const next = (formData.get("redirect") as string | null) ?? "";
 
   if (!email || !email.includes("@")) {
     redirect("/auth/login?error=invalid_email");
   }
 
+  const callbackUrl = next
+    ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`
+    : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
+
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-    },
+    options: { emailRedirectTo: callbackUrl },
   });
 
   if (error) {
@@ -31,7 +34,8 @@ export async function signInWithMagicLink(formData: FormData): Promise<void> {
     redirect("/auth/login?error=send_failed");
   }
 
-  redirect("/auth/login?sent=1");
+  const sentUrl = next ? `/auth/login?sent=1&redirect=${encodeURIComponent(next)}` : "/auth/login?sent=1";
+  redirect(sentUrl);
 }
 
 /**

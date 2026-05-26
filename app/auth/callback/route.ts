@@ -34,6 +34,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/auth/login?error=no_profile`);
   }
 
+  // Si venía un redirect explícito (p.ej. desde /[slug]/reservar), usarlo
+  const next = searchParams.get("next");
+  if (next && next.startsWith("/")) {
+    return NextResponse.redirect(`${origin}${next}`);
+  }
+
   const destinos: Record<string, string> = {
     cliente: "/cliente",
     acompanante: "/acompanante",
