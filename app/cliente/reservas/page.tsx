@@ -50,6 +50,18 @@ export default async function ClienteReservasPage() {
 
   const reservas = (reservasData ?? []) as unknown as ReservaConJoins[];
 
+  // Fetch all reviews by this user to know which reservations are already reviewed
+  const { data: resenasData } = await supabase
+    .from('resenas')
+    .select('reserva_id')
+    .eq('cliente_id', user.id);
+
+  const reviewedReservaIds = new Set<string>(
+    ((resenasData ?? []) as { reserva_id: string | null }[])
+      .map((r) => r.reserva_id)
+      .filter((id): id is string => id !== null)
+  );
+
   return (
     <div className="min-h-screen bg-(--bone)">
       <RealtimeRefresher table="reservas" filter={`cliente_id=eq.${user.id}`} />
@@ -154,6 +166,19 @@ export default async function ClienteReservasPage() {
                           Cancelar reserva
                         </button>
                       </form>
+                    </div>
+                  )}
+
+                  {/* Acción dejar reseña */}
+                  {reserva.estado === 'completada' && !reviewedReservaIds.has(reserva.id) && reserva.acompanantes && (
+                    <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
+                      <a
+                        href={`/${reserva.acompanantes.slug}/resena?reserva_id=${reserva.id}`}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
+                        style={{ background: 'var(--terra)', color: 'var(--bone)' }}
+                      >
+                        Dejar reseña
+                      </a>
                     </div>
                   )}
                 </div>

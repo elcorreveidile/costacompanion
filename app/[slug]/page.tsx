@@ -109,6 +109,19 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
     ? await supabase.from('resenas').select('id').eq('acompanante_id', acompanante.id).eq('cliente_id', user!.id).maybeSingle()
     : { data: null };
 
+  // ¿Tiene reserva completada sin reseña?
+  const { data: reservaCompletada } = (puedeResena && !resenaExistente
+    ? await supabase
+        .from('reservas')
+        .select('id')
+        .eq('acompanante_id', acompanante.id)
+        .eq('cliente_id', user!.id)
+        .eq('estado', 'completada')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : { data: null }) as { data: { id: string } | null };
+
   // Cargar servicios activos con paquetes y categoría
   const { data: serviciosData } = await supabase
     .from('servicios')
@@ -371,9 +384,9 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
             <h2 className="font-display text-2xl font-medium text-(--green)">
               Reseñas
             </h2>
-            {puedeResena && !resenaExistente && (
+            {puedeResena && reservaCompletada && !resenaExistente && (
               <a
-                href={`/${slug}/resena?id=${acompanante.id}&nombre=${encodeURIComponent(acompanante.nombre_publico)}`}
+                href={`/${slug}/resena?reserva_id=${reservaCompletada.id}`}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-opacity hover:opacity-80"
                 style={{ borderColor: 'var(--terra)', color: 'var(--terra)' }}
               >

@@ -3,7 +3,9 @@
 import { Resend } from 'resend';
 import { createClient } from '@/lib/supabase/server';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 export async function enviarContacto(
   formData: FormData
@@ -32,7 +34,7 @@ export async function enviarContacto(
     return { error: 'No se pudo enviar el mensaje. Inténtalo de nuevo.' };
   }
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from: 'Costa Companion <hola@costacompanion.com>',
     to: [acomp.email_contacto],
     replyTo: email,

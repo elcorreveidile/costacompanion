@@ -1,8 +1,11 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = 'Costa Companion <hola@costacompanion.com>';
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://costacompanion.com';
+
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 function html(body: string) {
   return `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a2e25">
@@ -32,7 +35,7 @@ export async function emailNuevaReserva(opts: {
   fechaStr: string;
   servicioNombre?: string;
 }) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: [opts.toEmail],
     subject: `Nueva reserva recibida — ${opts.acompananteNombre}`,
@@ -55,7 +58,7 @@ export async function emailReservaConfirmada(opts: {
   acompananteSlug: string;
   fechaStr: string;
 }) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: [opts.toEmail],
     subject: `Reserva confirmada con ${opts.acompananteNombre}`,
@@ -78,7 +81,7 @@ export async function emailReservaRechazada(opts: {
   acompananteSlug: string;
   fechaStr: string;
 }) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: [opts.toEmail],
     subject: `Reserva no disponible — ${opts.acompananteNombre}`,
@@ -99,7 +102,7 @@ export async function emailNuevaSolicitud(opts: {
   acompananteNombre: string;
   descripcion: string;
 }) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: [opts.toEmail],
     subject: `Nueva solicitud a medida — ${opts.acompananteNombre}`,
@@ -121,7 +124,7 @@ export async function emailSolicitudAceptada(opts: {
   acompananteSlug: string;
   precio?: number | null;
 }) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: [opts.toEmail],
     subject: `Tu solicitud fue aceptada — ${opts.acompananteNombre}`,
@@ -140,7 +143,7 @@ export async function emailSolicitudRechazada(opts: {
   clienteNombre: string;
   acompananteNombre: string;
 }) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to: [opts.toEmail],
     subject: `Solicitud no disponible — ${opts.acompananteNombre}`,
