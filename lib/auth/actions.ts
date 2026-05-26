@@ -2,18 +2,21 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+type IdiomaPreferido = "es" | "en" | "fr" | "de" | "nl";
+const IDIOMAS_VALIDOS: IdiomaPreferido[] = ["es", "en", "fr", "de", "nl"];
 
 /**
  * Envía un Magic Link al email del usuario.
- * Si el usuario no existe, Supabase lo creará automáticamente
- * y el trigger de BD creará su perfil con rol='cliente'.
+ * Redirige a /auth/login?sent=1 en caso de éxito.
  */
-export async function signInWithMagicLink(formData: FormData) {
+export async function signInWithMagicLink(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const email = formData.get("email") as string;
 
   if (!email || !email.includes("@")) {
-    return { error: "Por favor, introduce un email válido." };
+    redirect("/auth/login?error=invalid_email");
   }
 
   const { error } = await supabase.auth.signInWithOtp({
@@ -25,65 +28,59 @@ export async function signInWithMagicLink(formData: FormData) {
 
   if (error) {
     console.error("Error enviando Magic Link:", error);
-    return { error: "Error al enviar el enlace mágico. Por favor, inténtalo de nuevo." };
+    redirect("/auth/login?error=send_failed");
   }
 
-  return {
-    success: "Hemos enviado un enlace mágico a tu email. Haz clic en el enlace para acceder.",
-  };
+  redirect("/auth/login?sent=1");
 }
 
 /**
- * Cierra la sesión del usuario.
+ * Cierra la sesión del usuario y redirige al inicio.
  */
-export async function signOut() {
+export async function signOut(): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.auth.signOut();
 
   if (error) {
     console.error("Error cerrando sesión:", error);
-    return { error: "Error al cerrar sesión." };
   }
 
   revalidatePath("/", "layout");
-  return { success: true };
+  redirect("/");
 }
 
 /**
- * Actualiza el perfil del usuario.
+ * Actualiza el perfil del usuario y recarga la página.
  */
-export async function updateProfile(formData: FormData) {
+export async function updateProfile(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: "No hay sesión activa." };
+    redirect("/auth/login");
   }
 
   const nombre = formData.get("nombre") as string;
   const telefono = formData.get("telefono") as string;
-  const idioma_preferido = formData.get("idioma_preferido") as string;
+  const rawIdioma = formData.get("idioma_preferido") as string;
+  const idioma_preferido: IdiomaPreferido = IDIOMAS_VALIDOS.includes(rawIdioma as IdiomaPreferido)
+    ? (rawIdioma as IdiomaPreferido)
+    : "es";
 
-  // Validar idioma_preferido
-  const idiomasValidos = ["es", "en", "fr", "de", "nl"];
-  if (idioma_preferido && !idiomasValidos.includes(idioma_preferido)) {
-    return { error: "Idioma no válido." };
-  }
-
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("profiles")
     .update({
       nombre: nombre || null,
       telefono: telefono || null,
-      idioma_preferido: idioma_preferido || "es",
+      idioma_preferido,
     })
     .eq("id", user.id);
 
   if (error) {
     console.error("Error actualizando perfil:", error);
-    return { error: "Error al actualizar el perfil." };
   }
 
   revalidatePath("/profile");
-  return { success: "Perfil actualizado correctamente." };
+  redirect("/profile");
 }

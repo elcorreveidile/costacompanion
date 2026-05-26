@@ -35,7 +35,7 @@ export default async function AuthCallbackPage({
       .from("profiles")
       .select("rol")
       .eq("id", user.id)
-      .single();
+      .single() as { data: { rol: string } | null; error: null };
 
     if (!profile) {
       console.error("No se encontró perfil para usuario:", user.id);
