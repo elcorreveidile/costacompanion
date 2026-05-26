@@ -204,3 +204,80 @@ export async function toggleDestacado(
 
   revalidatePath('/admin/acompanantes');
 }
+
+export async function asignarAcompananteExistente(
+  formData: FormData
+): Promise<{ error?: string }> {
+  const admin = createAdminClient() as RawClient;
+
+  const email = (formData.get('email') as string | null)?.trim().toLowerCase();
+  const nombre_publico = (formData.get('nombre_publico') as string | null)?.trim();
+  const slugInput = (formData.get('slug') as string | null)?.trim();
+
+  if (!email || !nombre_publico) {
+    return { error: 'Email y nombre son obligatorios.' };
+  }
+
+  try {
+    // Buscar el usuario por email en Auth
+    const { data: listData, error: listError } = await createAdminClient().auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
+
+    if (listError) return { error: listError.message };
+
+    const authUser = listData.users.find(
+      (u) => u.email?.toLowerCase() === email
+    );
+
+    if (!authUser) {
+      return { error: `No existe ningún usuario registrado con el email "${email}".` };
+    }
+
+    const userId = authUser.id;
+
+    // Comprobar que no tenga ya una ficha de acompañante
+    const { data: existing } = await admin
+      .from('acompanantes')
+      .select('id')
+      .eq('profile_id', userId)
+      .maybeSingle();
+
+    if (existing) {
+      return { error: 'Este usuario ya tiene una ficha de acompañante.' };
+    }
+
+    // Actualizar rol a 'acompanante'
+    const { error: profileError } = await admin
+      .from('profiles')
+      .upsert(
+        { id: userId, rol: 'acompanante', nombre: nombre_publico, idioma_preferido: 'es' },
+        { onConflict: 'id' }
+      );
+
+    if (profileError) return { error: profileError.message };
+
+    // Crear ficha
+    const baseSlug = slugInput ? generarSlug(slugInput) : generarSlug(nombre_publico);
+    const slug = await ensureUniqueSlug(admin, baseSlug);
+
+    const { error: insertError } = await admin.from('acompanantes').insert({
+      profile_id: userId,
+      slug,
+      nombre_publico,
+      email_contacto: email,
+      idiomas: [],
+      zonas: [],
+      modalidades: [],
+    });
+
+    if (insertError) return { error: insertError.message };
+
+    revalidatePath('/admin/acompanantes');
+    return {};
+  } catch (err) {
+    console.error('asignarAcompananteExistente error:', err);
+    return { error: 'Error inesperado al asignar el acompañante.' };
+  }
+}
