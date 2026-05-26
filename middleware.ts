@@ -4,22 +4,31 @@ import { NextResponse, type NextRequest } from "next/server";
 /**
  * Middleware de protección de rutas por rol.
  *
- * Rutas públicas:
- * - /, /auth/*, /unauthorized
- *
- * Rutas protegidas (requieren autenticación):
+ * Solo protege prefijos específicos:
  * - /profile (cualquier rol autenticado)
  * - /cliente/* (solo rol='cliente')
  * - /acompanante/* (solo rol='acompanante')
  * - /anunciante/* (solo rol='anunciante')
  * - /admin/* (solo rol='superadmin')
+ *
+ * Todo lo demás (/, /directorio, /{slug}, /auth/*, etc.) es público.
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Rutas públicas - sin protección
-  const publicRoutes = ["/", "/auth/login", "/auth/callback", "/unauthorized"];
-  if (publicRoutes.some((route) => pathname.startsWith(route))) {
+  // Solo proteger prefijos específicos; todo lo demás es público
+  const protectedPrefixes = [
+    "/cliente",
+    "/acompanante",
+    "/anunciante",
+    "/admin",
+    "/profile",
+  ];
+  const isProtected = protectedPrefixes.some((prefix) =>
+    pathname.startsWith(prefix)
+  );
+
+  if (!isProtected) {
     return NextResponse.next();
   }
 

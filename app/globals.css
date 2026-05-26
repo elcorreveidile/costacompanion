@@ -22,13 +22,13 @@
   --color-ink:         var(--ink);
   --color-line:        var(--line);
 
-  --font-display: var(--font-fraunces);
-  --font-sans:    var(--font-jakarta);
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans:    "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
 body {
   background-color: var(--bone);
   color: var(--ink);
-  font-family: var(--font-jakarta), "Plus Jakarta Sans", sans-serif;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
