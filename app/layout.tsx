@@ -3,12 +3,37 @@ import "./globals.css";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.costacompanion.com'),
   title: {
     default: "Costa Companion — A tu lado, en tu idioma",
     template: "%s | Costa Companion",
   },
   description:
     "Plataforma de acompañamiento lingüístico para residentes y visitantes de la Costa del Sol.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  openGraph: {
+    title: "Costa Companion — A tu lado, en tu idioma",
+    description: "Plataforma de acompañamiento lingüístico para residentes y visitantes de la Costa del Sol.",
+    url: "https://www.costacompanion.com",
+    siteName: "Costa Companion",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "es_ES",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
