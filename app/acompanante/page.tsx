@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/auth/actions";
-import { accederPortalStripe } from "@/lib/acompanante/billing";
+import { accederPortalStripe, cancelarMiSuscripcion } from "@/lib/acompanante/billing";
 import Link from "next/link";
 
 type EstadoStripe = 'sin_suscripcion' | 'active' | 'past_due' | 'canceled' | 'trialing';
@@ -198,15 +198,34 @@ export default async function AcompananteDashboard() {
                   )}
                 </div>
                 {fichaData.stripe_customer_id && (
-                  <form action={accederPortalStripe}>
-                    <button
-                      type="submit"
-                      className="text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
-                      style={{ background: 'var(--green)', color: 'var(--bone)' }}
-                    >
-                      Gestionar suscripción →
-                    </button>
-                  </form>
+                  <div className="flex gap-2 flex-wrap">
+                    <form action={accederPortalStripe}>
+                      <button
+                        type="submit"
+                        className="text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
+                        style={{ background: 'var(--green)', color: 'var(--bone)' }}
+                      >
+                        Ver facturas →
+                      </button>
+                    </form>
+                    {estado !== 'canceled' && (
+                      <form
+                        action={async () => {
+                          'use server';
+                          await cancelarMiSuscripcion();
+                        }}
+                      >
+                        <button
+                          type="submit"
+                          className="text-sm px-4 py-2 rounded-lg border transition-opacity hover:opacity-70"
+                          style={{ borderColor: '#b43c32', color: '#b43c32' }}
+                          title="Tu servicio seguirá activo hasta el final del período actual"
+                        >
+                          Cancelar suscripción
+                        </button>
+                      </form>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

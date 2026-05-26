@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { toggleActivo, toggleDestacado } from '@/lib/admin/acompanantes';
-import { activarConStripe } from '@/lib/admin/billing';
+import { activarConStripe, cancelarSuscripcionAdmin, reactivarSuscripcionAdmin } from '@/lib/admin/billing';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -16,6 +16,7 @@ interface AcompananteConProfile {
   destacado: boolean;
   created_at: string;
   stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
   stripe_subscription_status: EstadoStripe;
   profiles: { nombre: string | null; id: string } | null;
 }
@@ -33,7 +34,7 @@ export default async function AdminAcompanantesPage() {
 
   const { data: acompanantes } = await admin
     .from('acompanantes')
-    .select('id, slug, nombre_publico, activo, destacado, created_at, stripe_customer_id, stripe_subscription_status, profiles(nombre, id)')
+    .select('id, slug, nombre_publico, activo, destacado, created_at, stripe_customer_id, stripe_subscription_id, stripe_subscription_status, profiles(nombre, id)')
     .order('created_at', { ascending: false });
 
   const lista = (acompanantes ?? []) as unknown as AcompananteConProfile[];
@@ -141,12 +142,63 @@ export default async function AdminAcompanantesPage() {
                       {/* Suscripción Stripe */}
                       <td className="px-4 py-3">
                         {ac.stripe_customer_id ? (
-                          <span
-                            className="text-xs font-medium px-2.5 py-1 rounded-full"
-                            style={{ background: badge.bg, color: badge.color }}
-                          >
-                            {badge.label}
-                          </span>
+                          <div className="flex flex-col gap-1.5">
+                            <span
+                              className="text-xs font-medium px-2.5 py-1 rounded-full self-start"
+                              style={{ background: badge.bg, color: badge.color }}
+                            >
+                              {badge.label}
+                            </span>
+                            {ac.stripe_subscription_id && ac.stripe_subscription_status !== 'canceled' && (
+                              <div className="flex gap-1 flex-wrap">
+                                <form
+                                  action={async () => {
+                                    'use server';
+                                    await cancelarSuscripcionAdmin(ac.id, false);
+                                  }}
+                                >
+                                  <button
+                                    type="submit"
+                                    className="text-xs px-2 py-1 rounded border transition-opacity hover:opacity-70"
+                                    style={{ borderColor: '#b43c32', color: '#b43c32' }}
+                                    title="Cancela al final del período actual"
+                                  >
+                                    Cancelar período
+                                  </button>
+                                </form>
+                                <form
+                                  action={async () => {
+                                    'use server';
+                                    await cancelarSuscripcionAdmin(ac.id, true);
+                                  }}
+                                >
+                                  <button
+                                    type="submit"
+                                    className="text-xs px-2 py-1 rounded border transition-opacity hover:opacity-70"
+                                    style={{ borderColor: '#b43c32', color: '#b43c32', background: 'rgba(180,60,50,0.08)' }}
+                                    title="Cancela inmediatamente"
+                                  >
+                                    Cancelar ya
+                                  </button>
+                                </form>
+                                <form
+                                  action={async () => {
+                                    'use server';
+                                    await reactivarSuscripcionAdmin(ac.id);
+                                  }}
+                                >
+                                  <button
+                                    type="submit"
+                                    className="text-xs px-2 py-1 rounded border transition-opacity hover:opacity-70"
+                                    style={{ borderColor: 'var(--green)', color: 'var(--green)' }}
+                                    title="Revierte una cancelación pendiente"
+                                  >
+                                    Reactivar
+                                  </button>
+                                </form>
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           <form
                             action={async () => {

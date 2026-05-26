@@ -123,3 +123,67 @@ export async function sincronizarEstadoStripe(
     .eq('stripe_customer_id', customerId);
   revalidatePath('/admin/acompanantes');
 }
+
+interface AcompananteSubscripcion {
+  stripe_subscription_id: string | null;
+  stripe_customer_id: string | null;
+}
+
+export async function cancelarSuscripcionAdmin(
+  acompananteId: string,
+  inmediato: boolean = false
+): Promise<{ error?: string }> {
+  const admin = createAdminClient();
+  const stripe = getStripe();
+
+  const { data: acomp } = await (admin as RawClient)
+    .from('acompanantes')
+    .select('stripe_subscription_id, stripe_customer_id')
+    .eq('id', acompananteId)
+    .single() as { data: AcompananteSubscripcion | null };
+
+  if (!acomp?.stripe_subscription_id) return { error: 'Sin suscripción activa.' };
+
+  try {
+    if (inmediato) {
+      await stripe.subscriptions.cancel(acomp.stripe_subscription_id);
+      await (admin as RawClient)
+        .from('acompanantes')
+        .update({ stripe_subscription_status: 'canceled', activo: false })
+        .eq('id', acompananteId);
+    } else {
+      await stripe.subscriptions.update(acomp.stripe_subscription_id, {
+        cancel_at_period_end: true,
+      });
+    }
+    revalidatePath('/admin/acompanantes');
+    return {};
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Error en Stripe' };
+  }
+}
+
+export async function reactivarSuscripcionAdmin(
+  acompananteId: string
+): Promise<{ error?: string }> {
+  const admin = createAdminClient();
+  const stripe = getStripe();
+
+  const { data: acomp } = await (admin as RawClient)
+    .from('acompanantes')
+    .select('stripe_subscription_id')
+    .eq('id', acompananteId)
+    .single() as { data: AcompananteSubscripcion | null };
+
+  if (!acomp?.stripe_subscription_id) return { error: 'Sin suscripción.' };
+
+  try {
+    await stripe.subscriptions.update(acomp.stripe_subscription_id, {
+      cancel_at_period_end: false,
+    });
+    revalidatePath('/admin/acompanantes');
+    return {};
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Error en Stripe' };
+  }
+}
