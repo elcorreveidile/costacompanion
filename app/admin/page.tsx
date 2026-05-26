@@ -83,8 +83,9 @@ export default async function AdminDashboard() {
             </p>
           </Link>
 
-          <div
-            className="rounded-xl border p-6 shadow-sm opacity-40"
+          <Link
+            href="/admin/anunciantes"
+            className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
             <div
@@ -98,8 +99,8 @@ export default async function AdminDashboard() {
             <h3 className="font-display text-lg font-medium text-(--green) mb-1">
               Anunciantes
             </h3>
-            <p className="text-sm text-(--ink)/60">Próximamente: gestión de Local Partners.</p>
-          </div>
+            <p className="text-sm text-(--ink)/60">Gestiona los Local Partners: alta, edición, suscripciones Stripe.</p>
+          </Link>
 
           <Link
             href="/admin/resenas"

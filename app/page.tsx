@@ -1,4 +1,5 @@
 import { LogoSymbol } from "@/components/icons/LogoSymbol";
+import { LocalPartnersDestacados } from "@/components/LocalPartnersDestacados";
 import Link from "next/link";
 
 const CLAIM = {
@@ -82,6 +83,11 @@ export default function Home() {
         >
           Acceder con Magic Link
         </Link>
+      </div>
+
+      {/* Local Partners destacados */}
+      <div className="w-full max-w-4xl mt-12 px-4">
+        <LocalPartnersDestacados />
       </div>
     </div>
   );

@@ -1,6 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/auth/actions";
+import { accederPortalStripe, cancelarMiSuscripcion } from "@/lib/acompanante/billing";
 import Link from "next/link";
+
+type EstadoStripe = 'sin_suscripcion' | 'active' | 'past_due' | 'canceled' | 'trialing';
+
+const STRIPE_BADGE: Record<EstadoStripe, { label: string; bg: string; color: string }> = {
+  active:          { label: 'Activa',           bg: 'rgba(74,111,80,0.12)',  color: 'var(--green-deep)' },
+  trialing:        { label: 'Período de prueba', bg: 'rgba(74,111,80,0.08)',  color: 'var(--green)' },
+  past_due:        { label: 'Pago pendiente',   bg: 'rgba(180,60,50,0.10)',  color: '#b43c32' },
+  canceled:        { label: 'Cancelada',        bg: 'rgba(43,39,36,0.08)',   color: 'rgba(43,39,36,0.5)' },
+  sin_suscripcion: { label: 'Sin suscripción',  bg: 'rgba(201,123,74,0.12)', color: 'var(--terra)' },
+};
 
 export const metadata = { title: 'Mi Panel — Acompañante | Costa Companion' };
 
@@ -22,9 +33,9 @@ export default async function AcompananteDashboard() {
 
   const { data: fichaData } = await supabase
     .from('acompanantes')
-    .select('slug')
+    .select('slug, stripe_customer_id, stripe_subscription_status')
     .eq('profile_id', user.id)
-    .single() as { data: { slug: string } | null; error: null };
+    .single() as { data: { slug: string; stripe_customer_id: string | null; stripe_subscription_status: EstadoStripe } | null; error: null };
 
   const panelSections = [
     {
@@ -159,6 +170,67 @@ export default async function AcompananteDashboard() {
             </Link>
           ))}
         </div>
+
+        {/* Suscripción */}
+        {fichaData && (() => {
+          const estado = fichaData.stripe_subscription_status ?? 'sin_suscripcion';
+          const badge = STRIPE_BADGE[estado] ?? STRIPE_BADGE.sin_suscripcion;
+          return (
+            <div className="bg-(--bone-2) rounded-xl p-6 shadow-sm border border-(--line) mb-4">
+              <h3 className="font-medium text-(--green) mb-3">Tu suscripción</h3>
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="text-sm font-medium px-3 py-1 rounded-full"
+                    style={{ background: badge.bg, color: badge.color }}
+                  >
+                    {badge.label}
+                  </span>
+                  {estado === 'past_due' && (
+                    <p className="text-sm" style={{ color: '#b43c32' }}>
+                      Hay una factura pendiente de pago. Revisa tu correo o accede al portal.
+                    </p>
+                  )}
+                  {estado === 'sin_suscripcion' && (
+                    <p className="text-sm text-(--ink)/60">
+                      Contacta con el equipo de Costa Companion para activar tu cuenta.
+                    </p>
+                  )}
+                </div>
+                {fichaData.stripe_customer_id && (
+                  <div className="flex gap-2 flex-wrap">
+                    <form action={accederPortalStripe}>
+                      <button
+                        type="submit"
+                        className="text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
+                        style={{ background: 'var(--green)', color: 'var(--bone)' }}
+                      >
+                        Ver facturas →
+                      </button>
+                    </form>
+                    {estado !== 'canceled' && (
+                      <form
+                        action={async () => {
+                          'use server';
+                          await cancelarMiSuscripcion();
+                        }}
+                      >
+                        <button
+                          type="submit"
+                          className="text-sm px-4 py-2 rounded-lg border transition-opacity hover:opacity-70"
+                          style={{ borderColor: '#b43c32', color: '#b43c32' }}
+                          title="Tu servicio seguirá activo hasta el final del período actual"
+                        >
+                          Cancelar suscripción
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Información de cuenta */}
         <div className="bg-(--bone-2) rounded-lg p-6 shadow-sm border border-(--line) mb-4">
