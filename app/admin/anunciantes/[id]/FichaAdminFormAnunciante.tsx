@@ -128,6 +128,14 @@ export function FichaAdminFormAnunciante({ anunciante }: { anunciante: Anunciant
         </div>
       </div>
 
+      {/* Dirección */}
+      <div>
+        <label className={labelClass}>Dirección (se muestra con enlace a Google Maps)</label>
+        <input name="direccion" type="text" defaultValue={anunciante.direccion ?? ''}
+          placeholder="Calle Ejemplo 1, Estepona, Málaga"
+          className={inputClass} style={inputStyle} />
+      </div>
+
       {/* Activo */}
       <div className="flex items-center gap-3 pt-2">
         <input type="checkbox" name="activo" id="activo" defaultChecked={anunciante.activo}

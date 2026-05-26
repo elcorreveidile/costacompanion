@@ -192,6 +192,7 @@ export interface Anunciante {
   email: string | null;
   whatsapp: string | null;
   zona: string | null;
+  direccion: string | null;
   plan: PlanAnunciante;
   activo: boolean;
   stripe_customer_id: string | null;

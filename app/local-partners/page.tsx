@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Anunciante, CategoriaAnunciante } from '@/types/supabase';
 
 export const dynamic = 'force-dynamic';
@@ -183,9 +184,15 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
                             className="w-14 h-14 rounded-lg object-cover shrink-0"
                             style={{ border: '1px solid var(--line)' }} />
                         ) : (
-                          <div className="w-14 h-14 rounded-lg flex items-center justify-center shrink-0 text-2xl"
-                            style={{ background: 'var(--bone)', border: '1px solid var(--line)' }}>
-                            {CAT_ICON[an.categoria]}
+                          <div className="w-14 h-14 rounded-lg shrink-0 overflow-hidden"
+                            style={{ border: '1px solid var(--line)' }}>
+                            <Image
+                              src="/images/local-partner-placeholder.png"
+                              alt="Local Partner"
+                              width={56}
+                              height={56}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                         )}
                         <div>
@@ -201,6 +208,25 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
                       {desc.es && (
                         <p className="text-sm text-(--ink)/70 leading-relaxed line-clamp-3">{desc.es}</p>
                       )}
+
+                      {/* Dirección + mapa */}
+                      {an.direccion && (() => {
+                        const mapsHref = `https://maps.google.com/?q=${encodeURIComponent(an.direccion!)}`;
+                        return (
+                          <a href={mapsHref} target="_blank" rel="noopener noreferrer"
+                            className="flex items-start gap-1.5 group transition-opacity hover:opacity-70">
+                            <svg className="w-3.5 h-3.5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"
+                              stroke="currentColor" strokeWidth={1.8} style={{ color: 'var(--terra)' }}>
+                              <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="text-xs leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.6 }}>
+                              {an.direccion}
+                            </span>
+                          </a>
+                        );
+                      })()}
 
                       {/* Contacto */}
                       <div className="flex flex-wrap gap-2 mt-auto pt-2">
@@ -233,6 +259,19 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
                             style={{ background: 'var(--bone)', color: 'var(--ink)', border: '1px solid var(--line)' }}>
                             Email
+                          </a>
+                        )}
+                        {an.direccion && (
+                          <a href={`https://maps.google.com/?q=${encodeURIComponent(an.direccion)}`}
+                            target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
+                            style={{ background: 'rgba(66,133,244,0.1)', color: '#2563eb' }}>
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Ver en mapa
                           </a>
                         )}
                       </div>

@@ -19,9 +19,9 @@ export default async function AnuncianteFichaPage() {
   const admin = createAdminClient();
   const { data } = await (admin as RawClient)
     .from('anunciantes')
-    .select('descripcion, logo_url, web, telefono, email, whatsapp, nombre_negocio, categoria, zona, plan')
+    .select('descripcion, logo_url, web, telefono, email, whatsapp, nombre_negocio, categoria, zona, plan, direccion')
     .eq('profile_id', user.id)
-    .single() as { data: Pick<Anunciante, 'descripcion' | 'logo_url' | 'web' | 'telefono' | 'email' | 'whatsapp' | 'nombre_negocio' | 'categoria' | 'zona' | 'plan'> | null };
+    .single() as { data: Pick<Anunciante, 'descripcion' | 'logo_url' | 'web' | 'telefono' | 'email' | 'whatsapp' | 'nombre_negocio' | 'categoria' | 'zona' | 'plan' | 'direccion'> | null };
 
   if (!data) redirect('/anunciante');
 
@@ -45,6 +45,7 @@ export default async function AnuncianteFichaPage() {
         email:     (formData.get('email') as string | null) || null,
         telefono:  (formData.get('telefono') as string | null) || null,
         whatsapp:  (formData.get('whatsapp') as string | null) || null,
+        direccion: (formData.get('direccion') as string | null) || null,
       })
       .eq('profile_id', u.id);
 

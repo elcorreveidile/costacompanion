@@ -38,6 +38,7 @@ export default async function AdminAnunciantesPage() {
     .order('created_at', { ascending: false });
 
   const lista = (data ?? []) as unknown as Anunciante[];
+  const pendientes = lista.filter((a) => !a.activo && !a.stripe_customer_id);
   const hayAlertasPago = lista.some((a) => a.stripe_subscription_status === 'past_due');
 
   return (
@@ -65,6 +66,21 @@ export default async function AdminAnunciantesPage() {
             Nuevo anunciante
           </Link>
         </div>
+
+        {/* Alerta pendientes de aprobación (auto-alta pública) */}
+        {pendientes.length > 0 && (
+          <div
+            className="rounded-xl border px-5 py-4 mb-4 flex items-center gap-3"
+            style={{ background: 'rgba(201,123,74,0.08)', borderColor: 'var(--terra)' }}
+          >
+            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="var(--terra)" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm" style={{ color: 'var(--terra)' }}>
+              {pendientes.length} negocio{pendientes.length !== 1 ? 's' : ''} pendiente{pendientes.length !== 1 ? 's' : ''} de aprobación — revisa la tabla y activa el que corresponda con &quot;Activar y facturar&quot;.
+            </p>
+          </div>
+        )}
 
         {/* Alerta pagos fallidos */}
         {hayAlertasPago && (
@@ -110,7 +126,14 @@ export default async function AdminAnunciantesPage() {
                     >
                       {/* Negocio */}
                       <td className="px-4 py-3">
-                        <div className="font-medium text-(--ink)">{an.nombre_negocio}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-(--ink)">{an.nombre_negocio}</span>
+                          {!an.activo && !an.stripe_customer_id && (
+                            <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(201,123,74,0.15)', color: 'var(--terra)' }}>
+                              Pendiente
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xs text-(--ink)/50 font-mono mt-0.5">{an.slug}</div>
                       </td>
 

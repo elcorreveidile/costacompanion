@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.costacompanion.com'),
@@ -41,9 +42,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-(--bone) text-(--ink) font-sans antialiased">
+      <body className="min-h-screen bg-(--bone) text-(--ink) font-sans antialiased flex flex-col">
         <SiteHeader />
-        <main>{children}</main>
+        <main className="flex-1">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );

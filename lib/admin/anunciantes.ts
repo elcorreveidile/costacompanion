@@ -176,10 +176,11 @@ export async function actualizarAnunciante(
         telefono:       (formData.get('telefono') as string | null) || null,
         email:          (formData.get('email') as string | null) || null,
         whatsapp:       (formData.get('whatsapp') as string | null) || null,
-        zona:           (formData.get('zona') as string | null) || null,
-        categoria:      (formData.get('categoria') as string | null) ?? '',
-        plan:           (formData.get('plan') as string | null) ?? 'basico',
-        activo:         formData.get('activo') === 'on',
+        zona:      (formData.get('zona') as string | null) || null,
+        direccion: (formData.get('direccion') as string | null) || null,
+        categoria: (formData.get('categoria') as string | null) ?? '',
+        plan:      (formData.get('plan') as string | null) ?? 'basico',
+        activo:    formData.get('activo') === 'on',
       })
       .eq('id', id);
 
