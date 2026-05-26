@@ -1,10 +1,23 @@
-import { createClient } from "@/lib/supabase/server";
 import { LogoSymbol } from "@/components/icons/LogoSymbol";
 import Link from "next/link";
 
+async function getSession() {
+  // Guarda contra variables de entorno no configuradas
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return null;
+  }
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    return session;
+  } catch {
+    return null;
+  }
+}
+
 export async function SiteHeader() {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const session = await getSession();
 
   return (
     <header className="w-full bg-(--green) py-4 px-6">
