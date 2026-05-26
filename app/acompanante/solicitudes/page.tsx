@@ -140,6 +140,22 @@ export default async function AcompananteSolicitudesPage() {
                     </span>
                   </div>
 
+                  {/* Chat (solicitudes aceptadas) */}
+                  {solicitud.estado === 'aceptada' && (
+                    <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
+                      <Link
+                        href="/acompanante/mensajes"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg border transition-opacity hover:opacity-80"
+                        style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                        Ir al chat
+                      </Link>
+                    </div>
+                  )}
+
                   {/* Acciones según estado */}
                   {solicitud.estado === 'pendiente' && (
                     <div className="mt-4 pt-4 border-t space-y-3" style={{ borderColor: 'var(--line)' }}>

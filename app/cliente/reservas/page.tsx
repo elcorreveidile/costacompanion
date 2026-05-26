@@ -155,31 +155,38 @@ export default async function ClienteReservasPage() {
                     </span>
                   </div>
 
-                  {/* Contacto directo (solo reservas confirmadas) */}
-                  {reserva.estado === 'confirmada' && reserva.acompanantes && (
+                  {/* Contacto + chat (solo reservas confirmadas o completadas) */}
+                  {(reserva.estado === 'confirmada' || reserva.estado === 'completada') && reserva.acompanantes && (
                     <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
-                      <p className="text-sm font-medium text-(--ink) mb-2">
-                        📞 Contacto directo con el acompañante:
-                      </p>
                       <div className="flex flex-wrap gap-2">
-                        {reserva.acompanantes.email_contacto && (
-                          <a
-                            href={`mailto:${reserva.acompanantes.email_contacto}`}
-                            className="text-xs px-3 py-1.5 rounded-lg border transition-opacity hover:opacity-80"
-                            style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
-                          >
-                            ✉️ Email
-                          </a>
-                        )}
-                        {reserva.acompanantes.whatsapp && (
+                        <Link
+                          href="/cliente/mensajes"
+                          className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
+                          style={{ background: 'var(--green)', color: 'var(--bone)' }}
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                          </svg>
+                          Ir al chat
+                        </Link>
+                        {reserva.estado === 'confirmada' && reserva.acompanantes.whatsapp && (
                           <a
                             href={`https://wa.me/${reserva.acompanantes.whatsapp.replace(/\D/g, '')}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs px-3 py-1.5 rounded-lg border transition-opacity hover:opacity-80"
-                            style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg border transition-opacity hover:opacity-80"
+                            style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}
                           >
-                            💬 WhatsApp
+                            WhatsApp
+                          </a>
+                        )}
+                        {reserva.estado === 'confirmada' && reserva.acompanantes.email_contacto && (
+                          <a
+                            href={`mailto:${reserva.acompanantes.email_contacto}`}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg border transition-opacity hover:opacity-80"
+                            style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}
+                          >
+                            Email
                           </a>
                         )}
                       </div>

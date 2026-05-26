@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { RealtimeRefresher } from '@/components/RealtimeRefresher';
 import type { EstadoSolicitud, Modalidad } from '@/types/supabase';
 
 interface AcompananteJoin {
@@ -45,6 +46,7 @@ export default async function ClienteSolicitudesPage() {
 
   return (
     <div className="min-h-screen bg-(--bone)">
+      <RealtimeRefresher table="solicitudes" filter={`cliente_id=eq.${user.id}`} />
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Encabezado */}
         <div className="mb-8">
@@ -129,6 +131,22 @@ export default async function ClienteSolicitudesPage() {
                       {badge.label}
                     </span>
                   </div>
+
+                  {/* Chat (solicitudes aceptadas) */}
+                  {solicitud.estado === 'aceptada' && (
+                    <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
+                      <Link
+                        href="/cliente/mensajes"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
+                        style={{ background: 'var(--green)', color: 'var(--bone)' }}
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                        Ir al chat
+                      </Link>
+                    </div>
+                  )}
                 </div>
               );
             })}
