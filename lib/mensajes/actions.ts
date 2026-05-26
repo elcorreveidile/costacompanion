@@ -245,7 +245,7 @@ export async function iniciarConversacion(formData: FormData): Promise<{ error?:
     return { error: 'No puedes enviar mensajes a ti mismo.' };
   }
 
-  // Si ya existe conversación, redirigir al chat sin crear mensaje duplicado
+  // Si ya existe conversación, ir directamente al chat
   const { data: conversacionPrevia } = await (supabase as RawClient)
     .from('mensajes')
     .select('id')
@@ -253,22 +253,20 @@ export async function iniciarConversacion(formData: FormData): Promise<{ error?:
     .limit(1)
     .maybeSingle();
 
-  if (conversacionPrevia) {
-    return {};
+  if (!conversacionPrevia) {
+    const { error } = await (supabase as RawClient).from('mensajes').insert({
+      emisor_id: user.id,
+      receptor_id: acompanante.profile_id,
+      texto: mensajeInicial,
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath('/cliente/mensajes');
+    revalidatePath(`/${acompananteSlug}`);
   }
 
-  const { error } = await (supabase as RawClient).from('mensajes').insert({
-    emisor_id: user.id,
-    receptor_id: acompanante.profile_id,
-    texto: mensajeInicial,
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath('/cliente/mensajes');
-  revalidatePath(`/${acompananteSlug}`);
-
-  return {};
+  redirect('/cliente/mensajes');
 }
