@@ -47,7 +47,7 @@ function Estrellas({ valor, total }: { valor: number | null; total: number }) {
         </svg>
       ))}
       {total > 0 && (
-        <span className="text-sm text-(--ink)/60 ml-1.5">
+        <span className="text-sm ml-1.5" style={{ color: 'var(--bone)' }}>
           {(valor ?? 0).toFixed(1)} ({total} reseña{total !== 1 ? 's' : ''})
         </span>
       )}
