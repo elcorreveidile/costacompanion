@@ -92,7 +92,6 @@ export default async function AdminResenasPage() {
                         <Link
                           href={`/${resena.acompanantes.slug}`}
                           className="font-medium text-(--green) hover:opacity-70 transition-opacity"
-                          target="_blank"
                         >
                           {resena.acompanantes.nombre_publico}
                         </Link>

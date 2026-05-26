@@ -8,8 +8,10 @@ export const metadata = {
 const waNum = process.env.NEXT_PUBLIC_WHATSAPP ?? '';
 const waHref = waNum ? `https://wa.me/${waNum.replace(/\D/g, '')}` : '#';
 
-const precioBasico    = process.env.NEXT_PUBLIC_PRICE_DISPLAY_PARTNER_BASIC    ?? '29 €';
-const precioDestacado = process.env.NEXT_PUBLIC_PRICE_DISPLAY_PARTNER_FEATURED ?? '79 €';
+const precioBasico           = process.env.NEXT_PUBLIC_PRICE_DISPLAY_PARTNER_BASIC            ?? '29 €';
+const precioDestacado        = process.env.NEXT_PUBLIC_PRICE_DISPLAY_PARTNER_FEATURED         ?? '79 €';
+const precioBasicoAnual      = process.env.NEXT_PUBLIC_PRICE_DISPLAY_PARTNER_BASIC_ANNUAL     ?? '290 €';
+const precioDestacadoAnual   = process.env.NEXT_PUBLIC_PRICE_DISPLAY_PARTNER_FEATURED_ANNUAL  ?? '790 €';
 
 const POR_QUE = [
   {
@@ -77,18 +79,28 @@ export default function ParaNegociosPage() {
             Planes
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {/* Básico */}
             <div
               className="rounded-xl border p-6 flex flex-col gap-3"
               style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between gap-2">
                 <h3 className="font-display text-lg font-semibold" style={{ color: 'var(--green)' }}>Básico</h3>
-                <span className="text-xl font-bold" style={{ color: 'var(--terra)' }}>{precioBasico}<span className="text-sm font-normal">/mes</span></span>
+                <div className="text-right shrink-0">
+                  <div>
+                    <span className="text-xl font-bold" style={{ color: 'var(--terra)' }}>{precioBasico}</span>
+                    <span className="text-sm font-normal" style={{ color: 'var(--ink)', opacity: 0.5 }}>/mes</span>
+                  </div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--ink)', opacity: 0.45 }}>
+                    o {precioBasicoAnual}/año <span style={{ color: 'var(--terra)' }}>· 2 meses gratis</span>
+                  </div>
+                </div>
               </div>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
                 Tu ficha en el directorio Local Partners: logo, descripción, categoría, zona y datos de contacto.
               </p>
             </div>
+            {/* Destacado */}
             <div
               className="rounded-xl border-2 p-6 flex flex-col gap-3 relative overflow-hidden"
               style={{ background: 'var(--bone-2)', borderColor: 'var(--green)' }}
@@ -99,9 +111,17 @@ export default function ParaNegociosPage() {
               >
                 Recomendado
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between gap-2">
                 <h3 className="font-display text-lg font-semibold" style={{ color: 'var(--green)' }}>Destacado</h3>
-                <span className="text-xl font-bold" style={{ color: 'var(--terra)' }}>{precioDestacado}<span className="text-sm font-normal">/mes</span></span>
+                <div className="text-right shrink-0">
+                  <div>
+                    <span className="text-xl font-bold" style={{ color: 'var(--terra)' }}>{precioDestacado}</span>
+                    <span className="text-sm font-normal" style={{ color: 'var(--ink)', opacity: 0.5 }}>/mes</span>
+                  </div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--ink)', opacity: 0.45 }}>
+                    o {precioDestacadoAnual}/año <span style={{ color: 'var(--terra)' }}>· 2 meses gratis</span>
+                  </div>
+                </div>
               </div>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
                 Todo lo del plan Básico, más posición preferente en el directorio y presencia destacada en las zonas más visitadas de la plataforma.
@@ -121,6 +141,8 @@ export default function ParaNegociosPage() {
           <FormNegocio
             precioBasico={precioBasico}
             precioDestacado={precioDestacado}
+            precioBasicoAnual={precioBasicoAnual}
+            precioDestacadoAnual={precioDestacadoAnual}
             waHref={waHref}
           />
         </section>

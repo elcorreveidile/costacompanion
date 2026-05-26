@@ -34,7 +34,7 @@ export default async function AdminAnuncianteEditPage({ params }: PageProps) {
             <h1 className="font-display text-3xl font-semibold text-(--green)">{anunciante.nombre_negocio}</h1>
             <p className="text-(--ink)/50 text-sm mt-1 font-mono">{anunciante.slug}</p>
           </div>
-          <a href={`/local-partners/${anunciante.slug}`} target="_blank" rel="noopener noreferrer"
+          <a href={`/local-partners/${anunciante.slug}`}
             className="text-sm text-(--green) hover:opacity-70 transition-opacity mt-1">
             Ver ficha pública →
           </a>

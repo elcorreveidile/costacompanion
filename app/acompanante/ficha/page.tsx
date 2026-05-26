@@ -36,8 +36,6 @@ export default async function AcompananteFichaPage() {
           {acompanante?.slug && (
             <a
               href={`/${acompanante.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
               className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-opacity hover:opacity-80"
               style={{ borderColor: 'var(--green)', color: 'var(--green)', background: 'transparent' }}
             >

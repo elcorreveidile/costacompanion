@@ -47,7 +47,7 @@ export default async function AnuncianteDashboard() {
 
         {/* Ficha pública */}
         {fichaData?.slug && (
-          <a href={`/local-partners/${fichaData.slug}`} target="_blank" rel="noopener noreferrer"
+          <a href={`/local-partners/${fichaData.slug}`}
             className="flex items-center justify-between gap-4 rounded-xl border px-6 py-4 mb-6 transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--green)' }}>
             <div className="flex items-center gap-3">
