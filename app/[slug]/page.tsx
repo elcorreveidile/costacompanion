@@ -1,7 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { notFound } from 'next/navigation';
 import type { Acompanante, Servicio, PaqueteClases, Resena, ServiceCategory } from '@/types/supabase';
 import type { Metadata } from 'next';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+type RawClient = SupabaseClient;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -11,7 +15,7 @@ interface ServicioConExtras extends Servicio {
 }
 
 interface ResenaConProfile extends Resena {
-  profiles: { nombre: string | null } | null;
+  profiles: { id: string; nombre: string | null } | null;
 }
 
 interface PageProps {
@@ -97,12 +101,13 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
 
   const acompanante = rawAcompanante as unknown as Acompanante;
 
-  // Usuario autenticado (para mostrar botón de reseña)
+  // Usuario autenticado (para mostrar botón de reseña y chat)
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profileData } = user
-    ? await supabase.from('profiles').select('rol').eq('id', user.id).single() as { data: { rol: string } | null; error: null }
+    ? await supabase.from('profiles').select('rol, id').eq('id', user.id).single() as { data: { rol: string; id: string } | null; error: null }
     : { data: null };
   const puedeResena = profileData?.rol === 'cliente';
+  const esClienteAutenticado = profileData?.rol === 'cliente';
 
   // ¿Ya dejó reseña?
   const { data: resenaExistente } = puedeResena
@@ -131,19 +136,18 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
 
   const servicios = (serviciosData ?? []) as unknown as ServicioConExtras[];
 
-  // Cargar reseñas aprobadas
-  const { data: resenasData } = await supabase
+  const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
+
+  // Cargar reseñas aprobadas (con admin para poder acceder al nombre del cliente)
+  const admin = createAdminClient();
+  const { data: resenasData } = await (admin as RawClient)
     .from('resenas')
-    .select('*, profiles(nombre)')
+    .select('*, profiles!inner(id, nombre)')
     .eq('acompanante_id', acompanante.id)
     .eq('aprobada', true)
     .order('created_at', { ascending: false });
 
   const resenas = (resenasData ?? []) as unknown as ResenaConProfile[];
-
-  const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
-
-  // Agrupar servicios por categoría
   const serviciosPorCategoria: Record<string, ServicioConExtras[]> = {};
   for (const servicio of servicios) {
     const catKey = servicio.service_categories?.key ?? 'otros';
@@ -283,7 +287,26 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
             >
               Solicitud a medida
             </a>
-            {acompanante.email_contacto && (
+            {esClienteAutenticado ? (
+              <form
+                action={async () => {
+                  'use server';
+                  const { iniciarConversacion } = await import('@/lib/mensajes/actions');
+                  const fd = new FormData();
+                  fd.set('slug', slug);
+                  await iniciarConversacion(fd);
+                }}
+                className="inline"
+              >
+                <button
+                  type="submit"
+                  className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
+                  style={{ borderColor: 'var(--terra)', color: 'var(--terra)' }}
+                >
+                  💬 Chat directo
+                </button>
+              </form>
+            ) : acompanante.email_contacto ? (
               <a
                 href={`/${slug}/contactar`}
                 className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
@@ -291,7 +314,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
               >
                 Enviar mensaje
               </a>
-            )}
+            ) : null}
             {acompanante.whatsapp && (
               <a
                 href={`https://wa.me/${acompanante.whatsapp.replace(/\D/g, '')}`}

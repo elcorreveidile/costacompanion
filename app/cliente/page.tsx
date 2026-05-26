@@ -77,6 +77,27 @@ export default async function ClienteDashboard() {
           </Link>
 
           <Link
+            href="/cliente/mensajes"
+            className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
+            style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
+          >
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
+              style={{ background: 'var(--terra)' }}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </div>
+            <h3 className="font-display text-lg font-medium text-(--green) mb-1">
+              Mis mensajes
+            </h3>
+            <p className="text-sm text-(--ink)/60">
+              Chat directo con tus acompañantes.
+            </p>
+          </Link>
+
+          <Link
             href="/directorio"
             className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}

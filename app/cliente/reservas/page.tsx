@@ -8,6 +8,8 @@ import type { EstadoReserva, Modalidad } from '@/types/supabase';
 interface AcompananteJoin {
   nombre_publico: string;
   slug: string;
+  email_contacto: string | null;
+  whatsapp: string | null;
 }
 
 interface ServicioJoin {
@@ -44,7 +46,7 @@ export default async function ClienteReservasPage() {
 
   const { data: reservasData } = await supabase
     .from('reservas')
-    .select('id, fecha_hora, modalidad, zona, estado, acompanantes(nombre_publico, slug), servicios(titulo)')
+    .select('id, fecha_hora, modalidad, zona, estado, acompanantes(nombre_publico, slug, email_contacto, whatsapp), servicios(titulo)')
     .eq('cliente_id', user.id)
     .order('created_at', { ascending: false });
 
@@ -152,6 +154,37 @@ export default async function ClienteReservasPage() {
                       {badge.label}
                     </span>
                   </div>
+
+                  {/* Contacto directo (solo reservas confirmadas) */}
+                  {reserva.estado === 'confirmada' && reserva.acompanantes && (
+                    <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
+                      <p className="text-sm font-medium text-(--ink) mb-2">
+                        📞 Contacto directo con el acompañante:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {reserva.acompanantes.email_contacto && (
+                          <a
+                            href={`mailto:${reserva.acompanantes.email_contacto}`}
+                            className="text-xs px-3 py-1.5 rounded-lg border transition-opacity hover:opacity-80"
+                            style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
+                          >
+                            ✉️ Email
+                          </a>
+                        )}
+                        {reserva.acompanantes.whatsapp && (
+                          <a
+                            href={`https://wa.me/${reserva.acompanantes.whatsapp.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs px-3 py-1.5 rounded-lg border transition-opacity hover:opacity-80"
+                            style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
+                          >
+                            💬 WhatsApp
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Acción cancelar */}
                   {canCancel && (
