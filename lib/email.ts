@@ -155,3 +155,57 @@ export async function emailSolicitudRechazada(opts: {
     `),
   }).catch(console.error);
 }
+
+// ── Mensajes (Chat interno) ───────────────────────────────────────────────────────
+
+export async function notificarNuevoMensaje(opts: {
+  receptorEmail: string;
+  receptorNombre: string;
+  emisorNombre: string;
+  idioma: string; // es, en, fr, de, nl
+}) {
+  const textos: Record<string, { titulo: string; mensaje: string; boton: string }> = {
+    es: {
+      titulo: 'Nuevo mensaje recibido',
+      mensaje: `Tienes un nuevo mensaje de <strong>${opts.emisorNombre}</strong> en Costa Companion.`,
+      boton: 'Ver mensaje',
+    },
+    en: {
+      titulo: 'New message received',
+      mensaje: `You have a new message from <strong>${opts.emisorNombre}</strong> on Costa Companion.`,
+      boton: 'View message',
+    },
+    fr: {
+      titulo: 'Nouveau message reçu',
+      mensaje: `Vous avez un nouveau message de <strong>${opts.emisorNombre}</strong> sur Costa Companion.`,
+      boton: 'Voir le message',
+    },
+    de: {
+      titulo: 'Neue Nachricht erhalten',
+      mensaje: `Sie haben eine neue Nachricht von <strong>${opts.emisorNombre}</strong> auf Costa Companion.`,
+      boton: 'Nachricht anzeigen',
+    },
+    nl: {
+      titulo: 'Nieuw bericht ontvangen',
+      mensaje: `U heeft een nieuw bericht van <strong>${opts.emisorNombre}</strong> op Costa Companion.`,
+      boton: 'Bericht bekijken',
+    },
+  };
+
+  const txt = textos[opts.idioma] || textos.es;
+
+  // Determinar la URL del chat según el idioma del receptor
+  const chatUrl = `${SITE}/cliente/mensajes`;
+
+  await getResend().emails.send({
+    from: FROM,
+    to: [opts.receptorEmail],
+    subject: txt.titulo,
+    html: html(`
+      <h2 style="margin:0 0 14px;font-size:20px">${txt.titulo}</h2>
+      <p>Hola ${opts.receptorNombre}, ${txt.mensaje}</p>
+      <p style="color:#555;font-size:13px">Accede a la plataforma para leerlo y responder.</p>
+      ${btn(txt.boton, chatUrl)}
+    `),
+  }).catch(console.error);
+}

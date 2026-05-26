@@ -97,12 +97,13 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
 
   const acompanante = rawAcompanante as unknown as Acompanante;
 
-  // Usuario autenticado (para mostrar botón de reseña)
+  // Usuario autenticado (para mostrar botón de reseña y chat)
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profileData } = user
-    ? await supabase.from('profiles').select('rol').eq('id', user.id).single() as { data: { rol: string } | null; error: null }
+    ? await supabase.from('profiles').select('rol, id').eq('id', user.id).single() as { data: { rol: string; id: string } | null; error: null }
     : { data: null };
   const puedeResena = profileData?.rol === 'cliente';
+  const esClienteAutenticado = profileData?.rol === 'cliente';
 
   // ¿Ya dejó reseña?
   const { data: resenaExistente } = puedeResena
@@ -283,7 +284,26 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
             >
               Solicitud a medida
             </a>
-            {acompanante.email_contacto && (
+            {esClienteAutenticado ? (
+              <form
+                action={async () => {
+                  'use server';
+                  const { iniciarConversacion } = await import('@/lib/mensajes/actions');
+                  const fd = new FormData();
+                  fd.set('slug', slug);
+                  await iniciarConversacion(fd);
+                }}
+                className="inline"
+              >
+                <button
+                  type="submit"
+                  className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
+                  style={{ borderColor: 'var(--terra)', color: 'var(--terra)' }}
+                >
+                  💬 Chat directo
+                </button>
+              </form>
+            ) : acompanante.email_contacto ? (
               <a
                 href={`/${slug}/contactar`}
                 className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
@@ -291,7 +311,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
               >
                 Enviar mensaje
               </a>
-            )}
+            ) : null}
             {acompanante.whatsapp && (
               <a
                 href={`https://wa.me/${acompanante.whatsapp.replace(/\D/g, '')}`}
