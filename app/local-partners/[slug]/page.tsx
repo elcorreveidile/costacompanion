@@ -167,6 +167,8 @@ export default async function LocalPartnerPage({ params }: PageProps) {
                 </svg>
                 <a
                   href={mapsHref!}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-sm text-(--ink)/70 hover:text-(--ink) transition-colors leading-relaxed"
                 >
                   {an.direccion}
@@ -212,6 +214,8 @@ export default async function LocalPartnerPage({ params }: PageProps) {
             {whatsappNum && (
               <a
                 href={`https://wa.me/${whatsappNum}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
                 style={{ background: 'rgba(37,211,102,0.12)', color: '#128c7e', border: '1px solid rgba(37,211,102,0.2)' }}
               >
@@ -242,6 +246,8 @@ export default async function LocalPartnerPage({ params }: PageProps) {
             {mapsHref && (
               <a
                 href={mapsHref}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
                 style={{ background: 'rgba(66,133,244,0.1)', color: '#2563eb', border: '1px solid rgba(66,133,244,0.15)' }}
               >
