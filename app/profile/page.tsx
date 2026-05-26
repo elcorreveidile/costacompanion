@@ -23,7 +23,7 @@ export default async function ProfilePage() {
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single();
+    .single() as { data: { nombre: string | null; rol: string; telefono: string | null; idioma_preferido: string | null } | null; error: null };
 
   const rolLabels = {
     cliente: "Cliente",

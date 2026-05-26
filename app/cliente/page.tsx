@@ -15,7 +15,7 @@ export default async function ClienteDashboard() {
     .from("profiles")
     .select("nombre, rol")
     .eq("id", user.id)
-    .single();
+    .single() as { data: { nombre: string | null; rol: string } | null; error: null };
 
   const nombre = profile?.nombre || user.email;
 
