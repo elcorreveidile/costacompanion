@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { actualizarFicha } from '@/lib/acompanante/actions';
+import { FotoUpload } from './FotoUpload';
 import type { Acompanante } from '@/types/supabase';
 
 const IDIOMAS = [
@@ -45,6 +46,7 @@ function labelClass() {
 export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante }) {
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fotoUrl, setFotoUrl] = useState<string>(acompanante.foto_url ?? '');
 
   const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
 
@@ -83,15 +85,13 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
 
       {/* Foto */}
       <div>
-        <label className={labelClass()}>URL de foto</label>
-        <input
-          name="foto_url"
-          type="url"
-          defaultValue={acompanante.foto_url ?? ''}
-          placeholder="https://..."
-          className={inputClass()}
-          style={inputStyle}
+        <label className={labelClass()}>Foto de perfil</label>
+        <FotoUpload
+          initialUrl={acompanante.foto_url}
+          onUrlChange={setFotoUrl}
         />
+        {/* Hidden input so the main form always sends the current foto_url */}
+        <input type="hidden" name="foto_url" value={fotoUrl} readOnly />
       </div>
 
       {/* Bio */}

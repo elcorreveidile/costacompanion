@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Usamos un cliente sin tipado genérico para las operaciones DML que tienen
@@ -241,4 +242,54 @@ export async function eliminarDisponibilidad(
 
   revalidatePath('/acompanante/disponibilidad');
   return {};
+}
+
+// ── Subida de foto de perfil ──────────────────────────────────────────────────
+
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const BUCKET = 'fotos-acompanantes';
+
+export async function subirFotoAcompanante(
+  formData: FormData
+): Promise<{ url?: string; error?: string }> {
+  const supabase = await createClient();
+  const admin = createAdminClient();
+
+  const acompananteId = await getAcompananteId(supabase);
+  if (!acompananteId) return { error: 'No se encontró tu ficha de acompañante.' };
+
+  const file = formData.get('foto') as File | null;
+  if (!file || file.size === 0) return { error: 'No se seleccionó ninguna imagen.' };
+  if (file.size > MAX_BYTES) return { error: 'La imagen no puede superar 5 MB.' };
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return { error: 'Formato no permitido. Usa JPG, PNG o WEBP.' };
+  }
+
+  const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+  const path = `${acompananteId}.${ext}`;
+
+  const bytes = await file.arrayBuffer();
+  const buffer = Buffer.from(bytes);
+
+  const { error: uploadError } = await admin.storage
+    .from(BUCKET)
+    .upload(path, buffer, { contentType: file.type, upsert: true });
+
+  if (uploadError) return { error: uploadError.message };
+
+  const { data: { publicUrl } } = admin.storage.from(BUCKET).getPublicUrl(path);
+
+  // Cache-bust so the browser fetches the new image
+  const url = `${publicUrl}?t=${Date.now()}`;
+
+  const { error: dbError } = await (supabase as RawClient)
+    .from('acompanantes')
+    .update({ foto_url: publicUrl })
+    .eq('id', acompananteId);
+
+  if (dbError) return { error: dbError.message };
+
+  revalidatePath('/acompanante/ficha');
+  return { url };
 }

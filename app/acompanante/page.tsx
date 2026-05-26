@@ -20,6 +20,12 @@ export default async function AcompananteDashboard() {
 
   const nombre = profile?.nombre || user.email;
 
+  const { data: fichaData } = await supabase
+    .from('acompanantes')
+    .select('slug')
+    .eq('profile_id', user.id)
+    .single() as { data: { slug: string } | null; error: null };
+
   const panelSections = [
     {
       href: '/acompanante/ficha',
@@ -91,6 +97,32 @@ export default async function AcompananteDashboard() {
             Tu área de acompañante
           </p>
         </div>
+
+        {/* Banner: ver web pública */}
+        {fichaData?.slug && (
+          <a
+            href={`/${fichaData.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between gap-4 rounded-xl border px-6 py-4 mb-6 transition-opacity hover:opacity-80"
+            style={{ background: 'var(--bone-2)', borderColor: 'var(--green)' }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--green)' }}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-(--green)">Mi página pública</p>
+                <p className="text-xs text-(--ink)/50">costacompanion.com/{fichaData.slug}</p>
+              </div>
+            </div>
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--green)' }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        )}
 
         {/* Cards de navegación */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
