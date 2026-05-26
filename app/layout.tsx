@@ -3,10 +3,12 @@ import "./globals.css";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 
 export const metadata: Metadata = {
-  title: "Costa Companion — A tu lado, en tu idioma",
+  title: {
+    default: "Costa Companion — A tu lado, en tu idioma",
+    template: "%s | Costa Companion",
+  },
   description:
     "Plataforma de acompañamiento lingüístico para residentes y visitantes de la Costa del Sol.",
-  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({
