@@ -1,7 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { notFound } from 'next/navigation';
 import type { Acompanante, Servicio, PaqueteClases, Resena, ServiceCategory } from '@/types/supabase';
 import type { Metadata } from 'next';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+type RawClient = SupabaseClient;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -11,7 +15,7 @@ interface ServicioConExtras extends Servicio {
 }
 
 interface ResenaConProfile extends Resena {
-  cliente: { nombre: string | null } | null;
+  profiles: { id: string; nombre: string | null } | null;
 }
 
 interface PageProps {
@@ -132,19 +136,18 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
 
   const servicios = (serviciosData ?? []) as unknown as ServicioConExtras[];
 
-  // Cargar reseñas aprobadas
-  const { data: resenasData } = await supabase
+  const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
+
+  // Cargar reseñas aprobadas (con admin para poder acceder al nombre del cliente)
+  const admin = createAdminClient();
+  const { data: resenasData } = await (admin as RawClient)
     .from('resenas')
-    .select('*, cliente:profiles!resenas_cliente_id_fkey(nombre)')
+    .select('*, profiles!inner(id, nombre)')
     .eq('acompanante_id', acompanante.id)
     .eq('aprobada', true)
     .order('created_at', { ascending: false });
 
   const resenas = (resenasData ?? []) as unknown as ResenaConProfile[];
-
-  const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
-
-  // Agrupar servicios por categoría
   const serviciosPorCategoria: Record<string, ServicioConExtras[]> = {};
   for (const servicio of servicios) {
     const catKey = servicio.service_categories?.key ?? 'otros';
@@ -442,7 +445,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
                       <p className="font-medium text-(--ink)">
-                        {resena.cliente?.nombre ?? 'Cliente verificado'}
+                        {resena.profiles?.nombre ?? 'Cliente verificado'}
                       </p>
                       <p className="text-xs text-(--ink)/40">
                         {new Date(resena.created_at).toLocaleDateString('es-ES', {
