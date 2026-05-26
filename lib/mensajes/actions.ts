@@ -245,7 +245,7 @@ export async function iniciarConversacion(formData: FormData): Promise<{ error?:
     return { error: 'No puedes enviar mensajes a ti mismo.' };
   }
 
-  // Verificar si ya existe una conversación previa
+  // Si ya existe conversación, redirigir al chat sin crear mensaje duplicado
   const { data: conversacionPrevia } = await (supabase as RawClient)
     .from('mensajes')
     .select('id')
@@ -253,7 +253,10 @@ export async function iniciarConversacion(formData: FormData): Promise<{ error?:
     .limit(1)
     .maybeSingle();
 
-  // Insertar mensaje inicial (o nuevo mensaje si ya existe conversación)
+  if (conversacionPrevia) {
+    return {};
+  }
+
   const { error } = await (supabase as RawClient).from('mensajes').insert({
     emisor_id: user.id,
     receptor_id: acompanante.profile_id,
