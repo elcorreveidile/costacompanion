@@ -233,16 +233,11 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
 
                       {/* Contacto */}
                       <div className="flex flex-wrap gap-2 mt-auto pt-2">
-                        {an.web && (
-                          <a href={an.web} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
-                            style={{ background: 'var(--green)', color: 'var(--bone)' }}>
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                            Web
-                          </a>
-                        )}
+                        <Link href={`/local-partners/${an.slug}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
+                          style={{ background: 'var(--green)', color: 'var(--bone)' }}>
+                          Ver ficha
+                        </Link>
                         {whatsappNum && (
                           <a href={`https://wa.me/${whatsappNum}`} target="_blank" rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"

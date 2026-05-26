@@ -95,13 +95,11 @@ export async function LocalPartnersDestacados() {
 
               {/* Botones de acción */}
               <div className="flex gap-2 mt-auto flex-wrap">
-                {an.web && (
-                  <a href={an.web} target="_blank" rel="noopener noreferrer"
-                    className="flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-opacity hover:opacity-80"
-                    style={{ background: 'var(--green)', color: 'var(--bone)', minWidth: '52px' }}>
-                    Web
-                  </a>
-                )}
+                <Link href={`/local-partners/${an.slug}`}
+                  className="flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--green)', color: 'var(--bone)', minWidth: '52px' }}>
+                  Ver ficha
+                </Link>
                 {whatsappNum && (
                   <a href={`https://wa.me/${whatsappNum}`} target="_blank" rel="noopener noreferrer"
                     className="flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-opacity hover:opacity-80"
