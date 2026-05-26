@@ -19,15 +19,35 @@ const ZONAS = [
 interface Props {
   precioBasico: string;
   precioDestacado: string;
+  precioBasicoAnual: string;
+  precioDestacadoAnual: string;
   waHref: string;
 }
 
-export function FormNegocio({ precioBasico, precioDestacado, waHref }: Props) {
+export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, precioDestacadoAnual, waHref }: Props) {
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<'basico' | 'destacado'>('basico');
+  const [facturacion, setFacturacion] = useState<'mensual' | 'anual'>('mensual');
   const formRef = useRef<HTMLFormElement>(null);
+
+  const planes = [
+    {
+      value: 'basico' as const,
+      label: 'Básico',
+      precioMensual: precioBasico,
+      precioAnual: precioBasicoAnual,
+      desc: 'Ficha en el directorio Local Partners: logo, descripción y datos de contacto.',
+    },
+    {
+      value: 'destacado' as const,
+      label: 'Destacado',
+      precioMensual: precioDestacado,
+      precioAnual: precioDestacadoAnual,
+      desc: 'Todo lo anterior más posición preferente y presencia destacada en la plataforma.',
+    },
+  ];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -75,42 +95,94 @@ export function FormNegocio({ precioBasico, precioDestacado, waHref }: Props) {
       className="rounded-xl border p-8 space-y-6"
       style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
     >
+      {/* Toggle facturación */}
+      <div>
+        <p className="text-xs font-medium mb-3" style={{ color: 'var(--ink)', opacity: 0.6 }}>
+          Facturación
+        </p>
+        <div
+          className="inline-flex rounded-lg p-1 gap-1"
+          style={{ background: 'var(--bone)', border: '1px solid var(--line)' }}
+        >
+          {(['mensual', 'anual'] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFacturacion(f)}
+              className="relative px-4 py-1.5 rounded-md text-sm font-medium transition-all"
+              style={{
+                background: facturacion === f ? 'var(--green)' : 'transparent',
+                color: facturacion === f ? 'var(--bone)' : 'var(--ink)',
+              }}
+            >
+              {f === 'mensual' ? 'Mensual' : 'Anual'}
+              {f === 'anual' && (
+                <span
+                  className="ml-2 text-xs px-1.5 py-0.5 rounded-full font-semibold"
+                  style={{
+                    background: facturacion === 'anual' ? 'rgba(247,242,233,0.2)' : 'var(--terra)',
+                    color: facturacion === 'anual' ? 'var(--bone)' : 'var(--bone)',
+                  }}
+                >
+                  −2 meses
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        {facturacion === 'anual' && (
+          <p className="text-xs mt-2" style={{ color: 'var(--terra)' }}>
+            Pagas 10 meses y disfrutas 12. Ahorra hasta 158 € al año.
+          </p>
+        )}
+      </div>
+
       {/* Plan selector */}
       <div>
         <p className="text-xs font-medium mb-3" style={{ color: 'var(--ink)', opacity: 0.6 }}>
           Plan *
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {(
-            [
-              { value: 'basico' as const, label: 'Básico', precio: precioBasico, desc: 'Ficha en el directorio Local Partners: logo, descripción y datos de contacto.' },
-              { value: 'destacado' as const, label: 'Destacado', precio: precioDestacado, desc: 'Todo lo anterior más posición preferente y presencia destacada en la plataforma.' },
-            ] as const
-          ).map((p) => (
-            <label
-              key={p.value}
-              className="flex flex-col gap-2 p-4 rounded-lg border cursor-pointer transition-all"
-              style={{
-                borderColor: plan === p.value ? 'var(--green)' : 'var(--line)',
-                background: plan === p.value ? 'rgba(44,74,59,0.07)' : 'var(--bone)',
-              }}
-            >
-              <input
-                type="radio"
-                name="plan"
-                value={p.value}
-                checked={plan === p.value}
-                onChange={() => setPlan(p.value)}
-                className="sr-only"
-              />
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-sm" style={{ color: 'var(--green)' }}>{p.label}</span>
-                <span className="text-sm font-semibold" style={{ color: 'var(--terra)' }}>{p.precio}/mes</span>
-              </div>
-              <p className="text-xs leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.6 }}>{p.desc}</p>
-            </label>
-          ))}
+          {planes.map((p) => {
+            const precio = facturacion === 'anual' ? p.precioAnual : p.precioMensual;
+            const sufijo = facturacion === 'anual' ? '/año' : '/mes';
+            return (
+              <label
+                key={p.value}
+                className="flex flex-col gap-2 p-4 rounded-lg border cursor-pointer transition-all"
+                style={{
+                  borderColor: plan === p.value ? 'var(--green)' : 'var(--line)',
+                  background: plan === p.value ? 'rgba(44,74,59,0.07)' : 'var(--bone)',
+                }}
+              >
+                <input
+                  type="radio"
+                  name="plan"
+                  value={p.value}
+                  checked={plan === p.value}
+                  onChange={() => setPlan(p.value)}
+                  className="sr-only"
+                />
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-sm" style={{ color: 'var(--green)' }}>{p.label}</span>
+                  <div className="text-right">
+                    <span className="text-sm font-semibold" style={{ color: 'var(--terra)' }}>
+                      {precio}
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--ink)', opacity: 0.5 }}>{sufijo}</span>
+                    {facturacion === 'anual' && (
+                      <p className="text-xs" style={{ color: 'var(--ink)', opacity: 0.45 }}>
+                        ≈ {p.value === 'basico' ? '24' : '66'} €/mes
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.6 }}>{p.desc}</p>
+              </label>
+            );
+          })}
         </div>
+        <input type="hidden" name="facturacion" value={facturacion} />
       </div>
 
       {/* Datos del negocio */}
@@ -250,10 +322,6 @@ export function FormNegocio({ precioBasico, precioDestacado, waHref }: Props) {
           </a>
         )}
       </div>
-
-      <p className="text-xs" style={{ color: 'var(--ink)', opacity: 0.45 }}>
-        Revisaremos tu ficha antes de publicarla. Tu negocio estará visible una vez aprobado.
-      </p>
     </form>
   );
 }
