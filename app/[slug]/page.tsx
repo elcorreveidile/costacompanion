@@ -260,11 +260,11 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
             </a>
             {acompanante.email_contacto && (
               <a
-                href={`mailto:${acompanante.email_contacto}`}
+                href={`/${slug}/contactar`}
                 className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
                 style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
               >
-                Enviar email
+                Enviar mensaje
               </a>
             )}
             {acompanante.whatsapp && (
