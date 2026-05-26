@@ -36,10 +36,11 @@ export async function enviarMensaje(formData: FormData): Promise<{ error?: strin
     return { error: 'El mensaje es demasiado largo (máximo 2000 caracteres).' };
   }
 
-  // Verificar que el receptor existe
-  const { data: receptor } = await (supabase as RawClient)
+  // Verificar que el receptor existe — usar admin para evitar restricción RLS de profiles
+  const admin = createAdminClient();
+  const { data: receptor } = await (admin as RawClient)
     .from('profiles')
-    .select('id, rol, email, nombre, idioma_preferido')
+    .select('id, nombre, idioma_preferido')
     .eq('id', receptor_id)
     .single();
 
@@ -76,23 +77,19 @@ export async function enviarMensaje(formData: FormData): Promise<{ error?: strin
 
   // Solo enviar notificación si no hay mensajes pendientes (es el primero de la "sesión")
   if (!pendientes || pendientes.length === 0) {
-    // Obtener datos del emisor para el email
-    const { data: emisor } = await (supabase as RawClient)
-      .from('profiles')
-      .select('nombre')
-      .eq('id', user.id)
-      .single();
+    const [{ data: emisorProfile }, { data: { user: receptorAuth } }] = await Promise.all([
+      (admin as RawClient).from('profiles').select('nombre').eq('id', user.id).single(),
+      admin.auth.admin.getUserById(receptor_id),
+    ]);
 
-    // Enviar email de notificación
-    await notificarNuevoMensaje({
-      receptorEmail: receptor.email,
-      receptorNombre: receptor.nombre || 'Hola',
-      emisorNombre: emisor?.nombre || 'Alguien',
-      idioma: receptor.idioma_preferido || 'es',
-    }).catch((err) => {
-      // Fallar silenciosamente si el email no se envía
-      console.error('Error enviando notificación de mensaje:', err);
-    });
+    if (receptorAuth?.email) {
+      await notificarNuevoMensaje({
+        receptorEmail: receptorAuth.email,
+        receptorNombre: receptor.nombre || 'Hola',
+        emisorNombre: emisorProfile?.nombre || 'Alguien',
+        idioma: receptor.idioma_preferido || 'es',
+      }).catch(console.error);
+    }
   }
 
   return {};
