@@ -119,7 +119,7 @@ export default function Home() {
             A tu lado,<br />en tu idioma
           </h1>
           <p className="text-lg sm:text-xl max-w-xl leading-relaxed" style={{ color: 'rgba(247,244,239,0.82)' }}>
-            Alguien de confianza que te acompaña al médico, a la policía, al notario o al banco — y habla por ti cuando el idioma se interpone. Presencial o a distancia, en Estepona y Marbella.
+            Alguien de confianza que te acompaña al médico, a la policía, al notario o al banco — y habla por ti cuando el idioma se interpone. Presencial o a distancia, en Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares y toda la Costa del Sol occidental.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 mt-2">
             <Link
@@ -297,7 +297,7 @@ export default function Home() {
                 ¿Tienes un negocio en la costa?
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
-                Llega a la comunidad internacional de Estepona y Marbella. Si tu negocio cuida a los residentes extranjeros —una clínica, una inmobiliaria, una gestoría, un comercio—, preséntate ante quienes te buscan.
+                Llega a la comunidad internacional de la Costa del Sol occidental. Si tu negocio cuida a los residentes extranjeros —una clínica, una inmobiliaria, una gestoría, un comercio—, preséntate ante quienes te buscan.
               </p>
               <Link
                 href="/para-negocios"

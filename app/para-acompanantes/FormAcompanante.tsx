@@ -15,7 +15,8 @@ const IDIOMAS = [
 ];
 
 const ZONAS = [
-  'Estepona', 'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Toda la Costa del Sol',
+  'Estepona', 'Manilva', 'Casares', 'San Pedro de Alcántara', 'Puerto Banús', 'Benahavís',
+  'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Toda la Costa del Sol',
 ];
 
 export function FormAcompanante({ waHref }: { waHref: string }) {

@@ -22,7 +22,10 @@ const CATEGORIAS: { value: CategoriaAnunciante; label: string }[] = [
   { value: 'otros',        label: 'Otros' },
 ];
 
-const ZONAS = ['Estepona', 'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Otra Costa del Sol'];
+const ZONAS = [
+  'Estepona', 'Manilva', 'Casares', 'San Pedro de Alcántara', 'Puerto Banús', 'Benahavís',
+  'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Otra Costa del Sol',
+];
 
 const CAT_ICON: Record<CategoriaAnunciante, string> = {
   inmobiliaria: '🏠',
