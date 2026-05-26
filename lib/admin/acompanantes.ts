@@ -75,11 +75,18 @@ export async function crearAcompanante(
 
     const userId = authData.user.id;
 
-    // 2. Actualizar profile: rol='acompanante', nombre=nombre_publico
+    // 2. Upsert del profile con rol='acompanante'.
+    // Usamos upsert porque el trigger on_auth_user_created puede no haber
+    // terminado aún cuando llegamos aquí (race condition con la API de Auth).
+    // Si el profile ya existe: actualiza rol y nombre.
+    // Si no existe todavía: lo crea con el rol correcto (el trigger luego
+    // hace ON CONFLICT DO NOTHING, así que no lo sobreescribe).
     const { error: profileError } = await admin
       .from('profiles')
-      .update({ rol: 'acompanante', nombre: nombre_publico })
-      .eq('id', userId);
+      .upsert(
+        { id: userId, rol: 'acompanante', nombre: nombre_publico, idioma_preferido: 'es' },
+        { onConflict: 'id' }
+      );
 
     if (profileError) {
       return { error: profileError.message };

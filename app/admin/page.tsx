@@ -32,6 +32,34 @@ export default async function AdminDashboard() {
           </p>
         </div>
 
+        {/* Tarjeta de información */}
+        <div className="bg-(--bone-2) rounded-lg p-8 shadow-sm border border-(--line) mb-8">
+          <h2 className="font-display text-xl font-medium text-(--green) mb-4">
+            Gestión de la plataforma
+          </h2>
+          <p className="text-(--ink) mb-6">
+            Desde aquí puedes gestionar acompañantes, anunciantes, suscripciones y moderar contenido.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link
+              href="/profile"
+              className="inline-flex items-center justify-center px-6 py-3 bg-(--terra) hover:opacity-80 text-(--bone) font-medium rounded-md transition-opacity duration-200"
+            >
+              Ver mi perfil
+            </Link>
+
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center px-6 py-3 bg-(--bone-2) border border-(--line) hover:opacity-70 text-(--ink) font-medium rounded-md transition-opacity duration-200"
+              >
+                Cerrar sesión
+              </button>
+            </form>
+          </div>
+        </div>
+
         {/* Acciones rápidas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <Link
@@ -89,35 +117,6 @@ export default async function AdminDashboard() {
               Analíticas
             </h3>
             <p className="text-sm text-(--ink)/60">Próximamente: reservas, ingresos y métricas.</p>
-          </div>
-        </div>
-
-        {/* Tarjeta de información */}
-        <div className="bg-(--bone-2) rounded-lg p-8 shadow-sm border border-(--line) mb-6">
-          <h2 className="font-display text-xl font-medium text-(--green) mb-4">
-            Gestión de la plataforma
-          </h2>
-          <p className="text-(--ink) mb-6">
-            Desde aquí puedes gestionar acompañantes, anunciantes, suscripciones y moderar contenido.
-          </p>
-
-          {/* Acciones disponibles */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              href="/profile"
-              className="inline-flex items-center justify-center px-6 py-3 bg-(--terra) hover:opacity-80 text-(--bone) font-medium rounded-md transition-opacity duration-200"
-            >
-              Ver mi perfil
-            </Link>
-
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center px-6 py-3 bg-(--bone-2) border border-(--line) hover:opacity-70 text-(--ink) font-medium rounded-md transition-opacity duration-200"
-              >
-                Cerrar sesión
-              </button>
-            </form>
           </div>
         </div>
 
