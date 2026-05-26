@@ -9,7 +9,7 @@ const inputStyle = { background: 'var(--bone)', borderColor: 'var(--line)', colo
 const labelClass = 'block text-sm font-medium mb-1.5 text-(--ink)';
 
 interface Props {
-  anunciante: Pick<Anunciante, 'descripcion' | 'logo_url' | 'web' | 'telefono' | 'email' | 'whatsapp' | 'nombre_negocio' | 'categoria' | 'zona' | 'plan'>;
+  anunciante: Pick<Anunciante, 'descripcion' | 'logo_url' | 'web' | 'telefono' | 'email' | 'whatsapp' | 'nombre_negocio' | 'categoria' | 'zona' | 'plan' | 'direccion'>;
   action: (formData: FormData) => Promise<{ error?: string }>;
 }
 
@@ -94,6 +94,15 @@ export function FichaAnuncianteForm({ anunciante, action }: Props) {
           <input name="whatsapp" type="tel" defaultValue={anunciante.whatsapp ?? ''}
             placeholder="+34 600 000 000" className={inputClass} style={inputStyle} />
         </div>
+      </div>
+
+      {/* Dirección */}
+      <div>
+        <label className={labelClass}>Dirección</label>
+        <input name="direccion" type="text" defaultValue={anunciante.direccion ?? ''}
+          placeholder="Calle Ejemplo 1, Estepona, Málaga"
+          className={inputClass} style={inputStyle} />
+        <p className="text-xs text-(--ink)/40 mt-1">Se mostrará con un enlace a Google Maps en tu ficha.</p>
       </div>
 
       {status && (
