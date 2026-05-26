@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Acompanante, Servicio, Disponibilidad } from '@/types/supabase';
 import { ReservarFormClient } from './ReservarFormClient';
 
@@ -10,6 +10,10 @@ interface PageProps {
 export default async function ReservarPage({ params }: PageProps) {
   const { slug } = await params;
   const supabase = await createClient();
+
+  // Requerir sesión antes de mostrar el formulario
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect(`/auth/login?redirect=/${slug}/reservar`);
 
   // Cargar acompañante activo
   const { data: rawAcompanante } = await supabase
