@@ -93,8 +93,19 @@ export async function crearReserva(formData: FormData): Promise<void> {
     });
   }
 
+  // Redirigir según rol: clientes van a su panel, otros roles vuelven al perfil
+  const { data: perfil } = await (supabase as RawClient)
+    .from('profiles')
+    .select('rol')
+    .eq('id', user.id)
+    .single() as { data: { rol: string } | null; error: null };
+
   revalidatePath('/cliente/reservas');
-  redirect('/cliente/reservas');
+  if (perfil?.rol === 'cliente') {
+    redirect('/cliente/reservas');
+  } else {
+    redirect(`/${acomp?.slug ?? ''}`);
+  }
 }
 
 // ── cancelarReserva ────────────────────────────────────────────────────────────
