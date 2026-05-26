@@ -14,7 +14,10 @@ const CATEGORIAS = [
   { value: 'otros',        label: 'Otros' },
 ];
 
-const ZONAS = ['Estepona', 'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Otra Costa del Sol'];
+const ZONAS = [
+  'Estepona', 'Manilva', 'Casares', 'San Pedro de Alcántara', 'Puerto Banús', 'Benahavís',
+  'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Otra Costa del Sol',
+];
 
 const inputClass = 'w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-2';
 const inputStyle = { background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' };

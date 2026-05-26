@@ -39,7 +39,7 @@ export default function ParaNegociosPage() {
             Tu negocio, ante la comunidad internacional de la costa
           </h1>
           <p className="text-base sm:text-lg leading-relaxed" style={{ color: 'rgba(247,244,239,0.8)' }}>
-            Cada día, residentes extranjeros de Estepona y Marbella buscan negocios en los que confiar: una clínica que les entienda, una inmobiliaria seria, una gestoría que les resuelva, un sitio donde se sientan bien atendidos. Costa Companion te pone delante de ellos.
+            Cada día, residentes extranjeros de Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares y Puerto Banús buscan negocios en los que confiar: una clínica que les entienda, una inmobiliaria seria, una gestoría que les resuelva, un sitio donde se sientan bien atendidos. Costa Companion te pone delante de ellos.
           </p>
         </div>
       </section>

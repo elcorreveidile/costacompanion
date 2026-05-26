@@ -34,6 +34,11 @@ const IDIOMAS_OPTIONS = [
 
 const ZONAS_OPTIONS = [
   'Estepona',
+  'Manilva',
+  'Casares',
+  'San Pedro de Alcántara',
+  'Puerto Banús',
+  'Benahavís',
   'Marbella',
   'Fuengirola',
   'Torremolinos',
