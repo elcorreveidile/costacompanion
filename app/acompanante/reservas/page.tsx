@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { confirmarReserva, rechazarReserva, completarReserva } from '@/lib/reservas/actions';
+import { RealtimeRefresher } from '@/components/RealtimeRefresher';
 import type { EstadoReserva, Modalidad } from '@/types/supabase';
 
 interface ProfileJoin {
@@ -63,6 +64,7 @@ export default async function AcompananteReservasPage() {
 
   return (
     <div className="min-h-screen bg-(--bone)">
+      <RealtimeRefresher table="reservas" filter={`acompanante_id=eq.${acompananteId}`} />
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Encabezado */}
         <div className="mb-8">

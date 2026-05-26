@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { aceptarSolicitud, rechazarSolicitud } from '@/lib/solicitudes/actions';
+import { RealtimeRefresher } from '@/components/RealtimeRefresher';
 import type { EstadoSolicitud, Modalidad } from '@/types/supabase';
 
 interface ProfileJoin {
@@ -58,6 +59,7 @@ export default async function AcompananteSolicitudesPage() {
 
   return (
     <div className="min-h-screen bg-(--bone)">
+      <RealtimeRefresher table="solicitudes" filter={`acompanante_id=eq.${acompananteId}`} />
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Encabezado */}
         <div className="mb-8">
