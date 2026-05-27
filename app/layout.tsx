@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     shortcut: '/icon?v=2',
     apple: [{ url: '/apple-icon?v=2', sizes: '180x180', type: 'image/png' }],
   },
+  other: {
+    'msvalidate.01': '6C987BBCA5CE49B314D179825FC1F380',
+  },
   openGraph: {
     title: "Costa Companion — A tu lado, en tu idioma",
     description: "Plataforma de acompañamiento lingüístico para residentes y visitantes de la Costa del Sol.",
