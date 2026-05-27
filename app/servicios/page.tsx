@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
-import Image from 'next/image';
 import Link from 'next/link';
 import type { ServiceCategory } from '@/types/supabase';
 import {
   IconSalud, IconTramites, IconNotaria, IconPropiedad,
   IconBanca, IconTelefono, IconEntrevista, IconEspanol,
 } from '@/components/icons/ServiceIcons';
+import { PageHero } from '@/components/layout/PageHero';
 
 export const metadata = {
   title: 'Servicios | Costa Companion',
@@ -112,31 +112,12 @@ export default async function ServiciosPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bone)' }}>
-      {/* Hero */}
-      <section
-        className="relative py-20 px-6 text-center overflow-hidden"
-        style={{ background: 'var(--green)' }}
-      >
-        <Image
-          src="/images/estepona-calle.jpg"
-          alt="Callejón blanco con macetas en Estepona"
-          fill
-          className="object-cover"
-          style={{ opacity: 0.2 }}
-        />
-        <div className="absolute inset-0" style={{ background: 'rgba(28,50,38,0.55)' }} />
-        <div className="relative z-10 max-w-3xl mx-auto">
-          <h1
-            className="font-display text-4xl sm:text-5xl font-semibold mb-4"
-            style={{ color: 'var(--bone)' }}
-          >
-            Lo que hacemos contigo
-          </h1>
-          <p className="text-base sm:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'rgba(247,244,239,0.78)' }}>
-            En Costa Companion no traducimos documentos y nos despedimos. Te acompañamos a la gestión, sea cual sea, y nos quedamos hasta que todo está claro.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        imageSrc="/images/estepona-calle.jpg"
+        imageAlt="Callejón blanco con macetas en Estepona"
+        title="Lo que hacemos contigo"
+        subtitle="En Costa Companion no traducimos un documento y nos despedimos. Te acompañamos a la gestión, sea cual sea, y nos quedamos hasta que todo está claro. Lo hacemos con la cercanía de quien te conoce de siempre, aunque sea la primera vez."
+      />
 
       {/* Servicios */}
       <div className="max-w-4xl mx-auto px-6 py-16 space-y-12">

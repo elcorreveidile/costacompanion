@@ -333,10 +333,10 @@ export default async function DirectorioPage({ searchParams }: PageProps) {
         {acompanantes.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-xl text-(--ink)/40 mb-4">
-              No encontramos acompañantes con esos filtros.
+              Todavía no encontramos un acompañante con esos criterios.
             </p>
             <p className="text-(--ink)/30 mb-6">
-              Prueba a ampliar tu búsqueda o eliminar algún filtro.
+              Prueba a ampliar la búsqueda, o escríbenos y te ayudamos a encontrar a la persona adecuada.
             </p>
             {hayFiltros && (
               <Link

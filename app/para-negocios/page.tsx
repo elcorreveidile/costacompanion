@@ -1,4 +1,5 @@
 import { FormNegocio } from './FormNegocio';
+import { PageHero } from '@/components/layout/PageHero';
 
 export const metadata = {
   title: 'Para negocios — Local Partners | Costa Companion',
@@ -23,28 +24,20 @@ const POR_QUE = [
     texto: 'Apareces junto a una red cuidada de acompañantes, no en un tablón de anuncios. Eso te da contexto y credibilidad.',
   },
   {
-    titulo: 'Tu ficha en su idioma.',
-    texto: 'Tu presencia se muestra de forma cuidada y, próximamente, en los cinco idiomas de la plataforma.',
+    titulo: 'Tu negocio, con su mejor cara.',
+    texto: 'Muestra tu ficha con tu logo y tus fotos, tu descripción y tus datos de contacto. Y, próximamente, en los cinco idiomas de la plataforma.',
   },
 ];
 
 export default function ParaNegociosPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bone)' }}>
-      {/* Hero */}
-      <section className="py-20 px-6 text-center" style={{ background: 'var(--green)' }}>
-        <div className="max-w-3xl mx-auto">
-          <h1
-            className="font-display text-4xl sm:text-5xl font-semibold mb-4"
-            style={{ color: 'var(--bone)' }}
-          >
-            Tu negocio, ante la comunidad internacional de la costa
-          </h1>
-          <p className="text-base sm:text-lg leading-relaxed" style={{ color: 'rgba(247,244,239,0.8)' }}>
-            Cada día, residentes extranjeros de Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares y Puerto Banús buscan negocios en los que confiar: una clínica que les entienda, una inmobiliaria seria, una gestoría que les resuelva, un sitio donde se sientan bien atendidos. Costa Companion te pone delante de ellos.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        imageSrc="/images/hero-mar.jpg"
+        imageAlt="Mar Mediterráneo en la Costa del Sol"
+        title="Tu negocio, ante la comunidad internacional de la costa"
+        subtitle="Cada día, residentes y visitantes extranjeros de Estepona y Marbella buscan negocios en los que confiar: una clínica que les entienda, una inmobiliaria seria, una gestoría que les resuelva, un sitio donde se sientan bien atendidos. Costa Companion te pone delante de ellos, dentro de una red que comparte una forma cálida y cercana de tratar a quien viene de fuera."
+      />
 
       <div className="max-w-3xl mx-auto px-6 py-16 space-y-16">
 

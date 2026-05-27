@@ -182,7 +182,7 @@ export function ReservarFormClient({
               style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
             />
             <p className="text-xs text-(--ink)/40 mt-1.5">
-              Opcional. No incluya datos que no desee compartir. Solo visible para el acompañante dentro de la plataforma.
+              Si quieres, cuéntale a tu acompañante de qué se trata, para que vaya preparado. Comparte solo lo que desees: esta información será visible únicamente para el acompañante, dentro de la plataforma.
             </p>
           </div>
 

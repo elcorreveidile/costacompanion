@@ -63,8 +63,13 @@ const PASOS = [
   },
   {
     num: '03',
+    titulo: 'Habla con tu acompañante',
+    texto: 'Desde que reservas, tienes un chat directo con tu acompañante dentro de la plataforma. Resolved las dudas, concretad los detalles y llegad al día de la gestión con todo claro.',
+  },
+  {
+    num: '04',
     titulo: 'No vas solo',
-    texto: 'El día de la gestión, tu acompañante está contigo. Antes, durante y después. Para que salgas sabiendo exactamente qué ha pasado y qué viene ahora.',
+    texto: 'El día señalado, tu acompañante está contigo. Antes, durante y después. Para que salgas sabiendo exactamente qué ha pasado y qué viene ahora.',
   },
 ];
 
@@ -82,8 +87,8 @@ const CONFIANZA = [
     texto: 'Cada acompañante pone sus servicios y sus precios. Tú eliges lo que encaja contigo, sin sorpresas.',
   },
   {
-    titulo: 'Presencial o a distancia',
-    texto: 'En persona para lo que requiere estar allí; por teléfono o videollamada para lo que se resuelve en el momento.',
+    titulo: 'Cerca, siempre',
+    texto: 'En persona para lo que requiere estar allí; por teléfono, videollamada o chat para lo que se resuelve en el momento.',
   },
 ];
 
@@ -119,7 +124,7 @@ export default function Home() {
             A tu lado,<br />en tu idioma
           </h1>
           <p className="text-lg sm:text-xl max-w-xl leading-relaxed" style={{ color: 'rgba(247,244,239,0.82)' }}>
-            Alguien de confianza que te acompaña al médico, a la policía, al notario o al banco — y habla por ti cuando el idioma se interpone. Presencial o a distancia, en Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares y toda la Costa del Sol occidental.
+            Alguien de confianza que te acompaña al médico, a la policía, al notario o al banco, y habla por ti cuando el idioma se interpone. Para que vivir aquí se sienta como estar en casa.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 mt-2">
             <Link
@@ -148,11 +153,11 @@ export default function Home() {
           </h2>
           <div className="text-base sm:text-lg leading-relaxed space-y-5 text-left" style={{ color: 'var(--ink)' }}>
             <p>
-              Conoces la sensación: llevas años en la costa, te defiendes en el día a día, pero llega el momento de explicarle unos síntomas al médico, entender un contrato o poner una denuncia, y de pronto el idioma se convierte en un muro. No es cuestión de saber más o menos español. Es que hay momentos en los que necesitas estar seguro de que te entienden y de que entiendes tú.
+              Conoces la sensación: llevas tiempo en la costa, te defiendes en el día a día, pero llega el momento de explicarle unos síntomas al médico, entender un contrato o poner una denuncia, y de pronto el idioma se vuelve un muro. No es cuestión de saber más o menos español. Es que hay momentos en los que necesitas estar seguro de que te entienden, y de que entiendes tú.
             </p>
             <p>
-              Para esos momentos existe Costa Companion: una red de acompañantes que hablan tu idioma y el de aquí, y que se sientan a tu lado en la gestión que sea.{' '}
-              <span className="font-medium" style={{ color: 'var(--terra)' }}>No traducen y se van. Te acompañan.</span>
+              Para esos momentos existe Costa Companion: personas que hablan tu idioma y el de aquí, y que se sientan a tu lado en la gestión que sea.{' '}
+              <span className="font-medium" style={{ color: 'var(--terra)' }}>No traducen y se van. Te acompañan, como lo haría un buen vecino.</span>
             </p>
           </div>
         </ScrollReveal>
@@ -166,9 +171,9 @@ export default function Home() {
               Sencillo, desde el primer momento
             </h2>
           </ScrollReveal>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
             {PASOS.map((paso, i) => (
-              <ScrollReveal key={paso.num} delay={i * 120} className="flex flex-col gap-4">
+              <ScrollReveal key={paso.num} delay={i * 100} className="flex flex-col gap-4">
                 <div
                   className="font-display text-5xl font-light"
                   style={{ color: 'var(--terra)', opacity: 0.55 }}
@@ -238,7 +243,42 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── 5. POR QUÉ COSTA COMPANION ──────────────────────────────────── */}
+      {/* ── 5. VECINDAD ──────────────────────────────────────────────────── */}
+      <section className="py-24 px-6" style={{ background: 'var(--green)' }}>
+        <ScrollReveal className="max-w-3xl mx-auto text-center flex flex-col items-center gap-6">
+          <p
+            className="text-xs font-medium tracking-widest uppercase"
+            style={{ color: 'rgba(247,244,239,0.55)' }}
+          >
+            Más que un servicio
+          </p>
+          <h2
+            className="font-display text-3xl sm:text-4xl font-semibold leading-tight"
+            style={{ color: 'var(--bone)' }}
+          >
+            Aquí no eres un extranjero:<br />eres un vecino más
+          </h2>
+          <div
+            className="text-base sm:text-lg leading-relaxed space-y-5 text-left max-w-2xl"
+            style={{ color: 'rgba(247,244,239,0.78)' }}
+          >
+            <p>
+              Costa Companion nació de una idea sencilla: que nadie tenga que sentirse de fuera en el lugar donde ha decidido vivir, o que ha venido a disfrutar. Cuando alguien te acompaña con cercanía, cuando el comercio del barrio te atiende en tu idioma y con una sonrisa, cuando entiendes lo que pasa a tu alrededor, algo cambia: dejas de estar de paso y empiezas a formar parte.
+            </p>
+            <p>
+              Eso es lo que cuidamos. Nuestros acompañantes y los negocios de nuestra red comparten una misma manera de hacer las cosas: con amabilidad, con paciencia, tratándote como a un vecino. Así se teje, gesto a gesto, un clima de vecindad e integración del que se benefician todos.
+            </p>
+          </div>
+          <p
+            className="text-base font-medium mt-2"
+            style={{ color: 'rgba(247,244,239,0.9)' }}
+          >
+            Porque integrarse no es solo aprender el idioma. Es sentirse en casa.
+          </p>
+        </ScrollReveal>
+      </section>
+
+      {/* ── 6. POR QUÉ COSTA COMPANION ──────────────────────────────────── */}
       <section className="py-20 px-6" style={{ background: 'var(--bone-2)' }}>
         <div className="max-w-5xl mx-auto">
           <ScrollReveal className="text-center mb-14">
@@ -264,7 +304,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── 6. DOBLE CTA ─────────────────────────────────────────────────── */}
+      {/* ── 7. DOBLE CTA ─────────────────────────────────────────────────── */}
       <section className="py-20 px-6" style={{ background: 'var(--bone)' }}>
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           <ScrollReveal>
@@ -273,10 +313,10 @@ export default function Home() {
               style={{ background: 'var(--green)', color: 'var(--bone)' }}
             >
               <h3 className="font-display text-2xl font-semibold">
-                ¿Hablas idiomas y quieres acompañar?
+                ¿Hablas idiomas y te gusta ayudar?
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'rgba(247,244,239,0.78)' }}>
-                Si conoces la costa, hablas varios idiomas y te gusta ayudar a las personas en los momentos que importan, hay un sitio para ti en Costa Companion. Trabajas a tu manera, con tus precios y tu propio perfil dentro de la plataforma.
+                Si conoces la costa, hablas varios idiomas y disfrutas acompañando a las personas en los momentos que importan, hay un sitio para ti en Costa Companion. Trabajas a tu manera, con tus precios y tu propio perfil. Y formas parte de algo: una red que hace de esta costa un lugar más acogedor.
               </p>
               <Link
                 href="/para-acompanantes"
@@ -297,7 +337,7 @@ export default function Home() {
                 ¿Tienes un negocio en la costa?
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
-                Llega a la comunidad internacional de la Costa del Sol occidental. Si tu negocio cuida a los residentes extranjeros —una clínica, una inmobiliaria, una gestoría, un comercio—, preséntate ante quienes te buscan.
+                Llega a la comunidad internacional de Estepona y Marbella y forma parte de una red que cuida a quien viene de fuera. Si tu negocio trata bien a los residentes extranjeros —una clínica, una inmobiliaria, una gestoría, un comercio—, preséntate ante quienes te buscan.
               </p>
               <Link
                 href="/para-negocios"
@@ -318,7 +358,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── 7. CIERRE CON FOTO ───────────────────────────────────────────── */}
+      {/* ── 8. CIERRE CON FOTO ───────────────────────────────────────────── */}
       <section
         className="relative flex items-center justify-center py-28 px-6 text-center overflow-hidden"
         style={{ background: 'var(--terra)' }}
@@ -339,7 +379,7 @@ export default function Home() {
             Da el primer paso hoy
           </h2>
           <p className="text-base sm:text-lg leading-relaxed" style={{ color: 'rgba(247,244,239,0.88)' }}>
-            Tu próxima gestión no tiene por qué hacerse en un idioma que no dominas. Encuentra a la persona que te acompaña.
+            Tu próxima gestión no tiene por qué hacerse en un idioma que no dominas, ni a solas. Encuentra a la persona que te acompaña.
           </p>
           <Link
             href="/directorio"

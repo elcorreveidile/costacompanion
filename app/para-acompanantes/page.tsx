@@ -1,4 +1,5 @@
 import { FormAcompanante } from './FormAcompanante';
+import { PageHero } from '@/components/layout/PageHero';
 
 export const metadata = {
   title: 'Para acompañantes | Costa Companion',
@@ -30,20 +31,12 @@ const COMO_FUNCIONA = [
 export default function ParaAcompanantesPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bone)' }}>
-      {/* Hero */}
-      <section className="py-20 px-6 text-center" style={{ background: 'var(--green)' }}>
-        <div className="max-w-3xl mx-auto">
-          <h1
-            className="font-display text-4xl sm:text-5xl font-semibold mb-4"
-            style={{ color: 'var(--bone)' }}
-          >
-            Acompaña. A tu manera.
-          </h1>
-          <p className="text-base sm:text-lg leading-relaxed" style={{ color: 'rgba(247,244,239,0.8)' }}>
-            Costa Companion es una red de personas que hablan idiomas y conocen la costa, y que ayudan a residentes y visitantes en las gestiones donde el idioma pesa. Si eso te describe, hablemos.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        imageSrc="/images/atardecer.jpg"
+        imageAlt="Atardecer en la Costa del Sol"
+        title="Acompaña. A tu manera."
+        subtitle="Costa Companion es una red de personas que hablan idiomas y conocen la costa, y que ayudan a residentes y visitantes en las gestiones donde el idioma pesa. Pero somos algo más que eso: somos quienes hacen que el que llega de fuera se sienta un vecino más. Si eso te representa, hablemos."
+      />
 
       <div className="max-w-3xl mx-auto px-6 py-16 space-y-16">
 
@@ -81,7 +74,7 @@ export default function ParaAcompanantesPage() {
             Qué pedimos
           </h2>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.72 }}>
-            Hablar bien español y al menos otro idioma, conocer la zona, y tratar a cada persona con la seriedad y el cuidado que merece quien confía en ti para algo importante.
+            Hablar bien español y al menos otro idioma, conocer la zona, y tratar a cada persona con la amabilidad y el cuidado que merece quien confía en ti para algo importante. La cercanía no se finge: se tiene.
           </p>
         </section>
 

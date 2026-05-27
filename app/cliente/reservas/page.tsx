@@ -36,7 +36,13 @@ const ESTADO_BADGE: Record<EstadoReserva, { label: string; bg: string; color: st
 
 export const metadata = { title: 'Mis reservas | Costa Companion' };
 
-export default async function ClienteReservasPage() {
+interface PageProps {
+  searchParams: Promise<{ nueva?: string }>;
+}
+
+export default async function ClienteReservasPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const nuevaReserva = params.nueva === '1';
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -68,6 +74,17 @@ export default async function ClienteReservasPage() {
     <div className="min-h-screen bg-(--bone)">
       <RealtimeRefresher table="reservas" filter={`cliente_id=eq.${user.id}`} />
       <div className="max-w-4xl mx-auto px-4 py-12">
+        {/* Banner de confirmación */}
+        {nuevaReserva && (
+          <div
+            className="mb-6 rounded-lg p-4 text-sm"
+            style={{ background: 'rgba(44,74,59,.1)', border: '1px solid rgba(44,74,59,.25)', color: 'var(--green)' }}
+          >
+            <p className="font-medium mb-0.5">¡Solicitud enviada!</p>
+            <p>Hemos enviado tu solicitud. Tu acompañante la revisará y te confirmará en breve. Mientras tanto, puedes escribirle por el chat.</p>
+          </div>
+        )}
+
         {/* Encabezado */}
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>

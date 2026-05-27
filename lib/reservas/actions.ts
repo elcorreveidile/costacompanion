@@ -102,7 +102,7 @@ export async function crearReserva(formData: FormData): Promise<void> {
 
   revalidatePath('/cliente/reservas');
   if (perfil?.rol === 'cliente') {
-    redirect('/cliente/reservas');
+    redirect('/cliente/reservas?nueva=1');
   } else {
     redirect(`/${acomp?.slug ?? ''}`);
   }
