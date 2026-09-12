@@ -16,6 +16,8 @@ const idiomas = [
   { value: "fr", label: "Français" },
   { value: "de", label: "Deutsch" },
   { value: "nl", label: "Nederlands" },
+  { value: "ru", label: "Русский" },
+  { value: "uk", label: "Українська" },
 ];
 
 export default async function ProfilePage() {
