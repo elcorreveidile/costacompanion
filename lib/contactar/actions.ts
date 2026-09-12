@@ -1,11 +1,7 @@
 'use server';
 
-import { Resend } from 'resend';
+import { sendMail } from '@/lib/mailer';
 import { createClient } from '@/lib/supabase/server';
-
-function getResend() {
-  return new Resend(process.env.RESEND_API_KEY);
-}
 
 export async function enviarContacto(
   formData: FormData
@@ -34,12 +30,12 @@ export async function enviarContacto(
     return { error: 'No se pudo enviar el mensaje. Inténtalo de nuevo.' };
   }
 
-  const { error } = await getResend().emails.send({
-    from: 'Costa Companion <hola@costacompanion.com>',
-    to: [acomp.email_contacto],
-    replyTo: email,
-    subject: `Nuevo contacto en tu perfil — ${acomp.nombre_publico}`,
-    html: `
+  try {
+    await sendMail({
+      to: acomp.email_contacto,
+      replyTo: email,
+      subject: `Nuevo contacto en tu perfil — ${acomp.nombre_publico}`,
+      html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a2e25">
         <div style="background:#2C4A3B;padding:24px 32px;border-radius:12px 12px 0 0">
           <p style="color:#F7F4EF;margin:0;font-size:14px">Costa Companion</p>
@@ -57,10 +53,9 @@ export async function enviarContacto(
         </div>
       </div>
     `,
-  });
-
-  if (error) {
-    console.error('enviarContacto Resend error:', error);
+    });
+  } catch (error) {
+    console.error('enviarContacto Brevo error:', error);
     return { error: 'No se pudo enviar el mensaje. Por favor, inténtalo más tarde.' };
   }
 

@@ -46,7 +46,7 @@ Este proyecto adapta la arquitectura de un sistema previo llamado MakiCar (PWA d
 |Lenguaje                                                |**TypeScript** end-to-end, con tipos generados por Supabase                                            |
 |Estilos                                                 |**Tailwind CSS** con tokens de diseño como variables CSS                                               |
 |Base de datos                                           |**Supabase (PostgreSQL)** — Auth, RLS, triggers, realtime                                              |
-|Email                                                   |**Resend**                                                                                             |
+|Email                                                   |**Brevo (SMTP)** — mismo SMTP en Supabase Auth (enlace mágico) y en la app                             |
 |Pagos (cuota operador→acompañante y operador→anunciante)|**Stripe** (cuenta propia del operador)                                                                |
 |i18n                                                    |**next-intl** (o equivalente App-Router-compatible) para es/en/fr/de/nl                                |
 |Despliegue                                              |**Vercel** + GitHub (CI/CD automático en merge a `main`)                                               |
@@ -251,7 +251,7 @@ Categorías de servicio que ofrece un acompañante (el cliente filtra por ellas)
 
 -----
 
-## PARTE 7 — Emails (Resend) con plantilla de marca
+## PARTE 7 — Emails (Brevo SMTP) con plantilla de marca
 
 Centralizar en `src/lib/email.ts`. Fallo silencioso (nunca romper el flujo). Plantilla HTML de marca:
 
@@ -375,7 +375,7 @@ Debe estar incorporado desde el diseño, no añadido al final.
 
 - Plantilla HTML de marca (Parte 7) en `src/lib/email.ts`.
 - Todos los emails de la Parte 7, en el idioma correspondiente.
-- Configurar dominio remitente en Resend (DNS de costacompanion.com).
+- Configurar dominio remitente en Brevo (DNS de costacompanion.com) y el SMTP propio en Supabase Auth.
 - **Entregable:** notificaciones por email con identidad de marca, multilingües, sin datos sensibles.
 
 ### Fase 10 — Legal, RGPD y confianza
@@ -393,7 +393,7 @@ Debe estar incorporado desde el diseño, no añadido al final.
 - Variables de entorno en Vercel.
 - Dominio costacompanion.com.
 - Webhook de Stripe apuntando a producción.
-- DNS de Resend.
+- DNS de Brevo.
 - **Entregable:** Costa Companion en producción.
 
 -----
@@ -406,8 +406,12 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=          # nunca exponer al cliente
 
-# Email (Resend)
-RESEND_API_KEY=
+# Email (Brevo SMTP)
+BREVO_SMTP_HOST=smtp-relay.brevo.com
+BREVO_SMTP_PORT=587
+BREVO_SMTP_USER=
+BREVO_SMTP_KEY=
+EMAIL_FROM=Costa Companion <hola@costacompanion.com>
 
 # Stripe del operador (cuota a acompañantes y anunciantes)
 STRIPE_SECRET_KEY=
