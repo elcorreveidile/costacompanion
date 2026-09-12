@@ -4,6 +4,8 @@ import { db } from '@/lib/db';
 import { acompanantes } from '@/lib/db/schema';
 import type { Acompanante, MultilingualText } from '@/types/supabase';
 import { FichaAdminForm } from './FichaAdminForm';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -13,6 +15,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminAcompananteEditPage({ params }: PageProps) {
   const { id } = await params;
+  const { locale, dict } = await getI18n();
+  const t = dict.panelAdmin;
 
   const [row] = await db
     .select()
@@ -52,9 +56,9 @@ export default async function AdminAcompananteEditPage({ params }: PageProps) {
     <div className="min-h-screen bg-(--bone)">
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="mb-6 text-sm text-(--ink)/50 space-x-2">
-          <a href="/admin" className="hover:text-(--ink) transition-colors">Admin</a>
+          <a href={localePath(locale, "/admin")} className="hover:text-(--ink) transition-colors">{t.shared.admin}</a>
           <span>›</span>
-          <a href="/admin/acompanantes" className="hover:text-(--ink) transition-colors">Acompañantes</a>
+          <a href={localePath(locale, "/admin/acompanantes")} className="hover:text-(--ink) transition-colors">{t.acompanantes.breadcrumb}</a>
           <span>›</span>
           <span className="text-(--ink)/80">{acompanante.nombre_publico}</span>
         </div>
@@ -67,10 +71,10 @@ export default async function AdminAcompananteEditPage({ params }: PageProps) {
             <p className="text-(--ink)/50 text-sm mt-1 font-mono">{acompanante.slug}</p>
           </div>
           <a
-            href={`/${acompanante.slug}`}
+            href={localePath(locale, `/${acompanante.slug}`)}
             className="text-sm text-(--green) hover:opacity-70 transition-opacity mt-1"
           >
-            Ver microsite →
+            {t.acompanantes.verMicrosite}
           </a>
         </div>
 
@@ -78,7 +82,7 @@ export default async function AdminAcompananteEditPage({ params }: PageProps) {
           className="rounded-xl border shadow-sm p-8"
           style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
         >
-          <FichaAdminForm acompanante={acompanante} />
+          <FichaAdminForm acompanante={acompanante} t={t.acompanantes.form} shared={t.shared} modalidades={dict.common.modalidades} fotoT={dict.panelAcompanante.ficha.foto} locale={locale} />
         </div>
       </div>
     </div>

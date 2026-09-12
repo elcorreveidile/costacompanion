@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { profiles } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
+import { getI18n } from "@/lib/i18n/server";
+import { localePath } from "@/lib/i18n/config";
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +15,9 @@ export default async function AdminDashboard() {
   if (!user) {
     return null;
   }
+
+  const { locale, dict } = await getI18n();
+  const t = dict.panelAdmin;
 
   // Obtener datos del perfil
   const [profile] = await db
@@ -29,28 +34,28 @@ export default async function AdminDashboard() {
         {/* Encabezado */}
         <div className="mb-8">
           <h1 className="font-display text-3xl font-semibold text-(--green) mb-2">
-            Panel de Administración
+            {t.dashboard.h1}
           </h1>
           <p className="text-lg text-(--ink)/70">
-            Bienvenido, {nombre}
+            {t.dashboard.bienvenido.replace('{nombre}', String(nombre ?? ''))}
           </p>
         </div>
 
         {/* Tarjeta de información */}
         <div className="bg-(--bone-2) rounded-lg p-8 shadow-sm border border-(--line) mb-8">
           <h2 className="font-display text-xl font-medium text-(--green) mb-4">
-            Gestión de la plataforma
+            {t.dashboard.gestionTitulo}
           </h2>
           <p className="text-(--ink) mb-6">
-            Desde aquí puedes gestionar acompañantes, anunciantes, suscripciones y moderar contenido.
+            {t.dashboard.gestionDesc}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              href="/profile"
+              href={localePath(locale, "/profile")}
               className="inline-flex items-center justify-center px-6 py-3 bg-(--terra) hover:opacity-80 text-(--bone) font-medium rounded-md transition-opacity duration-200"
             >
-              Ver mi perfil
+              {t.shared.verPerfil}
             </Link>
 
             <form action={signOut}>
@@ -58,7 +63,7 @@ export default async function AdminDashboard() {
                 type="submit"
                 className="inline-flex items-center justify-center px-6 py-3 bg-(--bone-2) border border-(--line) hover:opacity-70 text-(--ink) font-medium rounded-md transition-opacity duration-200"
               >
-                Cerrar sesión
+                {t.shared.cerrarSesion}
               </button>
             </form>
           </div>
@@ -67,7 +72,7 @@ export default async function AdminDashboard() {
         {/* Acciones rápidas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <Link
-            href="/admin/acompanantes"
+            href={localePath(locale, "/admin/acompanantes")}
             className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
@@ -80,15 +85,15 @@ export default async function AdminDashboard() {
               </svg>
             </div>
             <h3 className="font-display text-lg font-medium text-(--green) mb-1">
-              Acompañantes
+              {t.dashboard.cardAcompanantesTitulo}
             </h3>
             <p className="text-sm text-(--ink)/60">
-              Gestiona el equipo de acompañantes: alta, edición, activar/desactivar y destacados.
+              {t.dashboard.cardAcompanantesDesc}
             </p>
           </Link>
 
           <Link
-            href="/admin/anunciantes"
+            href={localePath(locale, "/admin/anunciantes")}
             className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
@@ -101,13 +106,13 @@ export default async function AdminDashboard() {
               </svg>
             </div>
             <h3 className="font-display text-lg font-medium text-(--green) mb-1">
-              Anunciantes
+              {t.dashboard.cardAnunciantesTitulo}
             </h3>
-            <p className="text-sm text-(--ink)/60">Gestiona los Local Partners: alta, edición, suscripciones Stripe.</p>
+            <p className="text-sm text-(--ink)/60">{t.dashboard.cardAnunciantesDesc}</p>
           </Link>
 
           <Link
-            href="/admin/resenas"
+            href={localePath(locale, "/admin/resenas")}
             className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
@@ -120,10 +125,10 @@ export default async function AdminDashboard() {
               </svg>
             </div>
             <h3 className="font-display text-lg font-medium text-(--green) mb-1">
-              Reseñas
+              {t.dashboard.cardResenasTitulo}
             </h3>
             <p className="text-sm text-(--ink)/60">
-              Modera y aprueba las reseñas de clientes verificados.
+              {t.dashboard.cardResenasDesc}
             </p>
           </Link>
 
@@ -140,19 +145,19 @@ export default async function AdminDashboard() {
               </svg>
             </div>
             <h3 className="font-display text-lg font-medium text-(--green) mb-1">
-              Analíticas
+              {t.dashboard.cardAnaliticasTitulo}
             </h3>
-            <p className="text-sm text-(--ink)/60">Próximamente: reservas, ingresos y métricas.</p>
+            <p className="text-sm text-(--ink)/60">{t.dashboard.cardAnaliticasDesc}</p>
           </div>
         </div>
 
         {/* Información de cuenta */}
         <div className="bg-(--bone-2) rounded-lg p-6 shadow-sm border border-(--line)">
-          <h3 className="font-medium text-(--green) mb-2">Información de tu cuenta</h3>
+          <h3 className="font-medium text-(--green) mb-2">{t.dashboard.cuentaTitulo}</h3>
           <div className="text-sm text-(--ink)/70 space-y-1">
-            <p>Email: {user.email}</p>
-            <p>Rol: Superadmin</p>
-            {profile?.nombre && <p>Nombre: {profile.nombre}</p>}
+            <p>{t.shared.email}: {user.email}</p>
+            <p>{t.shared.rol}: {t.shared.superadmin}</p>
+            {profile?.nombre && <p>{t.shared.nombre}: {profile.nombre}</p>}
           </div>
         </div>
       </div>

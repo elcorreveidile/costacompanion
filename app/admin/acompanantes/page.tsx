@@ -4,6 +4,8 @@ import { db } from '@/lib/db';
 import { acompanantes as acompanantesTable, profiles } from '@/lib/db/schema';
 import { toggleActivo, toggleDestacado } from '@/lib/admin/acompanantes';
 import { activarConStripe, cancelarSuscripcionAdmin, reactivarSuscripcionAdmin } from '@/lib/admin/billing';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Acompañantes — Admin | Costa Companion' };
@@ -23,15 +25,18 @@ interface AcompananteConProfile {
   profiles: { nombre: string | null; id: string } | null;
 }
 
-const STRIPE_BADGE: Record<EstadoStripe, { label: string; bg: string; color: string }> = {
-  active:          { label: 'Activa',      bg: 'rgba(74,111,80,0.12)',   color: 'var(--green-deep)' },
-  trialing:        { label: 'Trial',       bg: 'rgba(74,111,80,0.08)',   color: 'var(--green)' },
-  past_due:        { label: 'Pago pend.',  bg: 'rgba(180,60,50,0.10)',   color: '#b43c32' },
-  canceled:        { label: 'Cancelada',   bg: 'rgba(43,39,36,0.08)',    color: 'rgba(43,39,36,0.5)' },
-  sin_suscripcion: { label: 'Sin suscr.',  bg: 'rgba(201,123,74,0.12)', color: 'var(--terra)' },
+const STRIPE_BADGE: Record<EstadoStripe, { bg: string; color: string }> = {
+  active:          { bg: 'rgba(74,111,80,0.12)',   color: 'var(--green-deep)' },
+  trialing:        { bg: 'rgba(74,111,80,0.08)',   color: 'var(--green)' },
+  past_due:        { bg: 'rgba(180,60,50,0.10)',   color: '#b43c32' },
+  canceled:        { bg: 'rgba(43,39,36,0.08)',    color: 'rgba(43,39,36,0.5)' },
+  sin_suscripcion: { bg: 'rgba(201,123,74,0.12)', color: 'var(--terra)' },
 };
 
 export default async function AdminAcompanantesPage() {
+  const { locale, dict } = await getI18n();
+  const t = dict.panelAdmin;
+
   const rows = await db
     .select({
       id: acompanantesTable.id,
@@ -73,27 +78,27 @@ export default async function AdminAcompanantesPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link
-              href="/admin"
+              href={localePath(locale, "/admin")}
               className="text-sm text-(--ink)/50 hover:text-(--ink) transition-colors mb-2 inline-block"
             >
-              ← Panel de administración
+              {t.shared.volverAlPanel}
             </Link>
             <h1 className="font-display text-3xl font-semibold text-(--green)">
-              Acompañantes
+              {t.acompanantes.tituloLista}
             </h1>
             <p className="text-(--ink)/60 mt-1">
-              {lista.length} acompañante{lista.length !== 1 ? 's' : ''} registrado{lista.length !== 1 ? 's' : ''}
+              {(lista.length === 1 ? t.acompanantes.registradosUno : t.acompanantes.registradosVarios).replace('{n}', String(lista.length))}
             </p>
           </div>
           <Link
-            href="/admin/acompanantes/nuevo"
+            href={localePath(locale, "/admin/acompanantes/nuevo")}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--green)', color: 'var(--bone)' }}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            Nuevo acompañante
+            {t.acompanantes.nuevoBtn}
           </Link>
         </div>
 
@@ -107,7 +112,7 @@ export default async function AdminAcompanantesPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
             </svg>
             <p className="text-sm" style={{ color: '#b43c32' }}>
-              Hay acompañantes con pagos pendientes o fallidos.
+              {t.acompanantes.alertaPagos}
             </p>
           </div>
         )}
@@ -117,12 +122,12 @@ export default async function AdminAcompanantesPage() {
             className="rounded-xl border p-12 text-center"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
-            <p className="text-(--ink)/50 text-lg">Aún no hay acompañantes registrados.</p>
+            <p className="text-(--ink)/50 text-lg">{t.acompanantes.vacio}</p>
             <Link
-              href="/admin/acompanantes/nuevo"
+              href={localePath(locale, "/admin/acompanantes/nuevo")}
               className="mt-4 inline-block text-(--green) font-medium hover:opacity-80 transition-opacity"
             >
-              Crear el primero →
+              {t.shared.crearPrimero}
             </Link>
           </div>
         ) : (
@@ -133,11 +138,11 @@ export default async function AdminAcompanantesPage() {
             <table className="w-full text-sm">
               <thead style={{ background: 'var(--bone-2)' }}>
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-(--ink)/70">Nombre</th>
-                  <th className="text-left px-4 py-3 font-medium text-(--ink)/70">Slug</th>
-                  <th className="text-left px-4 py-3 font-medium text-(--ink)/70">Suscripción</th>
-                  <th className="text-center px-4 py-3 font-medium text-(--ink)/70">Activo</th>
-                  <th className="text-center px-4 py-3 font-medium text-(--ink)/70">Dest.</th>
+                  <th className="text-left px-4 py-3 font-medium text-(--ink)/70">{t.acompanantes.thNombre}</th>
+                  <th className="text-left px-4 py-3 font-medium text-(--ink)/70">{t.acompanantes.thSlug}</th>
+                  <th className="text-left px-4 py-3 font-medium text-(--ink)/70">{t.acompanantes.thSuscripcion}</th>
+                  <th className="text-center px-4 py-3 font-medium text-(--ink)/70">{t.acompanantes.thActivo}</th>
+                  <th className="text-center px-4 py-3 font-medium text-(--ink)/70">{t.acompanantes.thDestacado}</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -171,7 +176,7 @@ export default async function AdminAcompanantesPage() {
                               className="text-xs font-medium px-2.5 py-1 rounded-full self-start"
                               style={{ background: badge.bg, color: badge.color }}
                             >
-                              {badge.label}
+                              {t.shared.estadosStripe[ac.stripe_subscription_status] ?? t.shared.estadosStripe.sin_suscripcion}
                             </span>
                             {ac.stripe_subscription_id && ac.stripe_subscription_status !== 'canceled' && (
                               <div className="flex gap-1 flex-wrap">
@@ -185,9 +190,9 @@ export default async function AdminAcompanantesPage() {
                                     type="submit"
                                     className="text-xs px-2 py-1 rounded border transition-opacity hover:opacity-70"
                                     style={{ borderColor: '#b43c32', color: '#b43c32' }}
-                                    title="Cancela al final del período actual"
+                                    title={t.shared.cancelarPeriodoTitle}
                                   >
-                                    Cancelar período
+                                    {t.shared.cancelarPeriodo}
                                   </button>
                                 </form>
                                 <form
@@ -200,9 +205,9 @@ export default async function AdminAcompanantesPage() {
                                     type="submit"
                                     className="text-xs px-2 py-1 rounded border transition-opacity hover:opacity-70"
                                     style={{ borderColor: '#b43c32', color: '#b43c32', background: 'rgba(180,60,50,0.08)' }}
-                                    title="Cancela inmediatamente"
+                                    title={t.shared.cancelarYaTitle}
                                   >
-                                    Cancelar ya
+                                    {t.shared.cancelarYa}
                                   </button>
                                 </form>
                                 <form
@@ -215,9 +220,9 @@ export default async function AdminAcompanantesPage() {
                                     type="submit"
                                     className="text-xs px-2 py-1 rounded border transition-opacity hover:opacity-70"
                                     style={{ borderColor: 'var(--green)', color: 'var(--green)' }}
-                                    title="Revierte una cancelación pendiente"
+                                    title={t.shared.reactivarTitle}
                                   >
-                                    Reactivar
+                                    {t.shared.reactivar}
                                   </button>
                                 </form>
                               </div>
@@ -235,7 +240,7 @@ export default async function AdminAcompanantesPage() {
                               className="text-xs font-medium px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
                               style={{ background: 'var(--terra)', color: 'var(--bone)' }}
                             >
-                              Activar y facturar
+                              {t.shared.activarFacturar}
                             </button>
                           </form>
                         )}
@@ -253,7 +258,7 @@ export default async function AdminAcompanantesPage() {
                             type="submit"
                             className="inline-flex items-center justify-center w-10 h-6 rounded-full transition-colors"
                             style={{ background: ac.activo ? 'var(--green)' : 'var(--line)' }}
-                            title={ac.activo ? 'Desactivar' : 'Activar'}
+                            title={ac.activo ? t.shared.desactivar : t.shared.activar}
                           >
                             <span
                               className="w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
@@ -275,7 +280,7 @@ export default async function AdminAcompanantesPage() {
                             type="submit"
                             className="inline-flex items-center justify-center w-10 h-6 rounded-full transition-colors"
                             style={{ background: ac.destacado ? 'var(--terra)' : 'var(--line)' }}
-                            title={ac.destacado ? 'Quitar destacado' : 'Destacar'}
+                            title={ac.destacado ? t.acompanantes.quitarDestacado : t.acompanantes.destacar}
                           >
                             <span
                               className="w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
@@ -288,11 +293,11 @@ export default async function AdminAcompanantesPage() {
                       {/* Editar */}
                       <td className="px-4 py-3 text-right">
                         <Link
-                          href={`/admin/acompanantes/${ac.id}`}
+                          href={localePath(locale, `/admin/acompanantes/${ac.id}`)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
                           style={{ background: 'var(--green)', color: 'var(--bone)' }}
                         >
-                          Editar
+                          {t.shared.editar}
                         </Link>
                       </td>
                     </tr>

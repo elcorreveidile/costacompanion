@@ -4,14 +4,16 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { actualizarAnunciante } from '@/lib/admin/anunciantes';
 import type { Anunciante } from '@/types/supabase';
+import type { Dictionary } from '@/lib/i18n/dictionaries/es';
+import { localePath, type Locale } from '@/lib/i18n/config';
 
-const CATEGORIAS = [
-  { value: 'inmobiliaria', label: 'Inmobiliaria' },
-  { value: 'salud',        label: 'Salud' },
-  { value: 'legal',        label: 'Legal' },
-  { value: 'restauracion', label: 'Restauración' },
-  { value: 'comercio',     label: 'Comercio' },
-  { value: 'otros',        label: 'Otros' },
+type FormDict = Dictionary['panelAdmin']['anunciantes']['form'];
+type SharedDict = Dictionary['panelAdmin']['shared'];
+type PlanOpciones = Dictionary['panelAdmin']['anunciantes']['planOpciones'];
+type Categorias = Dictionary['common']['categoriasAnunciante'];
+
+const CATEGORIA_VALUES: (keyof Categorias)[] = [
+  'inmobiliaria', 'salud', 'legal', 'restauracion', 'comercio', 'otros',
 ];
 
 const ZONAS = [
@@ -23,7 +25,16 @@ const inputClass = 'w-full px-4 py-2.5 rounded-lg border text-sm outline-none fo
 const inputStyle = { background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' };
 const labelClass = 'block text-sm font-medium mb-1.5 text-(--ink)';
 
-export function FichaAdminFormAnunciante({ anunciante }: { anunciante: Anunciante }) {
+interface Props {
+  anunciante: Anunciante;
+  t: FormDict;
+  shared: SharedDict;
+  planOpciones: PlanOpciones;
+  categorias: Categorias;
+  locale: Locale;
+}
+
+export function FichaAdminFormAnunciante({ anunciante, t, shared, planOpciones, categorias, locale }: Props) {
   const router = useRouter();
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,7 +51,7 @@ export function FichaAdminFormAnunciante({ anunciante }: { anunciante: Anunciant
     if (result.error) {
       setStatus({ type: 'error', msg: result.error });
     } else {
-      setStatus({ type: 'success', msg: 'Cambios guardados.' });
+      setStatus({ type: 'success', msg: shared.guardado });
       router.refresh();
     }
   }
@@ -49,7 +60,7 @@ export function FichaAdminFormAnunciante({ anunciante }: { anunciante: Anunciant
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Nombre del negocio */}
       <div>
-        <label className={labelClass}>Nombre del negocio</label>
+        <label className={labelClass}>{t.nombreNegocio}</label>
         <input name="nombre_negocio" type="text" defaultValue={anunciante.nombre_negocio}
           className={inputClass} style={inputStyle} required />
       </div>
@@ -57,85 +68,85 @@ export function FichaAdminFormAnunciante({ anunciante }: { anunciante: Anunciant
       {/* Categoría */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelClass}>Categoría</label>
+          <label className={labelClass}>{t.categoria}</label>
           <select name="categoria" defaultValue={anunciante.categoria} className={inputClass} style={inputStyle}>
-            {CATEGORIAS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+            {CATEGORIA_VALUES.map((c) => <option key={c} value={c}>{categorias[c]}</option>)}
           </select>
         </div>
         <div>
-          <label className={labelClass}>Plan</label>
+          <label className={labelClass}>{t.plan}</label>
           <select name="plan" defaultValue={anunciante.plan} className={inputClass} style={inputStyle}>
-            <option value="basico">Básico — 29 €/mes</option>
-            <option value="destacado">Destacado — 79 €/mes</option>
+            <option value="basico">{planOpciones.basico}</option>
+            <option value="destacado">{planOpciones.destacado}</option>
           </select>
         </div>
       </div>
 
       {/* Zona */}
       <div>
-        <label className={labelClass}>Zona principal</label>
+        <label className={labelClass}>{t.zonaPrincipal}</label>
         <select name="zona" defaultValue={anunciante.zona ?? ''} className={inputClass} style={inputStyle}>
-          <option value="">Sin zona específica</option>
+          <option value="">{t.sinZona}</option>
           {ZONAS.map((z) => <option key={z} value={z}>{z}</option>)}
         </select>
       </div>
 
       {/* Logo URL */}
       <div>
-        <label className={labelClass}>URL del logo</label>
+        <label className={labelClass}>{t.logoUrl}</label>
         <input name="logo_url" type="url" defaultValue={anunciante.logo_url ?? ''}
-          placeholder="https://..." className={inputClass} style={inputStyle} />
+          placeholder={t.logoUrlPlaceholder} className={inputClass} style={inputStyle} />
       </div>
 
       {/* Descripción ES */}
       <div>
-        <label className={labelClass}>Descripción (español)</label>
+        <label className={labelClass}>{t.descEs}</label>
         <textarea name="descripcion_es" rows={3} defaultValue={desc.es ?? ''}
-          placeholder="Descripción del negocio en español…"
+          placeholder={t.descEsPlaceholder}
           className={inputClass} style={{ ...inputStyle, resize: 'vertical' }} />
       </div>
 
       {/* Descripción EN */}
       <div>
-        <label className={labelClass}>Descripción (inglés)</label>
+        <label className={labelClass}>{t.descEn}</label>
         <textarea name="descripcion_en" rows={3} defaultValue={desc.en ?? ''}
-          placeholder="Business description in English…"
+          placeholder={t.descEnPlaceholder}
           className={inputClass} style={{ ...inputStyle, resize: 'vertical' }} />
       </div>
 
       {/* Web */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelClass}>Web</label>
+          <label className={labelClass}>{t.web}</label>
           <input name="web" type="url" defaultValue={anunciante.web ?? ''}
-            placeholder="https://negocio.com" className={inputClass} style={inputStyle} />
+            placeholder={t.webPlaceholder} className={inputClass} style={inputStyle} />
         </div>
         <div>
-          <label className={labelClass}>Email</label>
+          <label className={labelClass}>{t.email}</label>
           <input name="email" type="email" defaultValue={anunciante.email ?? ''}
-            placeholder="contacto@negocio.com" className={inputClass} style={inputStyle} />
+            placeholder={t.emailPlaceholder} className={inputClass} style={inputStyle} />
         </div>
       </div>
 
       {/* Teléfono / WhatsApp */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelClass}>Teléfono</label>
+          <label className={labelClass}>{t.telefono}</label>
           <input name="telefono" type="tel" defaultValue={anunciante.telefono ?? ''}
-            placeholder="+34 600 000 000" className={inputClass} style={inputStyle} />
+            placeholder={t.telefonoPlaceholder} className={inputClass} style={inputStyle} />
         </div>
         <div>
-          <label className={labelClass}>WhatsApp</label>
+          <label className={labelClass}>{t.whatsapp}</label>
           <input name="whatsapp" type="tel" defaultValue={anunciante.whatsapp ?? ''}
-            placeholder="+34 600 000 000" className={inputClass} style={inputStyle} />
+            placeholder={t.whatsappPlaceholder} className={inputClass} style={inputStyle} />
         </div>
       </div>
 
       {/* Dirección */}
       <div>
-        <label className={labelClass}>Dirección (se muestra con enlace a Google Maps)</label>
+        <label className={labelClass}>{t.direccion}</label>
         <input name="direccion" type="text" defaultValue={anunciante.direccion ?? ''}
-          placeholder="Calle Ejemplo 1, Estepona, Málaga"
+          placeholder={t.direccionPlaceholder}
           className={inputClass} style={inputStyle} />
       </div>
 
@@ -143,7 +154,7 @@ export function FichaAdminFormAnunciante({ anunciante }: { anunciante: Anunciant
       <div className="flex items-center gap-3 pt-2">
         <input type="checkbox" name="activo" id="activo" defaultChecked={anunciante.activo}
           className="w-4 h-4 rounded" />
-        <label htmlFor="activo" className="text-sm font-medium text-(--ink)">Anunciante activo (visible en el directorio)</label>
+        <label htmlFor="activo" className="text-sm font-medium text-(--ink)">{t.activo}</label>
       </div>
 
       {/* Feedback */}
@@ -159,15 +170,15 @@ export function FichaAdminFormAnunciante({ anunciante }: { anunciante: Anunciant
       )}
 
       <div className="flex gap-3 pt-2">
-        <button type="button" onClick={() => router.push('/admin/anunciantes')}
+        <button type="button" onClick={() => router.push(localePath(locale, '/admin/anunciantes'))}
           className="px-5 py-2.5 rounded-lg text-sm font-medium border transition-opacity hover:opacity-70"
           style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}>
-          ← Volver
+          {shared.volver}
         </button>
         <button type="submit" disabled={loading}
           className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-60"
           style={{ background: 'var(--green)', color: 'var(--bone)' }}>
-          {loading ? 'Guardando...' : 'Guardar cambios'}
+          {loading ? shared.guardando : shared.guardar}
         </button>
       </div>
     </form>
