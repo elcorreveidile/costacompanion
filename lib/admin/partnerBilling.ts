@@ -1,30 +1,21 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { anunciantes, profiles } from '@/lib/db/schema';
+import { getSessionUser } from '@/lib/auth/session';
 import { getStripe, mapStripeStatus } from '@/lib/stripe';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
-type RawClient = SupabaseClient;
-
-interface AnuncianteStripe {
-  id: string;
-  nombre_negocio: string;
-  email: string | null;
-  profile_id: string | null;
-  stripe_customer_id: string | null;
-  plan: 'basico' | 'destacado';
-}
-
-interface AnuncianteSubscripcion {
-  stripe_subscription_id: string | null;
-  stripe_customer_id: string | null;
+async function requireSuperadmin(): Promise<boolean> {
+  const user = await getSessionUser();
+  return user?.rol === 'superadmin';
 }
 
 export async function activarAnuncianteConStripe(
   anuncianteId: string
 ): Promise<{ error?: string }> {
-  const admin = createAdminClient();
+  if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
   const stripe = getStripe();
 
   const BASIC    = process.env.STRIPE_PRICE_PARTNER_BASIC;
@@ -34,20 +25,24 @@ export async function activarAnuncianteConStripe(
     return { error: 'Variables STRIPE_PRICE_PARTNER_* no configuradas.' };
   }
 
-  const { data: anunc } = await (admin as RawClient)
-    .from('anunciantes')
-    .select('id, nombre_negocio, email, profile_id, stripe_customer_id, plan')
-    .eq('id', anuncianteId)
-    .single() as { data: AnuncianteStripe | null };
+  const [anunc] = await db
+    .select({
+      id: anunciantes.id,
+      nombreNegocio: anunciantes.nombreNegocio,
+      email: anunciantes.email,
+      stripeCustomerId: anunciantes.stripeCustomerId,
+      plan: anunciantes.plan,
+      profileEmail: profiles.email,
+    })
+    .from(anunciantes)
+    .leftJoin(profiles, eq(profiles.id, anunciantes.profileId))
+    .where(eq(anunciantes.id, anuncianteId))
+    .limit(1);
 
   if (!anunc) return { error: 'Anunciante no encontrado.' };
-  if (anunc.stripe_customer_id) return { error: 'Este anunciante ya tiene suscripción Stripe.' };
+  if (anunc.stripeCustomerId) return { error: 'Este anunciante ya tiene suscripción Stripe.' };
 
-  let email = anunc.email;
-  if (!email && anunc.profile_id) {
-    const { data: { user: authUser } } = await admin.auth.admin.getUserById(anunc.profile_id);
-    email = authUser?.email ?? null;
-  }
+  const email = anunc.email ?? anunc.profileEmail;
   if (!email) return { error: 'No hay email asociado a este anunciante.' };
 
   const priceId = anunc.plan === 'destacado' ? FEATURED : BASIC;
@@ -55,7 +50,7 @@ export async function activarAnuncianteConStripe(
   try {
     const customer = await stripe.customers.create({
       email,
-      name: anunc.nombre_negocio,
+      name: anunc.nombreNegocio,
       metadata: { anunciante_id: anunc.id },
     });
 
@@ -77,15 +72,15 @@ export async function activarAnuncianteConStripe(
       await stripe.invoices.sendInvoice(finalized.id);
     }
 
-    await (admin as RawClient)
-      .from('anunciantes')
-      .update({
-        stripe_customer_id: customer.id,
-        stripe_subscription_id: subscription.id,
-        stripe_subscription_status: mapStripeStatus(subscription.status),
+    await db
+      .update(anunciantes)
+      .set({
+        stripeCustomerId: customer.id,
+        stripeSubscriptionId: subscription.id,
+        stripeSubscriptionStatus: mapStripeStatus(subscription.status),
         activo: true,
       })
-      .eq('id', anuncianteId);
+      .where(eq(anunciantes.id, anuncianteId));
 
     revalidatePath('/admin/anunciantes');
     return {};
@@ -100,26 +95,26 @@ export async function cancelarAnuncianteAdmin(
   anuncianteId: string,
   inmediato: boolean = false
 ): Promise<{ error?: string }> {
-  const admin = createAdminClient();
+  if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
   const stripe = getStripe();
 
-  const { data: anunc } = await (admin as RawClient)
-    .from('anunciantes')
-    .select('stripe_subscription_id, stripe_customer_id')
-    .eq('id', anuncianteId)
-    .single() as { data: AnuncianteSubscripcion | null };
+  const [anunc] = await db
+    .select({ stripeSubscriptionId: anunciantes.stripeSubscriptionId })
+    .from(anunciantes)
+    .where(eq(anunciantes.id, anuncianteId))
+    .limit(1);
 
-  if (!anunc?.stripe_subscription_id) return { error: 'Sin suscripción activa.' };
+  if (!anunc?.stripeSubscriptionId) return { error: 'Sin suscripción activa.' };
 
   try {
     if (inmediato) {
-      await stripe.subscriptions.cancel(anunc.stripe_subscription_id);
-      await (admin as RawClient)
-        .from('anunciantes')
-        .update({ stripe_subscription_status: 'canceled', activo: false })
-        .eq('id', anuncianteId);
+      await stripe.subscriptions.cancel(anunc.stripeSubscriptionId);
+      await db
+        .update(anunciantes)
+        .set({ stripeSubscriptionStatus: 'canceled', activo: false })
+        .where(eq(anunciantes.id, anuncianteId));
     } else {
-      await stripe.subscriptions.update(anunc.stripe_subscription_id, {
+      await stripe.subscriptions.update(anunc.stripeSubscriptionId, {
         cancel_at_period_end: true,
       });
     }
@@ -133,19 +128,19 @@ export async function cancelarAnuncianteAdmin(
 export async function reactivarAnuncianteAdmin(
   anuncianteId: string
 ): Promise<{ error?: string }> {
-  const admin = createAdminClient();
+  if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
   const stripe = getStripe();
 
-  const { data: anunc } = await (admin as RawClient)
-    .from('anunciantes')
-    .select('stripe_subscription_id')
-    .eq('id', anuncianteId)
-    .single() as { data: AnuncianteSubscripcion | null };
+  const [anunc] = await db
+    .select({ stripeSubscriptionId: anunciantes.stripeSubscriptionId })
+    .from(anunciantes)
+    .where(eq(anunciantes.id, anuncianteId))
+    .limit(1);
 
-  if (!anunc?.stripe_subscription_id) return { error: 'Sin suscripción.' };
+  if (!anunc?.stripeSubscriptionId) return { error: 'Sin suscripción.' };
 
   try {
-    await stripe.subscriptions.update(anunc.stripe_subscription_id, {
+    await stripe.subscriptions.update(anunc.stripeSubscriptionId, {
       cancel_at_period_end: false,
     });
     revalidatePath('/admin/anunciantes');
@@ -159,10 +154,9 @@ export async function sincronizarEstadoStripeAnunciante(
   customerId: string,
   status: string
 ): Promise<void> {
-  const admin = createAdminClient();
-  await (admin as RawClient)
-    .from('anunciantes')
-    .update({ stripe_subscription_status: mapStripeStatus(status) })
-    .eq('stripe_customer_id', customerId);
+  await db
+    .update(anunciantes)
+    .set({ stripeSubscriptionStatus: mapStripeStatus(status) })
+    .where(eq(anunciantes.stripeCustomerId, customerId));
   revalidatePath('/admin/anunciantes');
 }

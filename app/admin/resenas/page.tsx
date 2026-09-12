@@ -1,9 +1,8 @@
-import { createAdminClient } from '@/lib/supabase/admin';
-import { toggleAprobada } from '@/lib/admin/resenas';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { desc, eq } from 'drizzle-orm';
 import Link from 'next/link';
-
-type RawClient = SupabaseClient;
+import { db } from '@/lib/db';
+import { resenas as resenasTable, acompanantes, profiles } from '@/lib/db/schema';
+import { toggleAprobada } from '@/lib/admin/resenas';
 
 interface ResenaConJoins {
   id: string;
@@ -11,9 +10,6 @@ interface ResenaConJoins {
   comentario: string | null;
   aprobada: boolean;
   created_at: string;
-  acompanante_id: string;
-  cliente_id: string;
-  reserva_id: string | null;
   acompanantes: { nombre_publico: string; slug: string } | null;
   profiles: { nombre: string | null } | null;
 }
@@ -22,14 +18,31 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Reseñas | Admin Costa Companion' };
 
 export default async function AdminResenasPage() {
-  const admin = createAdminClient();
+  const rows = await db
+    .select({
+      id: resenasTable.id,
+      puntuacion: resenasTable.puntuacion,
+      comentario: resenasTable.comentario,
+      aprobada: resenasTable.aprobada,
+      createdAt: resenasTable.createdAt,
+      acompNombre: acompanantes.nombrePublico,
+      acompSlug: acompanantes.slug,
+      clienteNombre: profiles.nombre,
+    })
+    .from(resenasTable)
+    .leftJoin(acompanantes, eq(acompanantes.id, resenasTable.acompananteId))
+    .leftJoin(profiles, eq(profiles.id, resenasTable.clienteId))
+    .orderBy(desc(resenasTable.createdAt));
 
-  const { data: resenasData } = await (admin as RawClient)
-    .from('resenas')
-    .select('*, acompanantes(nombre_publico, slug), profiles(nombre)')
-    .order('created_at', { ascending: false });
-
-  const resenas = (resenasData ?? []) as unknown as ResenaConJoins[];
+  const resenas: ResenaConJoins[] = rows.map((r) => ({
+    id: r.id,
+    puntuacion: r.puntuacion,
+    comentario: r.comentario,
+    aprobada: r.aprobada,
+    created_at: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+    acompanantes: r.acompSlug ? { nombre_publico: r.acompNombre ?? '', slug: r.acompSlug } : null,
+    profiles: { nombre: r.clienteNombre },
+  }));
 
   return (
     <div className="min-h-screen bg-(--bone)">

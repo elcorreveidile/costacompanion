@@ -1,24 +1,21 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { acompanantes, profiles } from '@/lib/db/schema';
+import { getSessionUser } from '@/lib/auth/session';
 import { getStripe, mapStripeStatus } from '@/lib/stripe';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
-type RawClient = SupabaseClient;
-
-interface AcompananteStripe {
-  id: string;
-  nombre_publico: string;
-  email_contacto: string | null;
-  profile_id: string;
-  stripe_customer_id: string | null;
+async function requireSuperadmin(): Promise<boolean> {
+  const user = await getSessionUser();
+  return user?.rol === 'superadmin';
 }
 
 export async function activarConStripe(
   acompananteId: string
 ): Promise<{ error?: string }> {
-  const admin = createAdminClient();
+  if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
   const stripe = getStripe();
 
   const SETUP    = process.env.STRIPE_PRICE_ACOMP_SETUP;
@@ -29,26 +26,31 @@ export async function activarConStripe(
     return { error: 'Variables STRIPE_PRICE_ACOMP_* no configuradas.' };
   }
 
-  // Cargar datos del acompañante
-  const { data: acomp } = await (admin as RawClient)
-    .from('acompanantes')
-    .select('id, nombre_publico, email_contacto, profile_id, stripe_customer_id')
-    .eq('id', acompananteId)
-    .single() as { data: AcompananteStripe | null };
+  const [acomp] = await db
+    .select({
+      id: acompanantes.id,
+      nombrePublico: acompanantes.nombrePublico,
+      emailContacto: acompanantes.emailContacto,
+      profileId: acompanantes.profileId,
+      stripeCustomerId: acompanantes.stripeCustomerId,
+      profileEmail: profiles.email,
+    })
+    .from(acompanantes)
+    .leftJoin(profiles, eq(profiles.id, acompanantes.profileId))
+    .where(eq(acompanantes.id, acompananteId))
+    .limit(1);
 
   if (!acomp) return { error: 'Acompañante no encontrado.' };
-  if (acomp.stripe_customer_id) return { error: 'Este acompañante ya tiene suscripción Stripe.' };
+  if (acomp.stripeCustomerId) return { error: 'Este acompañante ya tiene suscripción Stripe.' };
 
-  // Obtener email del usuario en Auth
-  const { data: { user: authUser } } = await admin.auth.admin.getUserById(acomp.profile_id);
-  const email = authUser?.email ?? acomp.email_contacto;
+  const email = acomp.profileEmail ?? acomp.emailContacto;
   if (!email) return { error: 'No hay email asociado a este acompañante.' };
 
   try {
     // 1. Crear customer en Stripe
     const customer = await stripe.customers.create({
       email,
-      name: acomp.nombre_publico,
+      name: acomp.nombrePublico,
       metadata: { acompanante_id: acomp.id },
     });
 
@@ -92,16 +94,16 @@ export async function activarConStripe(
       }
     }
 
-    // 4. Persistir en Supabase y activar al acompañante
-    await (admin as RawClient)
-      .from('acompanantes')
-      .update({
-        stripe_customer_id: customer.id,
-        stripe_subscription_id: subscriptionId,
-        stripe_subscription_status: 'active',
+    // 4. Persistir y activar al acompañante
+    await db
+      .update(acompanantes)
+      .set({
+        stripeCustomerId: customer.id,
+        stripeSubscriptionId: subscriptionId,
+        stripeSubscriptionStatus: 'active',
         activo: true,
       })
-      .eq('id', acompananteId);
+      .where(eq(acompanantes.id, acompananteId));
 
     revalidatePath('/admin/acompanantes');
     return {};
@@ -116,43 +118,37 @@ export async function sincronizarEstadoStripe(
   customerId: string,
   status: string
 ): Promise<void> {
-  const admin = createAdminClient();
-  await (admin as RawClient)
-    .from('acompanantes')
-    .update({ stripe_subscription_status: mapStripeStatus(status) })
-    .eq('stripe_customer_id', customerId);
+  await db
+    .update(acompanantes)
+    .set({ stripeSubscriptionStatus: mapStripeStatus(status) })
+    .where(eq(acompanantes.stripeCustomerId, customerId));
   revalidatePath('/admin/acompanantes');
-}
-
-interface AcompananteSubscripcion {
-  stripe_subscription_id: string | null;
-  stripe_customer_id: string | null;
 }
 
 export async function cancelarSuscripcionAdmin(
   acompananteId: string,
   inmediato: boolean = false
 ): Promise<{ error?: string }> {
-  const admin = createAdminClient();
+  if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
   const stripe = getStripe();
 
-  const { data: acomp } = await (admin as RawClient)
-    .from('acompanantes')
-    .select('stripe_subscription_id, stripe_customer_id')
-    .eq('id', acompananteId)
-    .single() as { data: AcompananteSubscripcion | null };
+  const [acomp] = await db
+    .select({ stripeSubscriptionId: acompanantes.stripeSubscriptionId })
+    .from(acompanantes)
+    .where(eq(acompanantes.id, acompananteId))
+    .limit(1);
 
-  if (!acomp?.stripe_subscription_id) return { error: 'Sin suscripción activa.' };
+  if (!acomp?.stripeSubscriptionId) return { error: 'Sin suscripción activa.' };
 
   try {
     if (inmediato) {
-      await stripe.subscriptions.cancel(acomp.stripe_subscription_id);
-      await (admin as RawClient)
-        .from('acompanantes')
-        .update({ stripe_subscription_status: 'canceled', activo: false })
-        .eq('id', acompananteId);
+      await stripe.subscriptions.cancel(acomp.stripeSubscriptionId);
+      await db
+        .update(acompanantes)
+        .set({ stripeSubscriptionStatus: 'canceled', activo: false })
+        .where(eq(acompanantes.id, acompananteId));
     } else {
-      await stripe.subscriptions.update(acomp.stripe_subscription_id, {
+      await stripe.subscriptions.update(acomp.stripeSubscriptionId, {
         cancel_at_period_end: true,
       });
     }
@@ -166,19 +162,19 @@ export async function cancelarSuscripcionAdmin(
 export async function reactivarSuscripcionAdmin(
   acompananteId: string
 ): Promise<{ error?: string }> {
-  const admin = createAdminClient();
+  if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
   const stripe = getStripe();
 
-  const { data: acomp } = await (admin as RawClient)
-    .from('acompanantes')
-    .select('stripe_subscription_id')
-    .eq('id', acompananteId)
-    .single() as { data: AcompananteSubscripcion | null };
+  const [acomp] = await db
+    .select({ stripeSubscriptionId: acompanantes.stripeSubscriptionId })
+    .from(acompanantes)
+    .where(eq(acompanantes.id, acompananteId))
+    .limit(1);
 
-  if (!acomp?.stripe_subscription_id) return { error: 'Sin suscripción.' };
+  if (!acomp?.stripeSubscriptionId) return { error: 'Sin suscripción.' };
 
   try {
-    await stripe.subscriptions.update(acomp.stripe_subscription_id, {
+    await stripe.subscriptions.update(acomp.stripeSubscriptionId, {
       cancel_at_period_end: false,
     });
     revalidatePath('/admin/acompanantes');

@@ -1,7 +1,10 @@
-import { createAdminClient } from '@/lib/supabase/admin';
+import { desc } from 'drizzle-orm';
+import Link from 'next/link';
+import { db } from '@/lib/db';
+import { anunciantes as anunciantesTable } from '@/lib/db/schema';
+import { rowToAnunciante } from '@/lib/admin/anunciantes-map';
 import { toggleActivoAnunciante } from '@/lib/admin/anunciantes';
 import { activarAnuncianteConStripe, cancelarAnuncianteAdmin, reactivarAnuncianteAdmin } from '@/lib/admin/partnerBilling';
-import Link from 'next/link';
 import type { Anunciante, EstadoStripe, CategoriaAnunciante } from '@/types/supabase';
 
 export const dynamic = 'force-dynamic';
@@ -30,14 +33,12 @@ const CAT_LABEL: Record<CategoriaAnunciante, string> = {
 };
 
 export default async function AdminAnunciantesPage() {
-  const admin = createAdminClient();
+  const rows = await db
+    .select()
+    .from(anunciantesTable)
+    .orderBy(desc(anunciantesTable.createdAt));
 
-  const { data } = await admin
-    .from('anunciantes')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  const lista = (data ?? []) as unknown as Anunciante[];
+  const lista: Anunciante[] = rows.map(rowToAnunciante);
   const pendientes = lista.filter((a) => !a.activo && !a.stripe_customer_id);
   const hayAlertasPago = lista.some((a) => a.stripe_subscription_status === 'past_due');
 
