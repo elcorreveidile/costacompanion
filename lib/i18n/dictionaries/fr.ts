@@ -28,6 +28,59 @@ const fr: Dictionary = {
   language: {
     label: "Langue",
   },
+  common: {
+    modalidades: { presencial: "En personne", remoto: "À distance", ambos: "Les deux" },
+    badges: { destacado: "Mis en avant", interpreteJurado: "Interprète assermenté", imparteClases: "Donne des cours" },
+  },
+  ficha: {
+    aniosExperiencia: "ans d’expérience",
+    resenaUno: "avis",
+    resenaVarios: "avis",
+    cta: {
+      h2: "Prêt à commencer ?",
+      subtitle:
+        "Réserver un rendez-vous : choisissez un service et un créneau. Demande sur mesure : décrivez votre besoin et l’accompagnateur vous propose des conditions.",
+      reservar: "Réserver un rendez-vous",
+      solicitud: "Demande sur mesure",
+      chat: "💬 Chat direct",
+      enviarMensaje: "Envoyer un message",
+    },
+    serviciosH2: "Services",
+    paquetesTitulo: "Forfaits de séances",
+    sesiones: "séances",
+    resenasH2: "Avis",
+    dejarResena: "Laisser un avis",
+    yaResena: "Vous avez déjà laissé votre avis",
+    ningunaTitulo: "Soyez le premier à laisser un avis",
+    ningunaSub: "Les avis de clients vérifiés apparaîtront ici.",
+    clienteVerificado: "Client vérifié",
+    avisoLegal:
+      "Costa Companion agit uniquement comme plateforme d’intermédiation entre les clients et des accompagnateurs linguistiques indépendants. Les services sont fournis directement par les accompagnateurs, qui sont des professionnels indépendants. Costa Companion n’est partie à aucun contrat de prestation de services entre le client et l’accompagnateur.",
+  },
+  directorio: {
+    hero: {
+      h1: "Nos accompagnateurs",
+      subtitle:
+        "Des professionnels de la langue à vos côtés sur la Costa del Sol. Démarches, santé, logement et plus.",
+    },
+    filtros: {
+      idioma: "Langue",
+      categoria: "Catégorie",
+      zona: "Zone",
+      modalidad: "Format",
+      todos: "Tous",
+      todas: "Toutes",
+      filtrar: "Filtrer",
+      limpiar: "Effacer les filtres",
+    },
+    resultados: {
+      uno: "accompagnateur trouvé",
+      varios: "accompagnateurs trouvés",
+      ningunoTitulo: "Aucun accompagnateur trouvé avec ces filtres.",
+      ningunoSub: "Essayez d’élargir votre recherche ou de retirer un filtre.",
+      verTodos: "Voir tous les accompagnateurs",
+    },
+  },
   home: {
     hero: {
       eyebrow: "Accompagnement linguistique sur la Costa del Sol",

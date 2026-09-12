@@ -28,6 +28,59 @@ const de: Dictionary = {
   language: {
     label: "Sprache",
   },
+  common: {
+    modalidades: { presencial: "Persönlich", remoto: "Remote", ambos: "Beides" },
+    badges: { destacado: "Hervorgehoben", interpreteJurado: "Vereidigter Dolmetscher", imparteClases: "Gibt Unterricht" },
+  },
+  ficha: {
+    aniosExperiencia: "Jahre Erfahrung",
+    resenaUno: "Bewertung",
+    resenaVarios: "Bewertungen",
+    cta: {
+      h2: "Bereit loszulegen?",
+      subtitle:
+        "Termin buchen: Wählen Sie eine Leistung und ein Zeitfenster. Individuelle Anfrage: Beschreiben Sie Ihr Anliegen, und die Begleitung schlägt Ihnen Konditionen vor.",
+      reservar: "Termin buchen",
+      solicitud: "Individuelle Anfrage",
+      chat: "💬 Direkter Chat",
+      enviarMensaje: "Nachricht senden",
+    },
+    serviciosH2: "Leistungen",
+    paquetesTitulo: "Sitzungspakete",
+    sesiones: "Sitzungen",
+    resenasH2: "Bewertungen",
+    dejarResena: "Bewertung abgeben",
+    yaResena: "Sie haben Ihre Bewertung bereits abgegeben",
+    ningunaTitulo: "Geben Sie die erste Bewertung ab",
+    ningunaSub: "Bewertungen verifizierter Kunden erscheinen hier.",
+    clienteVerificado: "Verifizierter Kunde",
+    avisoLegal:
+      "Costa Companion agiert ausschließlich als Vermittlungsplattform zwischen Kunden und unabhängigen Sprachbegleitern. Die Leistungen werden direkt von den Begleitern erbracht, die selbstständige Fachkräfte sind. Costa Companion ist nicht Vertragspartei eines Dienstleistungsvertrags zwischen Kunde und Begleiter.",
+  },
+  directorio: {
+    hero: {
+      h1: "Unsere Begleiter",
+      subtitle:
+        "Sprachprofis an Ihrer Seite an der Costa del Sol. Behördengänge, Gesundheit, Zuhause und mehr.",
+    },
+    filtros: {
+      idioma: "Sprache",
+      categoria: "Kategorie",
+      zona: "Gebiet",
+      modalidad: "Format",
+      todos: "Alle",
+      todas: "Alle",
+      filtrar: "Filtern",
+      limpiar: "Filter zurücksetzen",
+    },
+    resultados: {
+      uno: "Begleiter gefunden",
+      varios: "Begleiter gefunden",
+      ningunoTitulo: "Mit diesen Filtern haben wir keine Begleiter gefunden.",
+      ningunoSub: "Erweitern Sie Ihre Suche oder entfernen Sie einen Filter.",
+      verTodos: "Alle Begleiter ansehen",
+    },
+  },
   home: {
     hero: {
       eyebrow: "Sprachbegleitung an der Costa del Sol",

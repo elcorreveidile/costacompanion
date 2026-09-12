@@ -29,6 +29,59 @@ const es = {
   language: {
     label: "Idioma",
   },
+  common: {
+    modalidades: { presencial: "Presencial", remoto: "Remoto", ambos: "Ambos" },
+    badges: { destacado: "Destacado", interpreteJurado: "Intérprete jurado", imparteClases: "Imparte clases" },
+  },
+  ficha: {
+    aniosExperiencia: "años de experiencia",
+    resenaUno: "reseña",
+    resenaVarios: "reseñas",
+    cta: {
+      h2: "¿Listo para empezar?",
+      subtitle:
+        "Reservar cita: elige un servicio y una franja horaria. Solicitud a medida: describe lo que necesitas y el acompañante te propone condiciones.",
+      reservar: "Reservar cita",
+      solicitud: "Solicitud a medida",
+      chat: "💬 Chat directo",
+      enviarMensaje: "Enviar mensaje",
+    },
+    serviciosH2: "Servicios",
+    paquetesTitulo: "Paquetes de sesiones",
+    sesiones: "sesiones",
+    resenasH2: "Reseñas",
+    dejarResena: "Dejar reseña",
+    yaResena: "Ya dejaste tu reseña",
+    ningunaTitulo: "Sé el primero en dejar una reseña",
+    ningunaSub: "Las reseñas de clientes verificados aparecerán aquí.",
+    clienteVerificado: "Cliente verificado",
+    avisoLegal:
+      "Costa Companion actúa exclusivamente como plataforma de intermediación entre clientes y acompañantes lingüísticos independientes. Los servicios son prestados directamente por los acompañantes, quienes son profesionales autónomos. Costa Companion no es parte de ningún contrato de prestación de servicios entre el cliente y el acompañante.",
+  },
+  directorio: {
+    hero: {
+      h1: "Nuestros acompañantes",
+      subtitle:
+        "Profesionales lingüísticos a tu lado en la Costa del Sol. Trámites, salud, hogar y más.",
+    },
+    filtros: {
+      idioma: "Idioma",
+      categoria: "Categoría",
+      zona: "Zona",
+      modalidad: "Modalidad",
+      todos: "Todos",
+      todas: "Todas",
+      filtrar: "Filtrar",
+      limpiar: "Limpiar filtros",
+    },
+    resultados: {
+      uno: "acompañante encontrado",
+      varios: "acompañantes encontrados",
+      ningunoTitulo: "No encontramos acompañantes con esos filtros.",
+      ningunoSub: "Prueba a ampliar tu búsqueda o eliminar algún filtro.",
+      verTodos: "Ver todos los acompañantes",
+    },
+  },
   home: {
     hero: {
       eyebrow: "Acompañamiento lingüístico en la Costa del Sol",

@@ -48,6 +48,22 @@ export function isLocale(value: string | undefined | null): value is Locale {
 }
 
 /**
+ * Nombre de un idioma (código ISO como "en", "fr", "zh") en la lengua `locale`,
+ * con la primera letra en mayúscula. Usa Intl.DisplayNames, así que no hace
+ * falta traducir a mano cada nombre de idioma.
+ */
+export function languageName(code: string, locale: Locale): string {
+  try {
+    const dn = new Intl.DisplayNames([locale], { type: "language" });
+    const name = dn.of(code);
+    if (!name) return code;
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  } catch {
+    return code;
+  }
+}
+
+/**
  * Construye una ruta con el prefijo de idioma correcto.
  * localePath("en", "/servicios")     -> "/en/servicios"
  * localePath("es", "/servicios")     -> "/servicios"

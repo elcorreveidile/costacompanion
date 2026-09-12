@@ -28,6 +28,59 @@ const nl: Dictionary = {
   language: {
     label: "Taal",
   },
+  common: {
+    modalidades: { presencial: "Persoonlijk", remoto: "Op afstand", ambos: "Beide" },
+    badges: { destacado: "Uitgelicht", interpreteJurado: "Beëdigd tolk", imparteClases: "Geeft les" },
+  },
+  ficha: {
+    aniosExperiencia: "jaar ervaring",
+    resenaUno: "beoordeling",
+    resenaVarios: "beoordelingen",
+    cta: {
+      h2: "Klaar om te beginnen?",
+      subtitle:
+        "Afspraak boeken: kies een dienst en een tijdslot. Verzoek op maat: beschrijf wat u nodig hebt en de begeleider stelt voorwaarden voor.",
+      reservar: "Afspraak boeken",
+      solicitud: "Verzoek op maat",
+      chat: "💬 Direct chatten",
+      enviarMensaje: "Bericht sturen",
+    },
+    serviciosH2: "Diensten",
+    paquetesTitulo: "Sessiepakketten",
+    sesiones: "sessies",
+    resenasH2: "Beoordelingen",
+    dejarResena: "Beoordeling achterlaten",
+    yaResena: "U hebt uw beoordeling al achtergelaten",
+    ningunaTitulo: "Wees de eerste die een beoordeling achterlaat",
+    ningunaSub: "Beoordelingen van geverifieerde klanten verschijnen hier.",
+    clienteVerificado: "Geverifieerde klant",
+    avisoLegal:
+      "Costa Companion treedt uitsluitend op als bemiddelingsplatform tussen klanten en onafhankelijke taalbegeleiders. De diensten worden rechtstreeks geleverd door de begeleiders, die zelfstandige professionals zijn. Costa Companion is geen partij bij enige dienstverleningsovereenkomst tussen de klant en de begeleider.",
+  },
+  directorio: {
+    hero: {
+      h1: "Onze begeleiders",
+      subtitle:
+        "Taalprofessionals aan uw zijde aan de Costa del Sol. Formaliteiten, gezondheid, wonen en meer.",
+    },
+    filtros: {
+      idioma: "Taal",
+      categoria: "Categorie",
+      zona: "Regio",
+      modalidad: "Vorm",
+      todos: "Alle",
+      todas: "Alle",
+      filtrar: "Filteren",
+      limpiar: "Filters wissen",
+    },
+    resultados: {
+      uno: "begeleider gevonden",
+      varios: "begeleiders gevonden",
+      ningunoTitulo: "We vonden geen begeleiders met die filters.",
+      ningunoSub: "Verbreed uw zoekopdracht of verwijder een filter.",
+      verTodos: "Alle begeleiders bekijken",
+    },
+  },
   home: {
     hero: {
       eyebrow: "Taalbegeleiding aan de Costa del Sol",

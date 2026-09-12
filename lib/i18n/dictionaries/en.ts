@@ -28,6 +28,59 @@ const en: Dictionary = {
   language: {
     label: "Language",
   },
+  common: {
+    modalidades: { presencial: "In person", remoto: "Remote", ambos: "Both" },
+    badges: { destacado: "Featured", interpreteJurado: "Sworn interpreter", imparteClases: "Gives lessons" },
+  },
+  ficha: {
+    aniosExperiencia: "years of experience",
+    resenaUno: "review",
+    resenaVarios: "reviews",
+    cta: {
+      h2: "Ready to get started?",
+      subtitle:
+        "Book an appointment: choose a service and a time slot. Custom request: describe what you need and the companion proposes terms.",
+      reservar: "Book an appointment",
+      solicitud: "Custom request",
+      chat: "💬 Direct chat",
+      enviarMensaje: "Send a message",
+    },
+    serviciosH2: "Services",
+    paquetesTitulo: "Session packs",
+    sesiones: "sessions",
+    resenasH2: "Reviews",
+    dejarResena: "Leave a review",
+    yaResena: "You’ve already left your review",
+    ningunaTitulo: "Be the first to leave a review",
+    ningunaSub: "Reviews from verified clients will appear here.",
+    clienteVerificado: "Verified client",
+    avisoLegal:
+      "Costa Companion acts solely as an intermediation platform between clients and independent language companions. Services are provided directly by the companions, who are self-employed professionals. Costa Companion is not a party to any service contract between the client and the companion.",
+  },
+  directorio: {
+    hero: {
+      h1: "Our companions",
+      subtitle:
+        "Language professionals by your side on the Costa del Sol. Paperwork, health, home and more.",
+    },
+    filtros: {
+      idioma: "Language",
+      categoria: "Category",
+      zona: "Area",
+      modalidad: "Format",
+      todos: "All",
+      todas: "All",
+      filtrar: "Filter",
+      limpiar: "Clear filters",
+    },
+    resultados: {
+      uno: "companion found",
+      varios: "companions found",
+      ningunoTitulo: "We couldn’t find companions with those filters.",
+      ningunoSub: "Try broadening your search or removing a filter.",
+      verTodos: "See all companions",
+    },
+  },
   home: {
     hero: {
       eyebrow: "Language accompaniment on the Costa del Sol",
