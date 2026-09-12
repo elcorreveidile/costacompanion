@@ -5,23 +5,28 @@ import { RealtimeRefresher } from '@/components/RealtimeRefresher';
 import { getSessionUser } from '@/lib/auth/session';
 import { getMiAcompananteId, getReservasDeAcompanante } from '@/lib/db/queries/acompanante';
 import type { EstadoReserva } from '@/types/supabase';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
 
-const ESTADO_BADGE: Record<EstadoReserva, { label: string; bg: string; color: string }> = {
-  pendiente: { label: 'Pendiente', bg: 'var(--terra-soft)', color: 'var(--terra)' },
-  confirmada: { label: 'Confirmada', bg: 'rgba(74,111,80,0.12)', color: 'var(--green)' },
-  rechazada: { label: 'Rechazada', bg: 'rgba(180,60,50,0.1)', color: '#b43c32' },
-  cancelada: { label: 'Cancelada', bg: 'rgba(43,39,36,0.08)', color: 'rgba(43,39,36,0.5)' },
-  completada: { label: 'Completada', bg: 'rgba(34,70,40,0.12)', color: 'var(--green-deep)' },
+const ESTADO_BADGE: Record<EstadoReserva, { bg: string; color: string }> = {
+  pendiente: { bg: 'var(--terra-soft)', color: 'var(--terra)' },
+  confirmada: { bg: 'rgba(74,111,80,0.12)', color: 'var(--green)' },
+  rechazada: { bg: 'rgba(180,60,50,0.1)', color: '#b43c32' },
+  cancelada: { bg: 'rgba(43,39,36,0.08)', color: 'rgba(43,39,36,0.5)' },
+  completada: { bg: 'rgba(34,70,40,0.12)', color: 'var(--green-deep)' },
 };
 
 export const metadata = { title: 'Reservas recibidas | Costa Companion' };
 
 export default async function AcompananteReservasPage() {
+  const { locale, dict } = await getI18n();
+  const t = dict.panelAcompanante;
+
   const user = await getSessionUser();
-  if (!user) redirect('/auth/login');
+  if (!user) redirect(localePath(locale, '/auth/login'));
 
   const acompananteId = await getMiAcompananteId(user.id);
-  if (!acompananteId) redirect('/acompanante');
+  if (!acompananteId) redirect(localePath(locale, '/acompanante'));
 
   const reservas = await getReservasDeAcompanante(acompananteId);
 
@@ -32,16 +37,16 @@ export default async function AcompananteReservasPage() {
         {/* Encabezado */}
         <div className="mb-8">
           <Link
-            href="/acompanante"
+            href={localePath(locale, "/acompanante")}
             className="inline-flex items-center gap-1.5 text-sm text-(--ink)/60 hover:opacity-80 transition-opacity mb-3"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Volver al panel
+            {t.shared.volverAlPanel}
           </Link>
           <h1 className="font-display text-3xl font-semibold text-(--green)">
-            Reservas recibidas
+            {t.reservas.h1}
           </h1>
         </div>
 
@@ -50,16 +55,17 @@ export default async function AcompananteReservasPage() {
             className="rounded-xl border p-10 text-center"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
-            <p className="text-(--ink)/40 text-lg">No tienes reservas todavía</p>
+            <p className="text-(--ink)/40 text-lg">{t.reservas.vacioTitulo}</p>
             <p className="text-(--ink)/30 text-sm mt-2">
-              Las reservas de tus clientes aparecerán aquí.
+              {t.reservas.vacioTexto}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
             {reservas.map((reserva) => {
               const badge = ESTADO_BADGE[reserva.estado] ?? ESTADO_BADGE.pendiente;
-              const fechaStr = new Date(reserva.fecha_hora).toLocaleString('es-ES', {
+              const estadoLabel = t.reservas.estados[reserva.estado] ?? t.reservas.estados.pendiente;
+              const fechaStr = new Date(reserva.fecha_hora).toLocaleString(locale, {
                 weekday: 'short', day: 'numeric', month: 'short',
                 year: 'numeric', hour: '2-digit', minute: '2-digit',
               });
@@ -77,7 +83,7 @@ export default async function AcompananteReservasPage() {
                     <div className="flex-1 min-w-0">
                       {/* Nombre cliente */}
                       <p className="font-display text-lg font-medium text-(--green)">
-                        {reserva.profiles?.nombre ?? 'Cliente'}
+                        {reserva.profiles?.nombre ?? t.shared.cliente}
                       </p>
 
                       {/* Servicio */}
@@ -89,7 +95,7 @@ export default async function AcompananteReservasPage() {
                       <div className="flex flex-wrap gap-3 mt-2 text-sm text-(--ink)/60">
                         <span>{fechaStr}</span>
                         <span>·</span>
-                        <span className="capitalize">{reserva.modalidad}</span>
+                        <span>{dict.common.modalidades[reserva.modalidad] ?? reserva.modalidad}</span>
                         {reserva.zona && (
                           <>
                             <span>·</span>
@@ -104,7 +110,7 @@ export default async function AcompananteReservasPage() {
                       className="text-xs font-medium px-3 py-1 rounded-full shrink-0"
                       style={{ background: badge.bg, color: badge.color }}
                     >
-                      {badge.label}
+                      {estadoLabel}
                     </span>
                   </div>
 
@@ -118,7 +124,7 @@ export default async function AcompananteReservasPage() {
                           className="text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
                           style={{ background: 'var(--green)', color: 'var(--bone)' }}
                         >
-                          Confirmar
+                          {t.reservas.confirmar}
                         </button>
                       </form>
                       <form action={rechazarReserva}>
@@ -128,7 +134,7 @@ export default async function AcompananteReservasPage() {
                           className="text-sm font-medium px-4 py-2 rounded-lg border transition-opacity hover:opacity-70"
                           style={{ borderColor: 'var(--line)', color: 'rgba(43,39,36,0.6)', background: 'transparent' }}
                         >
-                          Rechazar
+                          {t.reservas.rechazar}
                         </button>
                       </form>
                     </div>
@@ -143,18 +149,18 @@ export default async function AcompananteReservasPage() {
                           className="text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
                           style={{ background: 'var(--green-deep)', color: 'var(--bone)' }}
                         >
-                          Marcar completada
+                          {t.reservas.marcarCompletada}
                         </button>
                       </form>
                       <Link
-                        href="/acompanante/mensajes"
+                        href={localePath(locale, "/acompanante/mensajes")}
                         className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg border transition-opacity hover:opacity-80"
                         style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                         </svg>
-                        Chat
+                        {t.shared.chat}
                       </Link>
                     </div>
                   )}

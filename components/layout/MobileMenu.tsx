@@ -19,7 +19,7 @@ export function MobileMenu({ accountHref, accountLabel, navItems }: MobileMenuPr
         aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex flex-col gap-1.5 p-2 sm:hidden"
+        className="flex flex-col gap-1.5 p-2 lg:hidden"
       >
         <span
           className="block w-5 h-px transition-all duration-300"
@@ -47,7 +47,7 @@ export function MobileMenu({ accountHref, accountLabel, navItems }: MobileMenuPr
       {/* Drawer overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-40 sm:hidden"
+          className="fixed inset-0 z-40 lg:hidden"
           onClick={() => setOpen(false)}
           style={{ background: 'rgba(43,39,36,0.4)' }}
         />
@@ -55,7 +55,7 @@ export function MobileMenu({ accountHref, accountLabel, navItems }: MobileMenuPr
 
       {/* Drawer panel */}
       <div
-        className="fixed top-0 right-0 bottom-0 z-50 w-72 flex flex-col sm:hidden transition-transform duration-300"
+        className="fixed top-0 right-0 bottom-0 z-50 w-72 flex flex-col lg:hidden transition-transform duration-300"
         style={{
           background: 'var(--green)',
           transform: open ? 'translateX(0)' : 'translateX(100%)',

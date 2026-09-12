@@ -2,13 +2,17 @@
 
 import { useState, useRef } from 'react';
 import { subirFotoAcompanante } from '@/lib/acompanante/actions';
+import type { Dictionary } from '@/lib/i18n/dictionaries/es';
+
+type FotoDict = Dictionary['panelAcompanante']['ficha']['foto'];
 
 interface FotoUploadProps {
   initialUrl?: string | null;
   onUrlChange: (url: string) => void;
+  t: FotoDict;
 }
 
-export function FotoUpload({ initialUrl, onUrlChange }: FotoUploadProps) {
+export function FotoUpload({ initialUrl, onUrlChange, t }: FotoUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(initialUrl ?? null);
@@ -49,7 +53,7 @@ export function FotoUpload({ initialUrl, onUrlChange }: FotoUploadProps) {
         style={{ background: 'var(--bone)', borderColor: 'var(--line)' }}
       >
         {preview ? (
-          <img src={preview} alt="Foto de perfil" className="w-full h-full object-cover" />
+          <img src={preview} alt={t.alt} className="w-full h-full object-cover" />
         ) : (
           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2} style={{ color: 'var(--ink)', opacity: 0.2 }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -72,10 +76,10 @@ export function FotoUpload({ initialUrl, onUrlChange }: FotoUploadProps) {
           className="px-4 py-2 rounded-lg text-sm font-medium border transition-opacity hover:opacity-80 disabled:opacity-50"
           style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'var(--bone)' }}
         >
-          {uploading ? 'Subiendo…' : preview ? 'Cambiar foto' : 'Subir foto'}
+          {uploading ? t.subiendo : preview ? t.cambiar : t.subir}
         </button>
         <p className="text-xs" style={{ color: 'var(--ink)', opacity: 0.4 }}>
-          JPG, PNG o WEBP · Máx. 5 MB
+          {t.ayuda}
         </p>
         {uploadError && (
           <p className="text-xs" style={{ color: 'var(--terra)' }}>{uploadError}</p>

@@ -52,7 +52,7 @@ export async function SiteHeader() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-6">
+        <nav className="hidden lg:flex items-center gap-6">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -66,7 +66,7 @@ export async function SiteHeader() {
         </nav>
 
         {/* Desktop: idioma + CTA */}
-        <div className="hidden sm:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           <LanguageSwitcher current={locale} />
           <Link
             href={href}
@@ -77,8 +77,8 @@ export async function SiteHeader() {
           </Link>
         </div>
 
-        {/* Mobile: idioma + hamburguesa */}
-        <div className="flex items-center gap-2 sm:hidden">
+        {/* Mobile/tablet: idioma + hamburguesa */}
+        <div className="flex items-center gap-2 lg:hidden">
           <LanguageSwitcher current={locale} />
           <MobileMenu accountHref={href} accountLabel={accountLabel} navItems={navItems} />
         </div>
