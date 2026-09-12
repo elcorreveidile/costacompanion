@@ -1,11 +1,14 @@
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { notFound } from 'next/navigation';
-import type { Acompanante, Servicio, PaqueteClases, Resena, ServiceCategory } from '@/types/supabase';
+import type { Servicio, PaqueteClases, Resena } from '@/types/supabase';
 import type { Metadata } from 'next';
-import type { SupabaseClient } from '@supabase/supabase-js';
-
-type RawClient = SupabaseClient;
+import { getSessionUser } from '@/lib/auth/session';
+import { getAcompananteActivoBySlug } from '@/lib/db/queries/public';
+import {
+  getServiciosPublicos,
+  getResenasAprobadas,
+  clienteTieneResenaDe,
+  reservaCompletadaSinResena,
+} from '@/lib/db/queries/ficha';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -59,14 +62,7 @@ function Estrellas({ valor, total }: { valor: number | null; total: number }) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = await createClient();
-
-  const { data } = await supabase
-    .from('acompanantes')
-    .select('nombre_publico, bio')
-    .eq('slug', slug)
-    .eq('activo', true)
-    .single() as { data: { nombre_publico: string; bio: Record<string, string> | null } | null; error: null };
+  const data = await getAcompananteActivoBySlug(slug);
 
   if (!data) {
     return { title: 'Acompañante no encontrado | Costa Companion' };
@@ -87,67 +83,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function AcompananteSlugPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
 
-  // Cargar acompañante
-  const { data: rawAcompanante } = await supabase
-    .from('acompanantes')
-    .select('*')
-    .eq('slug', slug)
-    .eq('activo', true)
-    .single();
-
-  if (!rawAcompanante) notFound();
-
-  const acompanante = rawAcompanante as unknown as Acompanante;
+  const acompanante = await getAcompananteActivoBySlug(slug);
+  if (!acompanante) notFound();
 
   // Usuario autenticado (para mostrar botón de reseña y chat)
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: profileData } = user
-    ? await supabase.from('profiles').select('rol, id').eq('id', user.id).single() as { data: { rol: string; id: string } | null; error: null }
-    : { data: null };
-  const puedeResena = profileData?.rol === 'cliente';
-  const esClienteAutenticado = profileData?.rol === 'cliente';
+  const user = await getSessionUser();
+  const puedeResena = user?.rol === 'cliente';
+  const esClienteAutenticado = puedeResena;
 
-  // ¿Ya dejó reseña?
-  const { data: resenaExistente } = puedeResena
-    ? await supabase.from('resenas').select('id').eq('acompanante_id', acompanante.id).eq('cliente_id', user!.id).maybeSingle()
-    : { data: null };
+  // ¿Ya dejó reseña? ¿Tiene reserva completada sin reseña?
+  const resenaExistente =
+    puedeResena && user ? await clienteTieneResenaDe(acompanante.id, user.id) : false;
+  const reservaCompletadaId =
+    puedeResena && user && !resenaExistente
+      ? await reservaCompletadaSinResena(acompanante.id, user.id)
+      : null;
+  const reservaCompletada = reservaCompletadaId ? { id: reservaCompletadaId } : null;
 
-  // ¿Tiene reserva completada sin reseña?
-  const { data: reservaCompletada } = (puedeResena && !resenaExistente
-    ? await supabase
-        .from('reservas')
-        .select('id')
-        .eq('acompanante_id', acompanante.id)
-        .eq('cliente_id', user!.id)
-        .eq('estado', 'completada')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-    : { data: null }) as { data: { id: string } | null };
-
-  // Cargar servicios activos con paquetes y categoría
-  const { data: serviciosData } = await supabase
-    .from('servicios')
-    .select('*, paquetes_clases(*), service_categories(key, nombre)')
-    .eq('acompanante_id', acompanante.id)
-    .eq('activo', true);
-
-  const servicios = (serviciosData ?? []) as unknown as ServicioConExtras[];
+  // Servicios activos (con paquetes y categoría) y reseñas aprobadas
+  const servicios = (await getServiciosPublicos(acompanante.id)) as ServicioConExtras[];
 
   const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
 
-  // Cargar reseñas aprobadas (con admin para poder acceder al nombre del cliente)
-  const admin = createAdminClient();
-  const { data: resenasData } = await (admin as RawClient)
-    .from('resenas')
-    .select('*, profiles!inner(id, nombre)')
-    .eq('acompanante_id', acompanante.id)
-    .eq('aprobada', true)
-    .order('created_at', { ascending: false });
-
-  const resenas = (resenasData ?? []) as unknown as ResenaConProfile[];
+  const resenas = (await getResenasAprobadas(acompanante.id)) as ResenaConProfile[];
   const serviciosPorCategoria: Record<string, ServicioConExtras[]> = {};
   for (const servicio of servicios) {
     const catKey = servicio.service_categories?.key ?? 'otros';
