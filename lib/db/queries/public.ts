@@ -24,7 +24,21 @@ import type {
  * Devuelven los tipos de dominio en snake_case (@/types/supabase) para que las
  * páginas apenas cambien respecto a la versión Supabase. Las visibilidades que
  * antes garantizaba la RLS (activo = true, etc.) se aplican aquí explícitamente.
+ *
+ * Todas degradan con elegancia: si la BD no está configurada (p. ej. en el
+ * prerender de build sin DATABASE_URL) o no responde, devuelven un valor vacío
+ * en lugar de lanzar — igual que hacía el cliente de Supabase.
  */
+
+async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  if (!process.env.DATABASE_URL) return fallback;
+  try {
+    return await fn();
+  } catch (error) {
+    console.error("[public query] error consultando la BD:", error);
+    return fallback;
+  }
+}
 
 // ── Mappers: fila Drizzle (camelCase) → tipo de dominio (snake_case) ──────────
 
@@ -100,15 +114,17 @@ function mapServiceCategory(r: ServiceCategoryRow): ServiceCategory {
 
 // ── Acompañantes ──────────────────────────────────────────────────────────────
 
-export async function getAcompananteActivoBySlug(
+export function getAcompananteActivoBySlug(
   slug: string
 ): Promise<Acompanante | null> {
-  const rows = await db
-    .select()
-    .from(tAcompanantes)
-    .where(and(eq(tAcompanantes.slug, slug), eq(tAcompanantes.activo, true)))
-    .limit(1);
-  return rows[0] ? mapAcompanante(rows[0]) : null;
+  return safeQuery(async () => {
+    const rows = await db
+      .select()
+      .from(tAcompanantes)
+      .where(and(eq(tAcompanantes.slug, slug), eq(tAcompanantes.activo, true)))
+      .limit(1);
+    return rows[0] ? mapAcompanante(rows[0]) : null;
+  }, null);
 }
 
 export interface DirectorioFiltros {
@@ -117,31 +133,33 @@ export interface DirectorioFiltros {
   modalidad?: string;
 }
 
-export async function listAcompanantesActivos(
+export function listAcompanantesActivos(
   filtros: DirectorioFiltros = {}
 ): Promise<Acompanante[]> {
-  const condiciones = [eq(tAcompanantes.activo, true)];
-  if (filtros.idioma) {
-    condiciones.push(sql`${tAcompanantes.idiomas} @> ARRAY[${filtros.idioma}]`);
-  }
-  if (filtros.zona) {
-    condiciones.push(sql`${tAcompanantes.zonas} @> ARRAY[${filtros.zona}]`);
-  }
-  if (filtros.modalidad) {
-    condiciones.push(
-      sql`${tAcompanantes.modalidades} @> ARRAY[${filtros.modalidad}]::modalidad_servicio[]`
-    );
-  }
+  return safeQuery(async () => {
+    const condiciones = [eq(tAcompanantes.activo, true)];
+    if (filtros.idioma) {
+      condiciones.push(sql`${tAcompanantes.idiomas} @> ARRAY[${filtros.idioma}]`);
+    }
+    if (filtros.zona) {
+      condiciones.push(sql`${tAcompanantes.zonas} @> ARRAY[${filtros.zona}]`);
+    }
+    if (filtros.modalidad) {
+      condiciones.push(
+        sql`${tAcompanantes.modalidades} @> ARRAY[${filtros.modalidad}]::modalidad_servicio[]`
+      );
+    }
 
-  const rows = await db
-    .select()
-    .from(tAcompanantes)
-    .where(and(...condiciones))
-    .orderBy(
-      desc(tAcompanantes.destacado),
-      sql`${tAcompanantes.valoracionMedia} DESC NULLS LAST`
-    );
-  return rows.map(mapAcompanante);
+    const rows = await db
+      .select()
+      .from(tAcompanantes)
+      .where(and(...condiciones))
+      .orderBy(
+        desc(tAcompanantes.destacado),
+        sql`${tAcompanantes.valoracionMedia} DESC NULLS LAST`
+      );
+    return rows.map(mapAcompanante);
+  }, []);
 }
 
 /**
@@ -149,45 +167,51 @@ export async function listAcompanantesActivos(
  * servicio activo en la categoría dada. Equivale al filtro por categoría del
  * directorio (que en Supabase se hacía con una segunda consulta).
  */
-export async function filtrarAcompananteIdsPorCategoria(
+export function filtrarAcompananteIdsPorCategoria(
   ids: string[],
   categoriaId: string
 ): Promise<Set<string>> {
-  if (ids.length === 0) return new Set();
-  const rows = await db
-    .selectDistinct({ acompananteId: tServicios.acompananteId })
-    .from(tServicios)
-    .where(
-      and(
-        eq(tServicios.categoria, categoriaId),
-        eq(tServicios.activo, true),
-        inArray(tServicios.acompananteId, ids)
-      )
-    );
-  return new Set(rows.map((r) => r.acompananteId));
+  if (ids.length === 0) return Promise.resolve(new Set());
+  return safeQuery(async () => {
+    const rows = await db
+      .selectDistinct({ acompananteId: tServicios.acompananteId })
+      .from(tServicios)
+      .where(
+        and(
+          eq(tServicios.categoria, categoriaId),
+          eq(tServicios.activo, true),
+          inArray(tServicios.acompananteId, ids)
+        )
+      );
+    return new Set(rows.map((r) => r.acompananteId));
+  }, new Set<string>());
 }
 
 // ── Categorías de servicio ────────────────────────────────────────────────────
 
-export async function listServiceCategories(): Promise<ServiceCategory[]> {
-  const rows = await db
-    .select()
-    .from(tServiceCategories)
-    .orderBy(tServiceCategories.grupo);
-  return rows.map(mapServiceCategory);
+export function listServiceCategories(): Promise<ServiceCategory[]> {
+  return safeQuery(async () => {
+    const rows = await db
+      .select()
+      .from(tServiceCategories)
+      .orderBy(tServiceCategories.grupo);
+    return rows.map(mapServiceCategory);
+  }, []);
 }
 
 // ── Anunciantes (Local Partners) ──────────────────────────────────────────────
 
-export async function getAnuncianteActivoBySlug(
+export function getAnuncianteActivoBySlug(
   slug: string
 ): Promise<Anunciante | null> {
-  const rows = await db
-    .select()
-    .from(tAnunciantes)
-    .where(and(eq(tAnunciantes.slug, slug), eq(tAnunciantes.activo, true)))
-    .limit(1);
-  return rows[0] ? mapAnunciante(rows[0]) : null;
+  return safeQuery(async () => {
+    const rows = await db
+      .select()
+      .from(tAnunciantes)
+      .where(and(eq(tAnunciantes.slug, slug), eq(tAnunciantes.activo, true)))
+      .limit(1);
+    return rows[0] ? mapAnunciante(rows[0]) : null;
+  }, null);
 }
 
 export interface LocalPartnersFiltros {
@@ -195,34 +219,36 @@ export interface LocalPartnersFiltros {
   zona?: string;
 }
 
-export async function listAnunciantesActivos(
+export function listAnunciantesActivos(
   filtros: LocalPartnersFiltros = {}
 ): Promise<Anunciante[]> {
-  const condiciones = [eq(tAnunciantes.activo, true)];
-  if (filtros.categoria) {
-    condiciones.push(
-      eq(tAnunciantes.categoria, filtros.categoria as CategoriaAnunciante)
-    );
-  }
-  if (filtros.zona) {
-    condiciones.push(eq(tAnunciantes.zona, filtros.zona));
-  }
-  const rows = await db
-    .select()
-    .from(tAnunciantes)
-    .where(and(...condiciones));
-  return rows.map(mapAnunciante);
+  return safeQuery(async () => {
+    const condiciones = [eq(tAnunciantes.activo, true)];
+    if (filtros.categoria) {
+      condiciones.push(
+        eq(tAnunciantes.categoria, filtros.categoria as CategoriaAnunciante)
+      );
+    }
+    if (filtros.zona) {
+      condiciones.push(eq(tAnunciantes.zona, filtros.zona));
+    }
+    const rows = await db
+      .select()
+      .from(tAnunciantes)
+      .where(and(...condiciones));
+    return rows.map(mapAnunciante);
+  }, []);
 }
 
-export async function listAnunciantesDestacados(
-  limite = 3
-): Promise<Anunciante[]> {
-  const rows = await db
-    .select()
-    .from(tAnunciantes)
-    .where(
-      and(eq(tAnunciantes.activo, true), eq(tAnunciantes.plan, "destacado"))
-    )
-    .limit(limite);
-  return rows.map(mapAnunciante);
+export function listAnunciantesDestacados(limite = 3): Promise<Anunciante[]> {
+  return safeQuery(async () => {
+    const rows = await db
+      .select()
+      .from(tAnunciantes)
+      .where(
+        and(eq(tAnunciantes.activo, true), eq(tAnunciantes.plan, "destacado"))
+      )
+      .limit(limite);
+    return rows.map(mapAnunciante);
+  }, []);
 }
