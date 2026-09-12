@@ -1,184 +1,163 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { solicitudes, acompanantes, profiles } from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
+import { getMiAcompananteId } from "@/lib/db/queries/acompanante";
 import {
   emailNuevaSolicitud,
   emailSolicitudAceptada,
   emailSolicitudRechazada,
-} from '@/lib/email';
+} from "@/lib/email";
 
-type RawClient = SupabaseClient;
+type Modalidad = "presencial" | "remoto" | "ambos";
 
-async function getEmailByUserId(userId: string): Promise<string | null> {
-  try {
-    const admin = createAdminClient();
-    const { data } = await admin.auth.admin.getUserById(userId);
-    return data.user?.email ?? null;
-  } catch {
-    return null;
-  }
+async function getClienteContacto(
+  userId: string
+): Promise<{ email: string | null; nombre: string | null }> {
+  const [p] = await db
+    .select({ email: profiles.email, nombre: profiles.nombre })
+    .from(profiles)
+    .where(eq(profiles.id, userId))
+    .limit(1);
+  return { email: p?.email ?? null, nombre: p?.nombre ?? null };
 }
 
-// ── crearSolicitud ─────────────────────────────────────────────────────────────
-
 export async function crearSolicitud(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) redirect('/auth/login');
+  const acompananteId = formData.get("acompanante_id") as string;
+  const descripcion = formData.get("descripcion") as string;
+  const detalleServicio = (formData.get("detalle_servicio") as string | null) || null;
+  const fechaHoraDeseadaRaw = (formData.get("fecha_hora_deseada") as string | null) || null;
+  const modalidad = formData.get("modalidad") as Modalidad;
+  const zona = (formData.get("zona") as string | null) || null;
 
-  const acompanante_id = formData.get('acompanante_id') as string;
-  const descripcion = formData.get('descripcion') as string;
-  const detalle_servicio = (formData.get('detalle_servicio') as string | null) || null;
-  const fecha_hora_deseada = (formData.get('fecha_hora_deseada') as string | null) || null;
-  const modalidad = formData.get('modalidad') as string;
-  const zona = (formData.get('zona') as string | null) || null;
-
-  await (supabase as RawClient).from('solicitudes').insert({
-    acompanante_id,
-    cliente_id: user.id,
+  await db.insert(solicitudes).values({
+    acompananteId,
+    clienteId: user.id,
     descripcion,
-    detalle_servicio,
-    fecha_hora_deseada,
+    detalleServicio,
+    fechaHoraDeseada: fechaHoraDeseadaRaw ? new Date(fechaHoraDeseadaRaw) : null,
     modalidad,
     zona,
-    estado: 'pendiente',
+    estado: "pendiente",
   });
 
-  // Notificar al acompañante
-  const { data: acomp } = await (supabase as RawClient)
-    .from('acompanantes')
-    .select('nombre_publico, email_contacto')
-    .eq('id', acompanante_id)
-    .single() as { data: { nombre_publico: string; email_contacto: string | null } | null; error: null };
+  const [acomp] = await db
+    .select({
+      nombrePublico: acompanantes.nombrePublico,
+      emailContacto: acompanantes.emailContacto,
+    })
+    .from(acompanantes)
+    .where(eq(acompanantes.id, acompananteId))
+    .limit(1);
 
-  if (acomp?.email_contacto) {
-    const { data: clienteProfile } = await (supabase as RawClient)
-      .from('profiles')
-      .select('nombre')
-      .eq('id', user.id)
-      .single() as { data: { nombre: string | null } | null; error: null };
-
+  if (acomp?.emailContacto) {
+    const cliente = await getClienteContacto(user.id);
     emailNuevaSolicitud({
-      toEmail: acomp.email_contacto,
-      clienteNombre: clienteProfile?.nombre ?? user.email ?? 'Un cliente',
-      acompananteNombre: acomp.nombre_publico,
+      toEmail: acomp.emailContacto,
+      clienteNombre: cliente.nombre ?? user.email ?? "Un cliente",
+      acompananteNombre: acomp.nombrePublico,
       descripcion,
     });
   }
 
-  revalidatePath('/cliente/solicitudes');
-  redirect('/cliente/solicitudes');
+  revalidatePath("/cliente/solicitudes");
+  redirect("/cliente/solicitudes");
 }
-
-// ── aceptarSolicitud ───────────────────────────────────────────────────────────
 
 export async function aceptarSolicitud(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) redirect('/auth/login');
+  const solicitudId = formData.get("solicitud_id") as string;
+  const precioRaw = formData.get("precio_propuesto") as string | null;
+  const precioPropuesto = precioRaw ? Number(precioRaw) : null;
 
-  const solicitud_id = formData.get('solicitud_id') as string;
-  const precio_propuesto_raw = formData.get('precio_propuesto') as string | null;
-  const precio_propuesto = precio_propuesto_raw ? Number(precio_propuesto_raw) : null;
+  const acompananteId = await getMiAcompananteId(user.id);
+  if (!acompananteId) {
+    revalidatePath("/acompanante/solicitudes");
+    return;
+  }
+  const [acomp] = await db
+    .select({ nombrePublico: acompanantes.nombrePublico, slug: acompanantes.slug })
+    .from(acompanantes)
+    .where(eq(acompanantes.id, acompananteId))
+    .limit(1);
 
-  const { data: acompananteData } = await (supabase as RawClient)
-    .from('acompanantes')
-    .select('id, nombre_publico, slug')
-    .eq('profile_id', user.id)
-    .single() as { data: { id: string; nombre_publico: string; slug: string } | null; error: null };
+  const [solicitud] = await db
+    .select({ clienteId: solicitudes.clienteId })
+    .from(solicitudes)
+    .where(and(eq(solicitudes.id, solicitudId), eq(solicitudes.acompananteId, acompananteId)))
+    .limit(1);
 
-  if (!acompananteData) { revalidatePath('/acompanante/solicitudes'); return; }
+  await db
+    .update(solicitudes)
+    .set({
+      estado: "aceptada",
+      precioPropuesto: precioPropuesto === null ? null : precioPropuesto.toString(),
+    })
+    .where(and(eq(solicitudes.id, solicitudId), eq(solicitudes.acompananteId, acompananteId)));
 
-  const { data: solicitud } = await (supabase as RawClient)
-    .from('solicitudes')
-    .select('cliente_id')
-    .eq('id', solicitud_id)
-    .eq('acompanante_id', acompananteData.id)
-    .single() as { data: { cliente_id: string } | null; error: null };
-
-  await (supabase as RawClient)
-    .from('solicitudes')
-    .update({ estado: 'aceptada', precio_propuesto })
-    .eq('id', solicitud_id)
-    .eq('acompanante_id', acompananteData.id);
-
-  // Notificar al cliente
-  if (solicitud) {
-    const clienteEmail = await getEmailByUserId(solicitud.cliente_id);
-    const { data: clienteProfile } = await (supabase as RawClient)
-      .from('profiles')
-      .select('nombre')
-      .eq('id', solicitud.cliente_id)
-      .single() as { data: { nombre: string | null } | null; error: null };
-
-    if (clienteEmail) {
+  if (solicitud && acomp) {
+    const cliente = await getClienteContacto(solicitud.clienteId);
+    if (cliente.email) {
       emailSolicitudAceptada({
-        toEmail: clienteEmail,
-        clienteNombre: clienteProfile?.nombre ?? 'Cliente',
-        acompananteNombre: acompananteData.nombre_publico,
-        acompananteSlug: acompananteData.slug,
-        precio: precio_propuesto,
+        toEmail: cliente.email,
+        clienteNombre: cliente.nombre ?? "Cliente",
+        acompananteNombre: acomp.nombrePublico,
+        acompananteSlug: acomp.slug,
+        precio: precioPropuesto,
       });
     }
   }
 
-  revalidatePath('/acompanante/solicitudes');
+  revalidatePath("/acompanante/solicitudes");
 }
 
-// ── rechazarSolicitud ──────────────────────────────────────────────────────────
-
 export async function rechazarSolicitud(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) redirect('/auth/login');
+  const solicitudId = formData.get("solicitud_id") as string;
 
-  const solicitud_id = formData.get('solicitud_id') as string;
+  const acompananteId = await getMiAcompananteId(user.id);
+  if (!acompananteId) {
+    revalidatePath("/acompanante/solicitudes");
+    return;
+  }
+  const [acomp] = await db
+    .select({ nombrePublico: acompanantes.nombrePublico })
+    .from(acompanantes)
+    .where(eq(acompanantes.id, acompananteId))
+    .limit(1);
 
-  const { data: acompananteData } = await (supabase as RawClient)
-    .from('acompanantes')
-    .select('id, nombre_publico, slug')
-    .eq('profile_id', user.id)
-    .single() as { data: { id: string; nombre_publico: string; slug: string } | null; error: null };
+  const [solicitud] = await db
+    .select({ clienteId: solicitudes.clienteId })
+    .from(solicitudes)
+    .where(and(eq(solicitudes.id, solicitudId), eq(solicitudes.acompananteId, acompananteId)))
+    .limit(1);
 
-  if (!acompananteData) { revalidatePath('/acompanante/solicitudes'); return; }
+  await db
+    .update(solicitudes)
+    .set({ estado: "rechazada" })
+    .where(and(eq(solicitudes.id, solicitudId), eq(solicitudes.acompananteId, acompananteId)));
 
-  const { data: solicitud } = await (supabase as RawClient)
-    .from('solicitudes')
-    .select('cliente_id')
-    .eq('id', solicitud_id)
-    .eq('acompanante_id', acompananteData.id)
-    .single() as { data: { cliente_id: string } | null; error: null };
-
-  await (supabase as RawClient)
-    .from('solicitudes')
-    .update({ estado: 'rechazada' })
-    .eq('id', solicitud_id)
-    .eq('acompanante_id', acompananteData.id);
-
-  // Notificar al cliente
-  if (solicitud) {
-    const clienteEmail = await getEmailByUserId(solicitud.cliente_id);
-    const { data: clienteProfile } = await (supabase as RawClient)
-      .from('profiles')
-      .select('nombre')
-      .eq('id', solicitud.cliente_id)
-      .single() as { data: { nombre: string | null } | null; error: null };
-
-    if (clienteEmail) {
+  if (solicitud && acomp) {
+    const cliente = await getClienteContacto(solicitud.clienteId);
+    if (cliente.email) {
       emailSolicitudRechazada({
-        toEmail: clienteEmail,
-        clienteNombre: clienteProfile?.nombre ?? 'Cliente',
-        acompananteNombre: acompananteData.nombre_publico,
+        toEmail: cliente.email,
+        clienteNombre: cliente.nombre ?? "Cliente",
+        acompananteNombre: acomp.nombrePublico,
       });
     }
   }
 
-  revalidatePath('/acompanante/solicitudes');
+  revalidatePath("/acompanante/solicitudes");
 }
