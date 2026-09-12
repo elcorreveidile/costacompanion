@@ -1,41 +1,27 @@
-import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema";
 
 /**
  * Cliente Drizzle sobre Neon (Postgres) mediante node-postgres.
  *
- * Usa la connection string con pooling de Neon (host `-pooler`). Solo debe
- * importarse desde código de servidor (Server Components, Server Actions,
- * Route Handlers) — nunca desde el cliente.
+ * Usa la connection string con pooling de Neon (host con sufijo `-pooler`).
+ * Solo debe importarse desde código de servidor.
  *
- * Tanto el Pool como la instancia de Drizzle se crean de forma perezosa (al
- * primer uso) y se cachean en globalThis, para no agotar conexiones en
- * serverless ni exigir DATABASE_URL en tiempo de build.
+ * Ni `new Pool(...)` ni `drizzle(...)` abren conexión: eso ocurre en la primera
+ * consulta. Por eso se pueden construir aunque falte DATABASE_URL en build; las
+ * consultas públicas (lib/db/queries) ya degradan a vacío en ese caso. El Pool
+ * se cachea en globalThis para no agotar conexiones en serverless.
  */
 
-type DB = NodePgDatabase<typeof schema>;
+const globalForDb = globalThis as unknown as { __ccPool?: Pool };
 
-const globalForDb = globalThis as unknown as {
-  __ccPool?: Pool;
-  __ccDb?: DB;
-};
+const pool =
+  globalForDb.__ccPool ??
+  new Pool({ connectionString: process.env.DATABASE_URL });
 
-function getDb(): DB {
-  if (globalForDb.__ccDb) return globalForDb.__ccDb;
-  if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL es obligatoria para conectar con la base de datos.");
-  }
-  globalForDb.__ccPool ??= new Pool({ connectionString: process.env.DATABASE_URL });
-  globalForDb.__ccDb = drizzle(globalForDb.__ccPool, { schema });
-  return globalForDb.__ccDb;
-}
+if (process.env.NODE_ENV !== "production") globalForDb.__ccPool = pool;
 
-/** Instancia Drizzle perezosa: se conecta a Neon en el primer acceso. */
-export const db = new Proxy({} as DB, {
-  get(_target, prop, receiver) {
-    return Reflect.get(getDb(), prop, receiver);
-  },
-}) as DB;
+export const db = drizzle(pool, { schema });
 
 export { schema };
