@@ -127,6 +127,19 @@ export function getAcompananteActivoBySlug(
   }, null);
 }
 
+export function getAcompananteByProfileId(
+  profileId: string
+): Promise<Acompanante | null> {
+  return safeQuery(async () => {
+    const rows = await db
+      .select()
+      .from(tAcompanantes)
+      .where(eq(tAcompanantes.profileId, profileId))
+      .limit(1);
+    return rows[0] ? mapAcompanante(rows[0]) : null;
+  }, null);
+}
+
 export interface DirectorioFiltros {
   idioma?: string;
   zona?: string;

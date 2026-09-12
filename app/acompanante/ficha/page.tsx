@@ -1,23 +1,15 @@
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import type { Acompanante } from '@/types/supabase';
+import { getSessionUser } from '@/lib/auth/session';
+import { getAcompananteByProfileId } from '@/lib/db/queries/public';
 import { FichaAcompananteForm } from './FichaAcompananteForm';
 
 export const metadata = { title: 'Mi ficha | Costa Companion' };
 
 export default async function AcompananteFichaPage() {
-  const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) redirect('/auth/login');
 
-  const { data, error } = await supabase
-    .from('acompanantes')
-    .select('*')
-    .eq('profile_id', user.id)
-    .single();
-
-  const acompanante = data as unknown as (Acompanante & { slug: string }) | null;
+  const acompanante = await getAcompananteByProfileId(user.id);
 
   return (
     <div className="min-h-screen bg-(--bone)">
@@ -54,7 +46,7 @@ export default async function AcompananteFichaPage() {
           className="rounded-xl border shadow-sm p-8"
           style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
         >
-          {error || !acompanante ? (
+          {!acompanante ? (
             <p className="text-(--ink)/50 text-center py-8">
               No se encontró tu ficha de acompañante. Contacta con el administrador.
             </p>
