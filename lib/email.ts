@@ -22,6 +22,31 @@ function btn(label: string, href: string) {
   return `<a href="${href}" style="display:inline-block;margin-top:18px;padding:11px 22px;background:#2C4A3B;color:#F7F4EF;border-radius:8px;text-decoration:none;font-size:14px;font-weight:500">${label}</a>`;
 }
 
+// ── Acceso (enlace mágico) ─────────────────────────────────────────────────────
+
+/**
+ * Correo del enlace mágico de Auth.js, con la marca Costa Companion.
+ * A diferencia del resto, NO captura el error: si el envío falla, Auth.js debe
+ * enterarse para mostrar el aviso al usuario.
+ */
+export async function emailMagicLink(opts: { to: string; url: string }) {
+  await sendMail({
+    from: FROM,
+    to: [opts.to],
+    subject: 'Tu acceso a Costa Companion',
+    html: html(`
+      <h2 style="margin:0 0 14px;font-size:20px">Tu enlace de acceso</h2>
+      <p>Pulsa el botón para entrar en tu cuenta de Costa Companion.</p>
+      <p style="color:#555;font-size:13px">Por seguridad, el enlace caduca en unos minutos y solo puede usarse una vez.</p>
+      ${btn('Iniciar sesión', opts.url)}
+      <p style="color:#888;font-size:12px;word-break:break-all;margin-top:18px">
+        ¿No funciona el botón? Copia y pega este enlace en tu navegador:<br>${opts.url}
+      </p>
+      <p style="color:#999;font-size:12px;margin-top:14px">Si no has solicitado acceder, ignora este correo.</p>
+    `),
+  });
+}
+
 // ── Reservas ──────────────────────────────────────────────────────────────────
 
 export async function emailNuevaReserva(opts: {
