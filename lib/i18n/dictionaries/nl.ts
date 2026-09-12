@@ -433,6 +433,33 @@ const nl: Dictionary = {
       okTexto: "De begeleider ontvangt uw bericht en kan u rechtstreeks per e-mail antwoorden.",
     },
   },
+  legal: {
+    inicio: "Home",
+    pendiente: "[Juridische inhoud in afwachting van beoordeling — Fase 10]",
+    cookies: {
+      titulo: "Cookiebeleid",
+      desc: "Dit document zal uitleggen welke cookies Costa Companion gebruikt, waarvoor ze dienen en hoe de gebruiker ze kan beheren of uitschakelen.",
+    },
+    privacidad: {
+      titulo: "Privacybeleid",
+      desc: "Dit document zal beschrijven hoe Costa Companion de persoonsgegevens van gebruikers verzamelt, gebruikt en beschermt, in overeenstemming met de AVG en de LOPDGDD.",
+    },
+    terminos: {
+      titulo: "Algemene voorwaarden",
+      desc: "Dit document zal de algemene gebruiksvoorwaarden van het platform Costa Companion bevatten, waaronder de contractvoorwaarden, verantwoordelijkheden en verplichtingen van de partijen.",
+    },
+    intermediacion: {
+      titulo: "Bemiddelingsverklaring",
+      p1: "Costa Companion is een platform dat mensen in contact brengt met onafhankelijke taalbegeleiders. Wij verlenen niet rechtstreeks de tolkdienst en zijn niet verantwoordelijk voor het resultaat ervan, en wij komen niet tussen in de financiële afspraak tussen de partijen.",
+      p2: "Voor handelingen met juridische waarde (verklaringen bij de politie of de rechtbank, notariële ondertekeningen) kan een officiële beëdigd tolk vereist zijn; wij zullen u hierop wijzen wanneer dat van toepassing is.",
+    },
+  },
+  unauthorized: {
+    h1: "Ongeautoriseerde toegang",
+    texto: "U hebt geen toestemming om deze pagina te openen. Log in met een account dat over de nodige rechten beschikt.",
+    irPerfil: "Naar mijn profiel",
+    iniciarSesion: "Inloggen",
+  },
 };
 
 export default nl;

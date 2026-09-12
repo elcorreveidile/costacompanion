@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { getI18n } from "@/lib/i18n/server";
+import { localePath } from "@/lib/i18n/config";
 
-export default function UnauthorizedPage() {
+export default async function UnauthorizedPage() {
+  const { locale, dict } = await getI18n();
+  const t = dict.unauthorized;
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full text-center">
@@ -25,27 +29,27 @@ export default function UnauthorizedPage() {
 
         {/* Mensaje de error */}
         <h1 className="font-display text-3xl font-semibold text-(--green) mb-4">
-          Acceso no autorizado
+          {t.h1}
         </h1>
 
         <p className="text-lg text-(--ink) mb-8">
-          No tienes permiso para acceder a esta página. Por favor, inicia sesión con una cuenta que tenga los permisos necesarios.
+          {t.texto}
         </p>
 
         {/* Botones de acción */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            href="/profile"
+            href={localePath(locale, "/profile")}
             className="inline-flex items-center justify-center px-6 py-3 bg-(--green) hover:bg-(--green-deep) text-(--bone) font-medium rounded-md transition-colors duration-200"
           >
-            Ir a mi perfil
+            {t.irPerfil}
           </Link>
 
           <Link
-            href="/auth/login"
+            href={localePath(locale, "/auth/login")}
             className="inline-flex items-center justify-center px-6 py-3 bg-(--bone-2) hover:bg-(--line) text-(--ink) font-medium rounded-md transition-colors duration-200"
           >
-            Iniciar sesión
+            {t.iniciarSesion}
           </Link>
         </div>
       </div>

@@ -433,6 +433,33 @@ const de: Dictionary = {
       okTexto: "Die Begleitung erhält Ihre Nachricht und kann Ihnen direkt per E-Mail antworten.",
     },
   },
+  legal: {
+    inicio: "Start",
+    pendiente: "[Rechtlicher Inhalt in Prüfung — Phase 10]",
+    cookies: {
+      titulo: "Cookie-Richtlinie",
+      desc: "Dieses Dokument erläutert, welche Cookies Costa Companion verwendet, wozu sie dienen und wie der Nutzer sie verwalten oder deaktivieren kann.",
+    },
+    privacidad: {
+      titulo: "Datenschutzerklärung",
+      desc: "Dieses Dokument beschreibt, wie Costa Companion die personenbezogenen Daten der Nutzer erhebt, verwendet und schützt, in Übereinstimmung mit die DSGVO und der LOPDGDD.",
+    },
+    terminos: {
+      titulo: "Allgemeine Geschäftsbedingungen",
+      desc: "Dieses Dokument enthält die Allgemeinen Geschäftsbedingungen für die Nutzung der Plattform Costa Companion, einschließlich der Vertragsbedingungen, der Verantwortlichkeiten und der Pflichten der Parteien.",
+    },
+    intermediacion: {
+      titulo: "Vermittlungshinweis",
+      p1: "Costa Companion ist eine Plattform, die Personen mit unabhängigen Sprachbegleitern in Kontakt bringt. Wir erbringen die Dolmetscherleistung nicht direkt und haften nicht für deren Ergebnis, und wir sind an der finanziellen Vereinbarung zwischen den Parteien nicht beteiligt.",
+      p2: "Für Vorgänge mit rechtlicher Wirkung (Aussagen bei der Polizei oder vor Gericht, notarielle Unterschriften) kann ein offizieller vereidigter Dolmetscher erforderlich sein; wir weisen Sie darauf hin, wenn dies zutrifft.",
+    },
+  },
+  unauthorized: {
+    h1: "Nicht autorisierter Zugriff",
+    texto: "Sie haben keine Berechtigung, auf diese Seite zuzugreifen. Bitte melden Sie sich mit einem Konto an, das über die erforderlichen Berechtigungen verfügt.",
+    irPerfil: "Zu meinem Profil",
+    iniciarSesion: "Anmelden",
+  },
 };
 
 export default de;

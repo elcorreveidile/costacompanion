@@ -433,6 +433,33 @@ const en: Dictionary = {
       okTexto: "The companion will receive your message and can reply directly to your email.",
     },
   },
+  legal: {
+    inicio: "Home",
+    pendiente: "[Legal content pending review — Phase 10]",
+    cookies: {
+      titulo: "Cookie policy",
+      desc: "This document will explain which cookies Costa Companion uses, what they are for and how users can manage or disable them.",
+    },
+    privacidad: {
+      titulo: "Privacy policy",
+      desc: "This document will describe how Costa Companion collects, uses and protects users’ personal data, in compliance with the GDPR and the LOPDGDD.",
+    },
+    terminos: {
+      titulo: "Terms and conditions",
+      desc: "This document will set out the terms and conditions of use of the Costa Companion platform, including the contracting conditions, responsibilities and obligations of the parties.",
+    },
+    intermediacion: {
+      titulo: "Intermediation notice",
+      p1: "Costa Companion is a platform that connects people with independent language companions. We do not directly provide the interpretation service nor are we responsible for its outcome, and we do not take part in the financial agreement between the parties.",
+      p2: "For actions with legal value (statements before the police or the courts, notarial signings) an official sworn interpreter may be required; we will warn you when this is the case.",
+    },
+  },
+  unauthorized: {
+    h1: "Unauthorized access",
+    texto: "You don’t have permission to access this page. Please sign in with an account that has the required permissions.",
+    irPerfil: "Go to my profile",
+    iniciarSesion: "Sign in",
+  },
 };
 
 export default en;

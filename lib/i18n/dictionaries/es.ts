@@ -434,6 +434,33 @@ const es = {
       okTexto: "El acompañante recibirá tu mensaje y podrá responderte directamente a tu email.",
     },
   },
+  legal: {
+    inicio: "Inicio",
+    pendiente: "[Contenido legal pendiente de revisión — Fase 10]",
+    cookies: {
+      titulo: "Política de cookies",
+      desc: "Este documento explicará qué cookies utiliza Costa Companion, para qué sirven y cómo el usuario puede gestionarlas o desactivarlas.",
+    },
+    privacidad: {
+      titulo: "Política de privacidad",
+      desc: "Este documento describirá cómo Costa Companion recoge, utiliza y protege los datos personales de los usuarios, de conformidad con el RGPD y la LOPDGDD.",
+    },
+    terminos: {
+      titulo: "Términos y condiciones",
+      desc: "Este documento recogerá los términos y condiciones de uso de la plataforma Costa Companion, incluyendo las condiciones de contratación, responsabilidades y obligaciones de las partes.",
+    },
+    intermediacion: {
+      titulo: "Aviso de intermediación",
+      p1: "Costa Companion es una plataforma que pone en contacto a personas con acompañantes lingüísticos independientes. No prestamos directamente el servicio de interpretación ni respondemos de su resultado, y no intervenimos en el acuerdo económico entre las partes.",
+      p2: "Para actuaciones con valor legal (declaraciones ante la policía o los juzgados, firmas notariales) puede ser necesario un intérprete jurado oficial; te lo advertiremos cuando corresponda.",
+    },
+  },
+  unauthorized: {
+    h1: "Acceso no autorizado",
+    texto: "No tienes permiso para acceder a esta página. Por favor, inicia sesión con una cuenta que tenga los permisos necesarios.",
+    irPerfil: "Ir a mi perfil",
+    iniciarSesion: "Iniciar sesión",
+  },
 };
 
 export default es;

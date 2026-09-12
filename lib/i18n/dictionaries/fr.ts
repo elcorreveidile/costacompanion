@@ -433,6 +433,33 @@ const fr: Dictionary = {
       okTexto: "L’accompagnateur recevra votre message et pourra vous répondre directement par email.",
     },
   },
+  legal: {
+    inicio: "Accueil",
+    pendiente: "[Contenu juridique en attente de révision — Phase 10]",
+    cookies: {
+      titulo: "Politique de cookies",
+      desc: "Ce document expliquera quels cookies Costa Companion utilise, à quoi ils servent et comment l’utilisateur peut les gérer ou les désactiver.",
+    },
+    privacidad: {
+      titulo: "Politique de confidentialité",
+      desc: "Ce document décrira comment Costa Companion recueille, utilise et protège les données personnelles des utilisateurs, conformément au RGPD et à la LOPDGDD.",
+    },
+    terminos: {
+      titulo: "Conditions générales",
+      desc: "Ce document présentera les conditions générales d’utilisation de la plateforme Costa Companion, y compris les conditions contractuelles, les responsabilités et les obligations des parties.",
+    },
+    intermediacion: {
+      titulo: "Avis d’intermédiation",
+      p1: "Costa Companion est une plateforme qui met en relation des personnes avec des accompagnateurs linguistiques indépendants. Nous ne fournissons pas directement le service d’interprétation et ne répondons pas de son résultat, et nous n’intervenons pas dans l’accord économique entre les parties.",
+      p2: "Pour les actes ayant une valeur légale (déclarations devant la police ou les tribunaux, signatures notariales), un interprète assermenté officiel peut être nécessaire ; nous vous en avertirons le cas échéant.",
+    },
+  },
+  unauthorized: {
+    h1: "Accès non autorisé",
+    texto: "Vous n’avez pas la permission d’accéder à cette page. Veuillez vous connecter avec un compte disposant des autorisations nécessaires.",
+    irPerfil: "Aller à mon profil",
+    iniciarSesion: "Se connecter",
+  },
 };
 
 export default fr;
