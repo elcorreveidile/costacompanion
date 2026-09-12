@@ -1,4 +1,5 @@
 import { FormNegocio } from './FormNegocio';
+import { getI18n } from '@/lib/i18n/server';
 
 export const metadata = {
   title: 'Para negocios — Local Partners | Costa Companion',
@@ -13,22 +14,11 @@ const precioDestacado        = process.env.NEXT_PUBLIC_PRICE_DISPLAY_PARTNER_FEA
 const precioBasicoAnual      = process.env.NEXT_PUBLIC_PRICE_DISPLAY_PARTNER_BASIC_ANNUAL     ?? '290 €';
 const precioDestacadoAnual   = process.env.NEXT_PUBLIC_PRICE_DISPLAY_PARTNER_FEATURED_ANNUAL  ?? '790 €';
 
-const POR_QUE = [
-  {
-    titulo: 'El público adecuado.',
-    texto: 'Quien llega a Costa Companion es, precisamente, la comunidad internacional que vive y gasta en la costa.',
-  },
-  {
-    titulo: 'Un entorno de confianza.',
-    texto: 'Apareces junto a una red cuidada de acompañantes, no en un tablón de anuncios. Eso te da contexto y credibilidad.',
-  },
-  {
-    titulo: 'Tu ficha en su idioma.',
-    texto: 'Tu presencia se muestra de forma cuidada y, próximamente, en los cinco idiomas de la plataforma.',
-  },
-];
-
-export default function ParaNegociosPage() {
+export default async function ParaNegociosPage() {
+  const { locale, dict } = await getI18n();
+  const t = dict.paraNegocios;
+  const POR_QUE = t.porQue.items;
+  const oAnual = (precio: string) => t.planes.oAnual.replace('{precio}', precio);
   return (
     <div className="min-h-screen" style={{ background: 'var(--bone)' }}>
       {/* Hero */}
@@ -38,10 +28,10 @@ export default function ParaNegociosPage() {
             className="font-display text-4xl sm:text-5xl font-semibold mb-4"
             style={{ color: 'var(--bone)' }}
           >
-            Tu negocio, ante la comunidad internacional de la costa
+            {t.hero.h1}
           </h1>
           <p className="text-base sm:text-lg leading-relaxed" style={{ color: 'rgba(247,244,239,0.8)' }}>
-            Cada día, residentes extranjeros de Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares y Puerto Banús buscan negocios en los que confiar: una clínica que les entienda, una inmobiliaria seria, una gestoría que les resuelva, un sitio donde se sientan bien atendidos. Costa Companion te pone delante de ellos.
+            {t.hero.subtitle}
           </p>
         </div>
       </section>
@@ -51,7 +41,7 @@ export default function ParaNegociosPage() {
         {/* Por qué anunciarte */}
         <section>
           <h2 className="font-display text-2xl font-semibold mb-8" style={{ color: 'var(--green)' }}>
-            Por qué anunciarte aquí
+            {t.porQue.h2}
           </h2>
           <div className="space-y-6">
             {POR_QUE.map((item) => (
@@ -76,7 +66,7 @@ export default function ParaNegociosPage() {
         {/* Planes */}
         <section>
           <h2 className="font-display text-2xl font-semibold mb-6" style={{ color: 'var(--green)' }}>
-            Planes
+            {t.planes.h2}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {/* Básico */}
@@ -85,19 +75,19 @@ export default function ParaNegociosPage() {
               style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
             >
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-display text-lg font-semibold" style={{ color: 'var(--green)' }}>Básico</h3>
+                <h3 className="font-display text-lg font-semibold" style={{ color: 'var(--green)' }}>{t.planes.basicoNombre}</h3>
                 <div className="text-right shrink-0">
                   <div>
                     <span className="text-xl font-bold" style={{ color: 'var(--terra)' }}>{precioBasico}</span>
-                    <span className="text-sm font-normal" style={{ color: 'var(--ink)', opacity: 0.5 }}>/mes</span>
+                    <span className="text-sm font-normal" style={{ color: 'var(--ink)', opacity: 0.5 }}>{t.planes.mes}</span>
                   </div>
                   <div className="text-xs mt-0.5" style={{ color: 'var(--ink)', opacity: 0.45 }}>
-                    o {precioBasicoAnual}/año <span style={{ color: 'var(--terra)' }}>· 2 meses gratis</span>
+                    {oAnual(precioBasicoAnual)} <span style={{ color: 'var(--terra)' }}>{t.planes.dosMesesGratis}</span>
                   </div>
                 </div>
               </div>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
-                Tu ficha en el directorio Local Partners: logo, descripción, categoría, zona y datos de contacto.
+                {t.planes.basicoDesc}
               </p>
             </div>
             {/* Destacado */}
@@ -109,22 +99,22 @@ export default function ParaNegociosPage() {
                 className="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full font-medium"
                 style={{ background: 'var(--green)', color: 'var(--bone)' }}
               >
-                Recomendado
+                {t.planes.recomendado}
               </div>
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-display text-lg font-semibold" style={{ color: 'var(--green)' }}>Destacado</h3>
+                <h3 className="font-display text-lg font-semibold" style={{ color: 'var(--green)' }}>{t.planes.destacadoNombre}</h3>
                 <div className="text-right shrink-0">
                   <div>
                     <span className="text-xl font-bold" style={{ color: 'var(--terra)' }}>{precioDestacado}</span>
-                    <span className="text-sm font-normal" style={{ color: 'var(--ink)', opacity: 0.5 }}>/mes</span>
+                    <span className="text-sm font-normal" style={{ color: 'var(--ink)', opacity: 0.5 }}>{t.planes.mes}</span>
                   </div>
                   <div className="text-xs mt-0.5" style={{ color: 'var(--ink)', opacity: 0.45 }}>
-                    o {precioDestacadoAnual}/año <span style={{ color: 'var(--terra)' }}>· 2 meses gratis</span>
+                    {oAnual(precioDestacadoAnual)} <span style={{ color: 'var(--terra)' }}>{t.planes.dosMesesGratis}</span>
                   </div>
                 </div>
               </div>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
-                Todo lo del plan Básico, más posición preferente en el directorio y presencia destacada en las zonas más visitadas de la plataforma.
+                {t.planes.destacadoDesc}
               </p>
             </div>
           </div>
@@ -133,10 +123,10 @@ export default function ParaNegociosPage() {
         {/* Formulario de alta */}
         <section>
           <h2 className="font-display text-2xl font-semibold mb-3" style={{ color: 'var(--green)' }}>
-            Cómo darte de alta
+            {t.alta.h2}
           </h2>
           <p className="text-sm leading-relaxed mb-8" style={{ color: 'var(--ink)', opacity: 0.72 }}>
-            Rellena tus datos, elige tu plan y completa el alta. Revisaremos tu ficha y, una vez aprobada, tu negocio estará visible en Costa Companion. Cuidamos quién aparece, por respeto a quienes nos confían sus gestiones.
+            {t.alta.texto}
           </p>
           <FormNegocio
             precioBasico={precioBasico}
@@ -144,6 +134,7 @@ export default function ParaNegociosPage() {
             precioBasicoAnual={precioBasicoAnual}
             precioDestacadoAnual={precioDestacadoAnual}
             waHref={waHref}
+            t={t.form}
           />
         </section>
       </div>

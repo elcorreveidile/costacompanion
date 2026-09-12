@@ -1,25 +1,23 @@
 'use client';
 import { useState, useRef } from 'react';
 import { enviarSolicitudAcompanante } from '@/lib/actions/solicitudAcompanante';
+import { languageName, type Locale } from '@/lib/i18n/config';
+import type { Dictionary } from '@/lib/i18n/dictionaries/es';
 
-const IDIOMAS = [
-  { value: 'en', label: 'Inglés' },
-  { value: 'fr', label: 'Francés' },
-  { value: 'de', label: 'Alemán' },
-  { value: 'nl', label: 'Neerlandés' },
-  { value: 'ru', label: 'Ruso' },
-  { value: 'zh', label: 'Chino' },
-  { value: 'ar', label: 'Árabe' },
-  { value: 'pt', label: 'Portugués' },
-  { value: 'it', label: 'Italiano' },
-];
+const IDIOMA_CODES = ['en', 'fr', 'de', 'nl', 'ru', 'zh', 'ar', 'pt', 'it'];
 
-const ZONAS = [
+const ZONA_VALUES = [
   'Estepona', 'Manilva', 'Casares', 'San Pedro de Alcántara', 'Puerto Banús', 'Benahavís',
-  'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Toda la Costa del Sol',
+  'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga',
 ];
 
-export function FormAcompanante({ waHref }: { waHref: string }) {
+interface Props {
+  waHref: string;
+  locale: Locale;
+  t: Dictionary['paraAcompanantes']['form'];
+}
+
+export function FormAcompanante({ waHref, locale, t }: Props) {
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,10 +53,10 @@ export function FormAcompanante({ waHref }: { waHref: string }) {
           </svg>
         </div>
         <h3 className="font-display text-xl font-semibold mb-2" style={{ color: 'var(--green)' }}>
-          ¡Recibido!
+          {t.okTitulo}
         </h3>
         <p className="text-sm" style={{ color: 'var(--ink)', opacity: 0.7 }}>
-          Hemos recibido tus datos. Te contactamos pronto para conocernos.
+          {t.okTexto}
         </p>
       </div>
     );
@@ -74,26 +72,26 @@ export function FormAcompanante({ waHref }: { waHref: string }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-            Nombre *
+            {t.nombre} *
           </label>
           <input
             name="nombre"
             required
             type="text"
-            placeholder="Tu nombre"
+            placeholder={t.nombrePlaceholder}
             className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-1"
             style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
           />
         </div>
         <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-            Email *
+            {t.email} *
           </label>
           <input
             name="email"
             required
             type="email"
-            placeholder="tu@email.com"
+            placeholder={t.emailPlaceholder}
             className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-1"
             style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
           />
@@ -102,12 +100,12 @@ export function FormAcompanante({ waHref }: { waHref: string }) {
 
       <div>
         <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-          Teléfono / WhatsApp
+          {t.telefono}
         </label>
         <input
           name="telefono"
           type="tel"
-          placeholder="+34 600 000 000"
+          placeholder={t.telefonoPlaceholder}
           className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-1"
           style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
         />
@@ -115,19 +113,19 @@ export function FormAcompanante({ waHref }: { waHref: string }) {
 
       <div>
         <label className="block text-xs font-medium mb-2" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-          Idiomas que hablas (además de español)
+          {t.idiomas}
         </label>
         <div className="flex flex-wrap gap-2">
-          {IDIOMAS.map((id) => (
-            <label key={id.value} className="flex items-center gap-1.5 cursor-pointer">
+          {IDIOMA_CODES.map((code) => (
+            <label key={code} className="flex items-center gap-1.5 cursor-pointer">
               <input
                 type="checkbox"
                 name="idioma"
-                value={id.value}
+                value={code}
                 className="rounded"
                 style={{ accentColor: 'var(--green)' }}
               />
-              <span className="text-sm" style={{ color: 'var(--ink)' }}>{id.label}</span>
+              <span className="text-sm" style={{ color: 'var(--ink)' }}>{languageName(code, locale)}</span>
             </label>
           ))}
         </div>
@@ -135,26 +133,27 @@ export function FormAcompanante({ waHref }: { waHref: string }) {
 
       <div>
         <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-          Zona
+          {t.zona}
         </label>
         <select
           name="zona"
           className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none"
           style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
         >
-          <option value="">Selecciona una zona</option>
-          {ZONAS.map((z) => <option key={z} value={z}>{z}</option>)}
+          <option value="">{t.zonaPlaceholder}</option>
+          {ZONA_VALUES.map((z) => <option key={z} value={z}>{z}</option>)}
+          <option value="Toda la Costa del Sol">{t.todaCostaDelSol}</option>
         </select>
       </div>
 
       <div>
         <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-          Cuéntanos brevemente sobre ti
+          {t.cuentanos}
         </label>
         <textarea
           name="mensaje"
           rows={4}
-          placeholder="Tu experiencia, por qué te interesa ser acompañante..."
+          placeholder={t.cuentanosPlaceholder}
           className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none resize-none"
           style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
         />
@@ -171,7 +170,7 @@ export function FormAcompanante({ waHref }: { waHref: string }) {
           className="px-7 py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
           style={{ background: 'var(--green)', color: 'var(--bone)' }}
         >
-          {pending ? 'Enviando…' : 'Enviar y que me conozcáis'}
+          {pending ? t.enviando : t.enviar}
         </button>
         {waHref && waHref !== '#' && (
           <a
@@ -181,7 +180,7 @@ export function FormAcompanante({ waHref }: { waHref: string }) {
             className="text-sm transition-opacity hover:opacity-70"
             style={{ color: 'var(--terra)' }}
           >
-            O escríbeme por WhatsApp →
+            {t.whatsapp}
           </a>
         )}
       </div>
