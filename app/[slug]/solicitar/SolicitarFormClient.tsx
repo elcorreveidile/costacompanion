@@ -4,16 +4,22 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { DateTimePicker } from '@/components/ui/DateTimePicker';
 import { crearSolicitud } from '@/lib/solicitudes/actions';
+import { localePath, type Locale } from '@/lib/i18n/config';
+import type { Dictionary } from '@/lib/i18n/dictionaries/es';
 
 interface Props {
   slug: string;
+  locale: Locale;
+  t: Dictionary['flujos'];
+  modalidades: Dictionary['common']['modalidades'];
   acompananteId: string;
   nombrePublico: string;
 }
 
-export function SolicitarFormClient({ slug, acompananteId, nombrePublico }: Props) {
+export function SolicitarFormClient({ slug, locale, t, modalidades, acompananteId, nombrePublico }: Props) {
   const [fechaHoraDeseada, setFechaHoraDeseada] = useState<Date | null>(null);
   const today = new Date();
+  const ts = t.solicitar;
 
   return (
     <div className="min-h-screen bg-(--bone)">
@@ -21,18 +27,18 @@ export function SolicitarFormClient({ slug, acompananteId, nombrePublico }: Prop
         {/* Encabezado */}
         <div className="mb-8">
           <Link
-            href={`/${slug}`}
+            href={localePath(locale, `/${slug}`)}
             className="inline-flex items-center gap-1.5 text-sm text-(--ink)/60 hover:opacity-80 transition-opacity mb-4"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Volver al perfil
+            {t.volverAlPerfil}
           </Link>
           <h1 className="font-display text-3xl font-semibold text-(--green)">
-            Solicitud a medida
+            {ts.h1}
           </h1>
-          <p className="text-(--ink)/60 mt-1">con {nombrePublico}</p>
+          <p className="text-(--ink)/60 mt-1">{t.con.replace('{nombre}', nombrePublico)}</p>
         </div>
 
         {/* Formulario */}
@@ -47,13 +53,13 @@ export function SolicitarFormClient({ slug, acompananteId, nombrePublico }: Prop
           {/* Descripción (requerida) */}
           <div>
             <label className="block text-sm font-medium text-(--ink) mb-1.5">
-              ¿Qué necesitas? <span className="text-red-500">*</span>
+              {ts.queNecesitas} <span className="text-red-500">*</span>
             </label>
             <textarea
               name="descripcion"
               required
               rows={4}
-              placeholder="Describe brevemente la gestión o servicio que necesitas…"
+              placeholder={ts.queNecesitasPlaceholder}
               className="w-full px-4 py-2.5 rounded-lg border text-sm bg-(--bone) resize-none"
               style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
             />
@@ -62,20 +68,20 @@ export function SolicitarFormClient({ slug, acompananteId, nombrePublico }: Prop
           {/* Fecha y hora deseada (opcional) */}
           <div>
             <p className="block text-sm font-medium text-(--ink) mb-1.5">
-              Fecha y hora deseada <span className="text-(--ink)/40 font-normal">(opcional)</span>
+              {ts.fechaDeseada} <span className="text-(--ink)/40 font-normal">{t.opcional}</span>
             </p>
             <DateTimePicker
               value={fechaHoraDeseada}
               onChange={setFechaHoraDeseada}
               minDate={today}
-              placeholder="Selecciona una fecha preferida (opcional)"
+              placeholder={ts.fechaDeseadaPlaceholder}
             />
           </div>
 
           {/* Modalidad */}
           <div>
             <label className="block text-sm font-medium text-(--ink) mb-1.5">
-              Modalidad <span className="text-red-500">*</span>
+              {ts.modalidad} <span className="text-red-500">*</span>
             </label>
             <select
               name="modalidad"
@@ -83,21 +89,21 @@ export function SolicitarFormClient({ slug, acompananteId, nombrePublico }: Prop
               className="w-full px-4 py-2.5 rounded-lg border text-sm bg-(--bone)"
               style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
             >
-              <option value="presencial">Presencial</option>
-              <option value="remoto">Remoto</option>
-              <option value="ambos">Ambos</option>
+              <option value="presencial">{modalidades.presencial}</option>
+              <option value="remoto">{modalidades.remoto}</option>
+              <option value="ambos">{modalidades.ambos}</option>
             </select>
           </div>
 
           {/* Zona */}
           <div>
             <label className="block text-sm font-medium text-(--ink) mb-1.5">
-              Zona / Ubicación
+              {ts.zona}
             </label>
             <input
               type="text"
               name="zona"
-              placeholder="p. ej. Marbella, Málaga centro…"
+              placeholder={ts.zonaPlaceholder}
               className="w-full px-4 py-2.5 rounded-lg border text-sm bg-(--bone)"
               style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
             />
@@ -106,17 +112,17 @@ export function SolicitarFormClient({ slug, acompananteId, nombrePublico }: Prop
           {/* Detalle de servicio */}
           <div>
             <label className="block text-sm font-medium text-(--ink) mb-1.5">
-              Detalle adicional <span className="text-(--ink)/40 font-normal">(opcional)</span>
+              {ts.detalle} <span className="text-(--ink)/40 font-normal">{t.opcional}</span>
             </label>
             <textarea
               name="detalle_servicio"
               rows={4}
-              placeholder="Información adicional sobre tu situación…"
+              placeholder={ts.detallePlaceholder}
               className="w-full px-4 py-2.5 rounded-lg border text-sm bg-(--bone) resize-none"
               style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
             />
             <p className="text-xs text-(--ink)/40 mt-1.5">
-              Opcional. No incluya datos que no desee compartir. Solo visible para el acompañante dentro de la plataforma.
+              {ts.detalleNota}
             </p>
           </div>
 
@@ -126,15 +132,13 @@ export function SolicitarFormClient({ slug, acompananteId, nombrePublico }: Prop
             className="w-full py-3 rounded-lg font-medium text-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--green)', color: 'var(--bone)' }}
           >
-            Enviar solicitud
+            {ts.enviar}
           </button>
         </form>
 
         {/* Aviso de intermediación */}
         <p className="text-xs text-(--ink)/30 leading-relaxed mt-8 pt-6 border-t" style={{ borderColor: 'var(--line)' }}>
-          Costa Companion actúa exclusivamente como plataforma de intermediación.
-          El acompañante revisará tu solicitud y te propondrá las condiciones del servicio.
-          Los servicios son prestados directamente por los acompañantes, profesionales autónomos.
+          {ts.aviso}
         </p>
       </div>
     </div>
