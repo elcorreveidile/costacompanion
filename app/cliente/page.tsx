@@ -1,21 +1,19 @@
-import { createClient } from "@/lib/supabase/server";
-import { signOut } from "@/lib/auth/actions";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
+import { db } from "@/lib/db";
+import { profiles } from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
+import { signOut } from "@/lib/auth/actions";
 
 export default async function ClienteDashboard() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) return null;
 
-  if (!user) {
-    return null;
-  }
-
-  // Obtener datos del perfil
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("nombre, rol")
-    .eq("id", user.id)
-    .single() as { data: { nombre: string | null; rol: string } | null; error: null };
+  const [profile] = await db
+    .select({ nombre: profiles.nombre })
+    .from(profiles)
+    .where(eq(profiles.id, user.id))
+    .limit(1);
 
   const nombre = profile?.nombre || user.email;
 
@@ -123,7 +121,7 @@ export default async function ClienteDashboard() {
         <div className="bg-(--bone-2) rounded-lg p-6 shadow-sm border border-(--line) mb-4">
           <h3 className="font-medium text-(--green) mb-2">Información de tu cuenta</h3>
           <div className="text-sm text-(--ink)/70 space-y-1">
-            <p>Email: {user.email}</p>
+            <p>Email: {user.email}</p>{/* sesión Auth.js */}
             <p>Rol: Cliente</p>
             {profile?.nombre && <p>Nombre: {profile.nombre}</p>}
           </div>

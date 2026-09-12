@@ -1,30 +1,10 @@
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { cancelarReserva } from '@/lib/reservas/actions';
 import { RealtimeRefresher } from '@/components/RealtimeRefresher';
-import type { EstadoReserva, Modalidad } from '@/types/supabase';
-
-interface AcompananteJoin {
-  nombre_publico: string;
-  slug: string;
-  email_contacto: string | null;
-  whatsapp: string | null;
-}
-
-interface ServicioJoin {
-  titulo: { es?: string; en?: string } | null;
-}
-
-interface ReservaConJoins {
-  id: string;
-  fecha_hora: string;
-  modalidad: Modalidad;
-  zona: string | null;
-  estado: EstadoReserva;
-  acompanantes: AcompananteJoin | null;
-  servicios: ServicioJoin | null;
-}
+import { getSessionUser } from '@/lib/auth/session';
+import { getReservasDeCliente, getReservaIdsResenadas } from '@/lib/db/queries/cliente';
+import type { EstadoReserva } from '@/types/supabase';
 
 const ESTADO_BADGE: Record<EstadoReserva, { label: string; bg: string; color: string }> = {
   pendiente: { label: 'Pendiente', bg: 'var(--terra-soft)', color: 'var(--terra)' },
@@ -37,36 +17,17 @@ const ESTADO_BADGE: Record<EstadoReserva, { label: string; bg: string; color: st
 export const metadata = { title: 'Mis reservas | Costa Companion' };
 
 export default async function ClienteReservasPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/login');
 
-  if (!user) {
-    redirect('/auth/login');
-  }
-
-  const { data: reservasData } = await supabase
-    .from('reservas')
-    .select('id, fecha_hora, modalidad, zona, estado, acompanantes(nombre_publico, slug, email_contacto, whatsapp), servicios(titulo)')
-    .eq('cliente_id', user.id)
-    .order('created_at', { ascending: false });
-
-  const reservas = (reservasData ?? []) as unknown as ReservaConJoins[];
-
-  // Fetch all reviews by this user to know which reservations are already reviewed
-  const { data: resenasData } = await supabase
-    .from('resenas')
-    .select('reserva_id')
-    .eq('cliente_id', user.id);
-
-  const reviewedReservaIds = new Set<string>(
-    ((resenasData ?? []) as { reserva_id: string | null }[])
-      .map((r) => r.reserva_id)
-      .filter((id): id is string => id !== null)
-  );
+  const [reservas, reviewedReservaIds] = await Promise.all([
+    getReservasDeCliente(user.id),
+    getReservaIdsResenadas(user.id),
+  ]);
 
   return (
     <div className="min-h-screen bg-(--bone)">
-      <RealtimeRefresher table="reservas" filter={`cliente_id=eq.${user.id}`} />
+      <RealtimeRefresher />
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Encabezado */}
         <div className="mb-8 flex items-center justify-between gap-4">
