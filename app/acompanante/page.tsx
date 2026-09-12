@@ -1,7 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
+import { eq } from "drizzle-orm";
+import Link from "next/link";
+import { db } from "@/lib/db";
+import { profiles, acompanantes } from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
 import { accederPortalStripe, cancelarMiSuscripcion } from "@/lib/acompanante/billing";
-import Link from "next/link";
 
 type EstadoStripe = 'sin_suscripcion' | 'active' | 'past_due' | 'canceled' | 'trialing';
 
@@ -16,26 +19,26 @@ const STRIPE_BADGE: Record<EstadoStripe, { label: string; bg: string; color: str
 export const metadata = { title: 'Mi Panel — Acompañante | Costa Companion' };
 
 export default async function AcompananteDashboard() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) return null;
 
-  if (!user) {
-    return null;
-  }
+  const [profile] = await db
+    .select({ nombre: profiles.nombre, rol: profiles.rol })
+    .from(profiles)
+    .where(eq(profiles.id, sessionUser.id))
+    .limit(1);
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("nombre, rol")
-    .eq("id", user.id)
-    .single() as { data: { nombre: string | null; rol: string } | null; error: null };
+  const nombre = profile?.nombre || sessionUser.email;
 
-  const nombre = profile?.nombre || user.email;
-
-  const { data: fichaData } = await supabase
-    .from('acompanantes')
-    .select('slug, stripe_customer_id, stripe_subscription_status')
-    .eq('profile_id', user.id)
-    .single() as { data: { slug: string; stripe_customer_id: string | null; stripe_subscription_status: EstadoStripe } | null; error: null };
+  const [fichaData] = await db
+    .select({
+      slug: acompanantes.slug,
+      stripe_customer_id: acompanantes.stripeCustomerId,
+      stripe_subscription_status: acompanantes.stripeSubscriptionStatus,
+    })
+    .from(acompanantes)
+    .where(eq(acompanantes.profileId, sessionUser.id))
+    .limit(1);
 
   const panelSections = [
     {
@@ -234,7 +237,7 @@ export default async function AcompananteDashboard() {
         <div className="bg-(--bone-2) rounded-lg p-6 shadow-sm border border-(--line) mb-4">
           <h3 className="font-medium text-(--green) mb-2">Información de tu cuenta</h3>
           <div className="text-sm text-(--ink)/70 space-y-1">
-            <p>Email: {user.email}</p>
+            <p>Email: {sessionUser.email}</p>
             <p>Rol: Acompañante</p>
             {profile?.nombre && <p>Nombre: {profile.nombre}</p>}
           </div>
