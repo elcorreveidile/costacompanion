@@ -1,9 +1,9 @@
-import { createAdminClient } from '@/lib/supabase/admin';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
-import type { Anunciante, CategoriaAnunciante } from '@/types/supabase';
+import type { CategoriaAnunciante } from '@/types/supabase';
+import { getAnuncianteActivoBySlug } from '@/lib/db/queries/public';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -20,13 +20,7 @@ const CAT_LABEL: Record<CategoriaAnunciante, string> = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = createAdminClient();
-  const { data } = await supabase
-    .from('anunciantes')
-    .select('nombre_negocio, descripcion, categoria, zona')
-    .eq('slug', slug)
-    .eq('activo', true)
-    .single() as { data: { nombre_negocio: string; descripcion: Record<string, string> | null; categoria: string; zona: string | null } | null; error: null };
+  const data = await getAnuncianteActivoBySlug(slug);
 
   if (!data) return { title: 'Local Partner | Costa Companion' };
 
@@ -35,24 +29,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${data.nombre_negocio} | Local Partners Costa Companion`,
-    description: desc.es ?? `${CAT_LABEL[data.categoria as CategoriaAnunciante]}${zonaStr} — Local Partner en Costa del Sol`,
+    description: desc.es ?? `${CAT_LABEL[data.categoria]}${zonaStr} — Local Partner en Costa del Sol`,
   };
 }
 
 export default async function LocalPartnerPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = createAdminClient();
 
-  const { data } = await supabase
-    .from('anunciantes')
-    .select('*')
-    .eq('slug', slug)
-    .eq('activo', true)
-    .single();
+  const an = await getAnuncianteActivoBySlug(slug);
 
-  if (!data) notFound();
-
-  const an = data as unknown as Anunciante;
+  if (!an) notFound();
   const desc = (an.descripcion ?? {}) as { es?: string; en?: string };
   const whatsappNum = an.whatsapp?.replace(/\D/g, '');
   const mapsHref = an.direccion
