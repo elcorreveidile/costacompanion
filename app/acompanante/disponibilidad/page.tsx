@@ -1,34 +1,17 @@
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import type { Disponibilidad } from '@/types/supabase';
+import { getSessionUser } from '@/lib/auth/session';
+import { getMiAcompananteId, getDisponibilidadDe } from '@/lib/db/queries/acompanante';
 import { DisponibilidadManager } from './DisponibilidadManager';
 
 export const metadata = { title: 'Disponibilidad | Costa Companion' };
 
 export default async function AcompananteDisponibilidadPage() {
-  const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) redirect('/auth/login');
 
-  // Obtener acompanante_id
-  const { data: acompananteData } = await supabase
-    .from('acompanantes')
-    .select('id')
-    .eq('profile_id', user.id)
-    .single() as { data: { id: string } | null; error: null };
+  const acompananteId = await getMiAcompananteId(user.id);
 
-  const acompananteId = acompananteData?.id ?? null;
-
-  const { data: franjas } = acompananteId
-    ? await supabase
-        .from('disponibilidad')
-        .select('*')
-        .eq('acompanante_id', acompananteId)
-        .order('fecha_hora', { ascending: true })
-    : { data: [] };
-
-  const lista = (franjas ?? []) as unknown as Disponibilidad[];
+  const lista = acompananteId ? await getDisponibilidadDe(acompananteId) : [];
 
   return (
     <div className="min-h-screen bg-(--bone)">

@@ -1,24 +1,10 @@
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { aceptarSolicitud, rechazarSolicitud } from '@/lib/solicitudes/actions';
 import { RealtimeRefresher } from '@/components/RealtimeRefresher';
-import type { EstadoSolicitud, Modalidad } from '@/types/supabase';
-
-interface ProfileJoin {
-  nombre: string | null;
-}
-
-interface SolicitudConJoins {
-  id: string;
-  descripcion: string;
-  fecha_hora_deseada: string | null;
-  modalidad: Modalidad;
-  zona: string | null;
-  precio_propuesto: number | null;
-  estado: EstadoSolicitud;
-  profiles: ProfileJoin | null;
-}
+import { getSessionUser } from '@/lib/auth/session';
+import { getMiAcompananteId, getSolicitudesDeAcompanante } from '@/lib/db/queries/acompanante';
+import type { EstadoSolicitud } from '@/types/supabase';
 
 const ESTADO_BADGE: Record<EstadoSolicitud, { label: string; bg: string; color: string }> = {
   pendiente: { label: 'Pendiente', bg: 'var(--terra-soft)', color: 'var(--terra)' },
@@ -29,33 +15,13 @@ const ESTADO_BADGE: Record<EstadoSolicitud, { label: string; bg: string; color: 
 export const metadata = { title: 'Solicitudes recibidas | Costa Companion' };
 
 export default async function AcompananteSolicitudesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/login');
 
-  if (!user) {
-    redirect('/auth/login');
-  }
+  const acompananteId = await getMiAcompananteId(user.id);
+  if (!acompananteId) redirect('/acompanante');
 
-  // Obtener acompanante_id
-  const { data: acompananteData } = await supabase
-    .from('acompanantes')
-    .select('id')
-    .eq('profile_id', user.id)
-    .single();
-
-  if (!acompananteData) {
-    redirect('/acompanante');
-  }
-
-  const acompananteId = (acompananteData as unknown as { id: string }).id;
-
-  const { data: solicitudesData } = await supabase
-    .from('solicitudes')
-    .select('id, descripcion, fecha_hora_deseada, modalidad, zona, precio_propuesto, estado, profiles(nombre)')
-    .eq('acompanante_id', acompananteId)
-    .order('created_at', { ascending: false });
-
-  const solicitudes = (solicitudesData ?? []) as unknown as SolicitudConJoins[];
+  const solicitudes = await getSolicitudesDeAcompanante(acompananteId);
 
   return (
     <div className="min-h-screen bg-(--bone)">
