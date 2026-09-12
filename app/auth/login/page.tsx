@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { signInWithMagicLink, signInWithPin } from "@/lib/auth/actions";
+import { getSessionUser } from "@/lib/auth/session";
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_email: "Por favor, introduce un email válido.",
@@ -15,6 +17,11 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ sent?: string; error?: string; redirect?: string }>;
 }) {
+  // Si ya hay sesión (p. ej. al volver del enlace mágico), no mostramos el login:
+  // reenviamos al selector de rol para que el usuario acabe en su panel.
+  const sessionUser = await getSessionUser();
+  if (sessionUser) redirect("/post-login");
+
   const params = await searchParams;
   const sent = params.sent === "1";
   const errorMsg = params.error ? ERROR_MESSAGES[params.error] ?? "Ha ocurrido un error. Inténtalo de nuevo." : null;

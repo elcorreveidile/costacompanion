@@ -25,7 +25,12 @@ export async function signInWithMagicLink(formData: FormData): Promise<void> {
   }
 
   try {
-    await signIn("nodemailer", { email, redirect: false });
+    await signIn("nodemailer", {
+      email,
+      redirect: false,
+      // Tras validar el enlace, aterriza en el selector de rol, no en /auth/login.
+      redirectTo: next || "/post-login",
+    });
   } catch (error) {
     console.error("Error enviando Magic Link:", error);
     redirect("/auth/login?error=send_failed");
