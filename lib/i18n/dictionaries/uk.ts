@@ -1017,6 +1017,29 @@ const uk: Dictionary = {
       despublicada: "Знято з публікації",
     },
   },
+  panelPerfil: {
+    h1: "Мій профіль",
+    subtitulo: "Керуйте своїми особистими даними",
+    email: "Електронна пошта",
+    emailNota: "Електронну пошту не можна змінити",
+    rol: "Роль",
+    rolNota: "Роль призначається адміністратором",
+    nombre: "Ім'я",
+    nombrePlaceholder: "Ваше ім'я",
+    telefono: "Телефон",
+    telefonoPlaceholder: "+34 600 000 000",
+    idiomaPreferido: "Бажана мова",
+    idiomaNota: "Використовується для листів та інтерфейсу",
+    guardar: "Зберегти зміни",
+    volverPanel: "Назад до моєї панелі",
+    cerrarSesion: "Вийти",
+    roles: {
+      cliente: "Клієнт",
+      acompanante: "Супровідник",
+      anunciante: "Рекламодавець (Local Partner)",
+      superadmin: "Суперадмін",
+    },
+  },
 };
 
 export default uk;

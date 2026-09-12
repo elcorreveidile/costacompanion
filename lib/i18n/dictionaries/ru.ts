@@ -1017,6 +1017,29 @@ const ru: Dictionary = {
       despublicada: "Снят с публикации",
     },
   },
+  panelPerfil: {
+    h1: "Мой профиль",
+    subtitulo: "Управляйте своими личными данными",
+    email: "Электронная почта",
+    emailNota: "Электронную почту нельзя изменить",
+    rol: "Роль",
+    rolNota: "Роль назначается администратором",
+    nombre: "Имя",
+    nombrePlaceholder: "Ваше имя",
+    telefono: "Телефон",
+    telefonoPlaceholder: "+34 600 000 000",
+    idiomaPreferido: "Предпочитаемый язык",
+    idiomaNota: "Используется для писем и интерфейса",
+    guardar: "Сохранить изменения",
+    volverPanel: "Назад в мою панель",
+    cerrarSesion: "Выйти",
+    roles: {
+      cliente: "Клиент",
+      acompanante: "Сопровождающий",
+      anunciante: "Рекламодатель (Local Partner)",
+      superadmin: "Суперадмин",
+    },
+  },
 };
 
 export default ru;

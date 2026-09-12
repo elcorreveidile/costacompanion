@@ -1017,6 +1017,29 @@ const nl: Dictionary = {
       despublicada: "Niet gepubliceerd",
     },
   },
+  panelPerfil: {
+    h1: "Mijn profiel",
+    subtitulo: "Beheer je persoonlijke gegevens",
+    email: "E-mail",
+    emailNota: "Het e-mailadres kan niet worden gewijzigd",
+    rol: "Rol",
+    rolNota: "Je rol wordt toegewezen door de beheerder",
+    nombre: "Naam",
+    nombrePlaceholder: "Je naam",
+    telefono: "Telefoon",
+    telefonoPlaceholder: "+34 600 000 000",
+    idiomaPreferido: "Voorkeurstaal",
+    idiomaNota: "Wordt gebruikt voor e-mails en de interface",
+    guardar: "Wijzigingen opslaan",
+    volverPanel: "Terug naar mijn dashboard",
+    cerrarSesion: "Uitloggen",
+    roles: {
+      cliente: "Klant",
+      acompanante: "Begeleider",
+      anunciante: "Adverteerder (Local Partner)",
+      superadmin: "Superadmin",
+    },
+  },
 };
 
 export default nl;

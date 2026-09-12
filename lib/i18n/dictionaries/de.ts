@@ -1017,6 +1017,29 @@ const de: Dictionary = {
       despublicada: "Unveröffentlicht",
     },
   },
+  panelPerfil: {
+    h1: "Mein Profil",
+    subtitulo: "Verwalten Sie Ihre persönlichen Daten",
+    email: "E-Mail",
+    emailNota: "Die E-Mail-Adresse kann nicht geändert werden",
+    rol: "Rolle",
+    rolNota: "Ihre Rolle wird vom Administrator zugewiesen",
+    nombre: "Name",
+    nombrePlaceholder: "Ihr Name",
+    telefono: "Telefon",
+    telefonoPlaceholder: "+34 600 000 000",
+    idiomaPreferido: "Bevorzugte Sprache",
+    idiomaNota: "Wird für E-Mails und die Oberfläche verwendet",
+    guardar: "Änderungen speichern",
+    volverPanel: "Zurück zu meinem Bereich",
+    cerrarSesion: "Abmelden",
+    roles: {
+      cliente: "Kunde",
+      acompanante: "Begleiter",
+      anunciante: "Inserent (Local Partner)",
+      superadmin: "Superadmin",
+    },
+  },
 };
 
 export default de;

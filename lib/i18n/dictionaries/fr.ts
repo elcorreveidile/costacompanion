@@ -1017,6 +1017,29 @@ const fr: Dictionary = {
       despublicada: "Dépublié",
     },
   },
+  panelPerfil: {
+    h1: "Mon profil",
+    subtitulo: "Gérez vos informations personnelles",
+    email: "E-mail",
+    emailNota: "L'e-mail ne peut pas être modifié",
+    rol: "Rôle",
+    rolNota: "Votre rôle est attribué par l'administrateur",
+    nombre: "Nom",
+    nombrePlaceholder: "Votre nom",
+    telefono: "Téléphone",
+    telefonoPlaceholder: "+34 600 000 000",
+    idiomaPreferido: "Langue préférée",
+    idiomaNota: "Utilisée pour les e-mails et l'interface",
+    guardar: "Enregistrer les modifications",
+    volverPanel: "Retour à mon espace",
+    cerrarSesion: "Se déconnecter",
+    roles: {
+      cliente: "Client",
+      acompanante: "Accompagnateur",
+      anunciante: "Annonceur (Local Partner)",
+      superadmin: "Superadmin",
+    },
+  },
 };
 
 export default fr;

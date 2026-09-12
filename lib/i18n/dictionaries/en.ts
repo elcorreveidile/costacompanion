@@ -1017,6 +1017,29 @@ const en: Dictionary = {
       despublicada: "Unpublished",
     },
   },
+  panelPerfil: {
+    h1: "My profile",
+    subtitulo: "Manage your personal information",
+    email: "Email",
+    emailNota: "Your email cannot be changed",
+    rol: "Role",
+    rolNota: "Your role is assigned by the administrator",
+    nombre: "Name",
+    nombrePlaceholder: "Your name",
+    telefono: "Phone",
+    telefonoPlaceholder: "+34 600 000 000",
+    idiomaPreferido: "Preferred language",
+    idiomaNota: "Used for emails and the interface",
+    guardar: "Save changes",
+    volverPanel: "Back to my dashboard",
+    cerrarSesion: "Log out",
+    roles: {
+      cliente: "Client",
+      acompanante: "Companion",
+      anunciante: "Advertiser (Local Partner)",
+      superadmin: "Superadmin",
+    },
+  },
 };
 
 export default en;

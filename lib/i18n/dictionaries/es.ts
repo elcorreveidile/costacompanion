@@ -1018,6 +1018,29 @@ const es = {
       despublicada: "Despublicada",
     },
   },
+  panelPerfil: {
+    h1: "Mi perfil",
+    subtitulo: "Gestiona tu información personal",
+    email: "Email",
+    emailNota: "El email no se puede cambiar",
+    rol: "Rol",
+    rolNota: "El rol está asignado por el administrador",
+    nombre: "Nombre",
+    nombrePlaceholder: "Tu nombre",
+    telefono: "Teléfono",
+    telefonoPlaceholder: "+34 600 000 000",
+    idiomaPreferido: "Idioma preferido",
+    idiomaNota: "Se usará para los emails y la interfaz",
+    guardar: "Guardar cambios",
+    volverPanel: "Volver a mi panel",
+    cerrarSesion: "Cerrar sesión",
+    roles: {
+      cliente: "Cliente",
+      acompanante: "Acompañante",
+      anunciante: "Anunciante (Local Partner)",
+      superadmin: "Superadmin",
+    },
+  },
 };
 
 export default es;
