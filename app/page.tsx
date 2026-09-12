@@ -6,88 +6,22 @@ import {
   IconSalud, IconTramites, IconNotaria, IconPropiedad,
   IconBanca, IconTelefono, IconEntrevista, IconEspanol,
 } from '@/components/icons/ServiceIcons';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
 
-const SERVICIOS = [
-  {
-    icon: IconSalud,
-    titulo: 'Salud',
-    texto: 'Acompañamiento al médico, a urgencias o al especialista. Explicar lo que te pasa y entender el diagnóstico, sin perderte en la consulta.',
-  },
-  {
-    icon: IconTramites,
-    titulo: 'Trámites y administración',
-    texto: 'Policía, denuncias, Extranjería y NIE, empadronamiento, citas oficiales. La burocracia española, en tu idioma.',
-  },
-  {
-    icon: IconNotaria,
-    titulo: 'Notaría y gestoría',
-    texto: 'Firmas, poderes, documentos oficiales. Saber qué estás firmando antes de firmarlo.',
-  },
-  {
-    icon: IconPropiedad,
-    titulo: 'Compraventa de propiedades',
-    texto: 'Visitas, negociación, firma. Acompañamiento en una de las decisiones más importantes que tomarás aquí.',
-  },
-  {
-    icon: IconBanca,
-    titulo: 'Banca',
-    texto: 'Abrir o gestionar cuentas, entender las condiciones, hablar con tu oficina.',
-  },
-  {
-    icon: IconTelefono,
-    titulo: 'Interpretación telefónica urgente',
-    texto: 'Cuando necesitas a alguien al teléfono ahora mismo, en directo.',
-  },
-  {
-    icon: IconEntrevista,
-    titulo: 'Preparación de entrevistas',
-    texto: 'Para llegar con seguridad a una entrevista de trabajo.',
-  },
-  {
-    icon: IconEspanol,
-    titulo: 'Clases de español',
-    texto: 'Adaptadas a tu nivel, desde lo básico hasta la conversación. Sueltas o en bonos.',
-  },
+const SERVICIO_ICONS = [
+  IconSalud, IconTramites, IconNotaria, IconPropiedad,
+  IconBanca, IconTelefono, IconEntrevista, IconEspanol,
 ];
+const PASO_NUMS = ['01', '02', '03'];
 
-const PASOS = [
-  {
-    num: '01',
-    titulo: 'Elige a tu acompañante',
-    texto: 'Busca por idioma, por tipo de gestión y por zona. Cada acompañante tiene su perfil, su experiencia y las valoraciones de quienes ya han contado con él.',
-  },
-  {
-    num: '02',
-    titulo: 'Reserva la cita',
-    texto: 'Propón el día y la hora, o cuéntale lo que necesitas y deja que te proponga. Tú decides si es en persona o a distancia.',
-  },
-  {
-    num: '03',
-    titulo: 'No vas solo',
-    texto: 'El día de la gestión, tu acompañante está contigo. Antes, durante y después. Para que salgas sabiendo exactamente qué ha pasado y qué viene ahora.',
-  },
-];
-
-const CONFIANZA = [
-  {
-    titulo: 'Acompañantes de confianza',
-    texto: 'Cada persona de nuestra red entra de una en una, conocida y verificada. No somos un listado abierto: somos una red cuidada.',
-  },
-  {
-    titulo: 'En tu idioma',
-    texto: 'Español, inglés, francés, alemán y neerlandés. Encuentra a alguien que hable el tuyo con naturalidad.',
-  },
-  {
-    titulo: 'A tu medida',
-    texto: 'Cada acompañante pone sus servicios y sus precios. Tú eliges lo que encaja contigo, sin sorpresas.',
-  },
-  {
-    titulo: 'Presencial o a distancia',
-    texto: 'En persona para lo que requiere estar allí; por teléfono o videollamada para lo que se resuelve en el momento.',
-  },
-];
-
-export default function Home() {
+export default async function Home() {
+  const { locale, dict } = await getI18n();
+  const t = dict.home;
+  const lp = (href: string) => localePath(locale, href);
+  const SERVICIOS = t.servicios.items.map((it, i) => ({ ...it, icon: SERVICIO_ICONS[i] }));
+  const PASOS = t.pasos.items.map((it, i) => ({ ...it, num: PASO_NUMS[i] }));
+  const CONFIANZA = t.confianza.items;
   return (
     <div className="flex flex-col">
 
@@ -110,31 +44,31 @@ export default function Home() {
         />
         <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center gap-6">
           <p className="text-sm font-medium tracking-widest uppercase" style={{ color: 'rgba(247,244,239,0.6)' }}>
-            Acompañamiento lingüístico en la Costa del Sol
+            {t.hero.eyebrow}
           </p>
           <h1
             className="font-display text-5xl sm:text-6xl md:text-7xl font-semibold leading-tight"
             style={{ color: 'var(--bone)' }}
           >
-            A tu lado,<br />en tu idioma
+            {t.hero.titleLine1}<br />{t.hero.titleLine2}
           </h1>
           <p className="text-lg sm:text-xl max-w-xl leading-relaxed" style={{ color: 'rgba(247,244,239,0.82)' }}>
-            Alguien de confianza que te acompaña al médico, a la policía, al notario o al banco — y habla por ti cuando el idioma se interpone. Presencial o a distancia, en Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares y toda la Costa del Sol occidental.
+            {t.hero.subtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 mt-2">
             <Link
-              href="/directorio"
+              href={lp('/directorio')}
               className="px-8 py-4 rounded-lg text-base font-medium transition-opacity hover:opacity-85"
               style={{ background: 'var(--terra)', color: 'var(--bone)' }}
             >
-              Encontrar a mi acompañante
+              {t.hero.ctaFind}
             </Link>
             <a
               href="#como-funciona"
               className="px-8 py-4 rounded-lg text-base font-medium border transition-opacity hover:opacity-75"
               style={{ borderColor: 'rgba(247,244,239,0.45)', color: 'rgba(247,244,239,0.85)' }}
             >
-              Cómo funciona
+              {t.hero.ctaHow}
             </a>
           </div>
         </div>
@@ -144,15 +78,15 @@ export default function Home() {
       <section className="py-20 px-6" style={{ background: 'var(--bone)' }}>
         <ScrollReveal className="max-w-3xl mx-auto text-center">
           <h2 className="font-display text-3xl sm:text-4xl font-semibold mb-8" style={{ color: 'var(--green)' }}>
-            Vivir aquí no debería significar quedarse sin palabras
+            {t.problema.h2}
           </h2>
           <div className="text-base sm:text-lg leading-relaxed space-y-5 text-left" style={{ color: 'var(--ink)' }}>
             <p>
-              Conoces la sensación: llevas años en la costa, te defiendes en el día a día, pero llega el momento de explicarle unos síntomas al médico, entender un contrato o poner una denuncia, y de pronto el idioma se convierte en un muro. No es cuestión de saber más o menos español. Es que hay momentos en los que necesitas estar seguro de que te entienden y de que entiendes tú.
+              {t.problema.p1}
             </p>
             <p>
-              Para esos momentos existe Costa Companion: una red de acompañantes que hablan tu idioma y el de aquí, y que se sientan a tu lado en la gestión que sea.{' '}
-              <span className="font-medium" style={{ color: 'var(--terra)' }}>No traducen y se van. Te acompañan.</span>
+              {t.problema.p2pre}
+              <span className="font-medium" style={{ color: 'var(--terra)' }}>{t.problema.p2em}</span>
             </p>
           </div>
         </ScrollReveal>
@@ -163,7 +97,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <ScrollReveal className="text-center mb-14">
             <h2 className="font-display text-3xl sm:text-4xl font-semibold" style={{ color: 'var(--green)' }}>
-              Sencillo, desde el primer momento
+              {t.pasos.h2}
             </h2>
           </ScrollReveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -192,12 +126,12 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <ScrollReveal className="text-center mb-4">
             <h2 className="font-display text-3xl sm:text-4xl font-semibold" style={{ color: 'var(--green)' }}>
-              Para casi todo lo que la vida aquí te pide
+              {t.servicios.h2}
             </h2>
           </ScrollReveal>
           <ScrollReveal delay={80} className="text-center mb-12">
             <p className="text-base max-w-2xl mx-auto" style={{ color: 'var(--ink)', opacity: 0.62 }}>
-              Estas son algunas de las gestiones en las que nuestros acompañantes te asisten. Si lo tuyo no está en la lista, pregúntanos: casi siempre podemos ayudar.
+              {t.servicios.subtitle}
             </p>
           </ScrollReveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -225,11 +159,11 @@ export default function Home() {
           </div>
           <ScrollReveal delay={200} className="text-center mt-10">
             <Link
-              href="/servicios"
+              href={lp('/servicios')}
               className="inline-flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-70"
               style={{ color: 'var(--terra)' }}
             >
-              Ver todos los servicios
+              {t.servicios.verTodos}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
@@ -243,7 +177,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <ScrollReveal className="text-center mb-14">
             <h2 className="font-display text-3xl sm:text-4xl font-semibold" style={{ color: 'var(--green)' }}>
-              Más que un idioma: tranquilidad
+              {t.confianza.h2}
             </h2>
           </ScrollReveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
@@ -273,17 +207,17 @@ export default function Home() {
               style={{ background: 'var(--green)', color: 'var(--bone)' }}
             >
               <h3 className="font-display text-2xl font-semibold">
-                ¿Hablas idiomas y quieres acompañar?
+                {t.ctaDoble.acomp.h3}
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'rgba(247,244,239,0.78)' }}>
-                Si conoces la costa, hablas varios idiomas y te gusta ayudar a las personas en los momentos que importan, hay un sitio para ti en Costa Companion. Trabajas a tu manera, con tus precios y tu propio perfil dentro de la plataforma.
+                {t.ctaDoble.acomp.texto}
               </p>
               <Link
-                href="/para-acompanantes"
+                href={lp('/para-acompanantes')}
                 className="mt-auto inline-flex items-center justify-center px-6 py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
                 style={{ background: 'var(--terra)', color: 'var(--bone)' }}
               >
-                Quiero ser acompañante
+                {t.ctaDoble.acomp.cta}
               </Link>
             </div>
           </ScrollReveal>
@@ -294,17 +228,17 @@ export default function Home() {
               style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
             >
               <h3 className="font-display text-2xl font-semibold" style={{ color: 'var(--green)' }}>
-                ¿Tienes un negocio en la costa?
+                {t.ctaDoble.negocio.h3}
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
-                Llega a la comunidad internacional de la Costa del Sol occidental. Si tu negocio cuida a los residentes extranjeros —una clínica, una inmobiliaria, una gestoría, un comercio—, preséntate ante quienes te buscan.
+                {t.ctaDoble.negocio.texto}
               </p>
               <Link
-                href="/para-negocios"
+                href={lp('/para-negocios')}
                 className="mt-auto inline-flex items-center justify-center px-6 py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
                 style={{ background: 'var(--green)', color: 'var(--bone)' }}
               >
-                Anunciar mi negocio
+                {t.ctaDoble.negocio.cta}
               </Link>
             </div>
           </ScrollReveal>
@@ -336,17 +270,17 @@ export default function Home() {
         />
         <ScrollReveal className="relative z-10 max-w-2xl mx-auto flex flex-col items-center gap-6">
           <h2 className="font-display text-3xl sm:text-4xl font-semibold" style={{ color: 'var(--bone)' }}>
-            Da el primer paso hoy
+            {t.cierre.h2}
           </h2>
           <p className="text-base sm:text-lg leading-relaxed" style={{ color: 'rgba(247,244,239,0.88)' }}>
-            Tu próxima gestión no tiene por qué hacerse en un idioma que no dominas. Encuentra a la persona que te acompaña.
+            {t.cierre.texto}
           </p>
           <Link
-            href="/directorio"
+            href={lp('/directorio')}
             className="px-8 py-4 rounded-lg text-base font-medium transition-opacity hover:opacity-85"
             style={{ background: 'var(--green)', color: 'var(--bone)' }}
           >
-            Encontrar a mi acompañante
+            {t.cierre.cta}
           </Link>
         </ScrollReveal>
       </section>
