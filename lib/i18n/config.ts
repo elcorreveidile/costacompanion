@@ -1,0 +1,66 @@
+// Configuración de idiomas de la plataforma.
+// Español es el idioma por defecto y vive en la raíz ("/"); el resto usan
+// prefijo de subruta ("/en", "/fr", "/de", "/nl", "/ru", "/uk").
+
+export const locales = ["es", "en", "fr", "de", "nl", "ru", "uk"] as const;
+export type Locale = (typeof locales)[number];
+
+export const defaultLocale: Locale = "es";
+
+/** Idiomas con prefijo en la URL (todos menos el por defecto). */
+export const prefixedLocales = locales.filter((l) => l !== defaultLocale);
+
+/** Nombre de cada idioma en su propia lengua (para el selector). */
+export const localeNames: Record<Locale, string> = {
+  es: "Español",
+  en: "English",
+  fr: "Français",
+  de: "Deutsch",
+  nl: "Nederlands",
+  ru: "Русский",
+  uk: "Українська",
+};
+
+/** Código corto para el selector compacto. */
+export const localeShort: Record<Locale, string> = {
+  es: "ES",
+  en: "EN",
+  fr: "FR",
+  de: "DE",
+  nl: "NL",
+  ru: "RU",
+  uk: "UK",
+};
+
+/** Etiqueta BCP-47 para <html lang> y hreflang. */
+export const htmlLang: Record<Locale, string> = {
+  es: "es",
+  en: "en",
+  fr: "fr",
+  de: "de",
+  nl: "nl",
+  ru: "ru",
+  uk: "uk",
+};
+
+export function isLocale(value: string | undefined | null): value is Locale {
+  return !!value && (locales as readonly string[]).includes(value);
+}
+
+/**
+ * Construye una ruta con el prefijo de idioma correcto.
+ * localePath("en", "/servicios")     -> "/en/servicios"
+ * localePath("es", "/servicios")     -> "/servicios"
+ * localePath("en", "/#como-funciona")-> "/en#como-funciona"
+ * localePath("en", "/")              -> "/en"
+ */
+export function localePath(locale: Locale, href: string): string {
+  if (locale === defaultLocale) return href;
+  // Separa el hash (#ancla) para colocarlo tras el prefijo.
+  const hashIndex = href.indexOf("#");
+  const hash = hashIndex >= 0 ? href.slice(hashIndex) : "";
+  const path = hashIndex >= 0 ? href.slice(0, hashIndex) : href;
+  if (path === "/" || path === "") return `/${locale}${hash}`;
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  return `/${locale}${clean}${hash}`;
+}

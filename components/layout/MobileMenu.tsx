@@ -4,18 +4,12 @@ import Link from 'next/link';
 import { LogoSymbol } from '@/components/icons/LogoSymbol';
 
 interface MobileMenuProps {
-  isLoggedIn: boolean;
   accountHref: string;
+  accountLabel: string;
+  navItems: { label: string; href: string }[];
 }
 
-const NAV = [
-  { label: 'Cómo funciona', href: '/#como-funciona' },
-  { label: 'Servicios',      href: '/servicios' },
-  { label: 'Acompañantes',   href: '/para-acompanantes' },
-  { label: 'Para negocios',  href: '/para-negocios' },
-];
-
-export function MobileMenu({ isLoggedIn, accountHref }: MobileMenuProps) {
+export function MobileMenu({ accountHref, accountLabel, navItems }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -80,7 +74,7 @@ export function MobileMenu({ isLoggedIn, accountHref }: MobileMenuProps) {
         </div>
 
         <nav className="flex flex-col px-6 py-8 gap-1">
-          {NAV.map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -100,7 +94,7 @@ export function MobileMenu({ isLoggedIn, accountHref }: MobileMenuProps) {
             className="block w-full text-center py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
             style={{ background: 'var(--terra)', color: 'var(--bone)' }}
           >
-            {isLoggedIn ? 'Mi cuenta' : 'Entrar'}
+            {accountLabel}
           </Link>
         </div>
       </div>
