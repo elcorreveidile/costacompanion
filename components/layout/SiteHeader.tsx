@@ -10,20 +10,11 @@ const NAV = [
 ];
 
 async function getSessionData() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return null;
-  }
   try {
-    const { createClient } = await import('@/lib/supabase/server');
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { getSessionUser } = await import('@/lib/auth/session');
+    const user = await getSessionUser();
     if (!user) return null;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('rol')
-      .eq('id', user.id)
-      .single() as { data: { rol: string } | null; error: null };
-    return { rol: profile?.rol ?? 'cliente' };
+    return { rol: user.rol ?? 'cliente' };
   } catch {
     return null;
   }
