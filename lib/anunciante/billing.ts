@@ -1,29 +1,26 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { anunciantes } from '@/lib/db/schema';
+import { getSessionUser } from '@/lib/auth/session';
 import { getStripe } from '@/lib/stripe';
-import type { SupabaseClient } from '@supabase/supabase-js';
-
-type RawClient = SupabaseClient;
 
 export async function accederPortalStripeAnunciante(): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) redirect('/auth/login');
 
-  const admin = createAdminClient();
-  const { data: anunc } = await (admin as RawClient)
-    .from('anunciantes')
-    .select('stripe_customer_id')
-    .eq('profile_id', user.id)
-    .single() as { data: { stripe_customer_id: string | null } | null };
+  const [anunc] = await db
+    .select({ stripeCustomerId: anunciantes.stripeCustomerId })
+    .from(anunciantes)
+    .where(eq(anunciantes.profileId, user.id))
+    .limit(1);
 
-  if (!anunc?.stripe_customer_id) return;
+  if (!anunc?.stripeCustomerId) return;
 
   const session = await getStripe().billingPortal.sessions.create({
-    customer: anunc.stripe_customer_id,
+    customer: anunc.stripeCustomerId,
     return_url: 'https://www.costacompanion.com/anunciante',
   });
 
@@ -31,21 +28,19 @@ export async function accederPortalStripeAnunciante(): Promise<void> {
 }
 
 export async function cancelarMiSuscripcionAnunciante(): Promise<{ error?: string }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) redirect('/auth/login');
 
-  const admin = createAdminClient();
-  const { data: anunc } = await (admin as RawClient)
-    .from('anunciantes')
-    .select('stripe_subscription_id')
-    .eq('profile_id', user.id)
-    .single() as { data: { stripe_subscription_id: string | null } | null };
+  const [anunc] = await db
+    .select({ stripeSubscriptionId: anunciantes.stripeSubscriptionId })
+    .from(anunciantes)
+    .where(eq(anunciantes.profileId, user.id))
+    .limit(1);
 
-  if (!anunc?.stripe_subscription_id) return { error: 'Sin suscripción activa.' };
+  if (!anunc?.stripeSubscriptionId) return { error: 'Sin suscripción activa.' };
 
   try {
-    await getStripe().subscriptions.update(anunc.stripe_subscription_id, {
+    await getStripe().subscriptions.update(anunc.stripeSubscriptionId, {
       cancel_at_period_end: true,
     });
     return {};
