@@ -80,6 +80,8 @@ export default auth((req) => {
   // Propaga el idioma; reescribe a la ruta sin prefijo si lo llevaba.
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-locale", locale);
+  // Ruta sin prefijo de idioma, para construir canonical + hreflang en el layout.
+  requestHeaders.set("x-pathname", path);
 
   if (path !== pathname) {
     const url = nextUrl.clone();

@@ -1,33 +1,53 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { getLocale } from "@/lib/i18n/server";
-import { htmlLang } from "@/lib/i18n/config";
+import { htmlLang, alternatesFor, isLocale, type Locale } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://www.costacompanion.com'),
-  title: {
-    default: "Costa Companion — A tu lado, en tu idioma",
-    template: "%s | Costa Companion",
-  },
-  description:
-    "Plataforma de acompañamiento lingüístico para residentes y visitantes de la Costa del Sol.",
-  icons: {
-    icon: [{ url: '/icon?v=2', type: 'image/png', sizes: '32x32' }],
-    shortcut: '/icon?v=2',
-    apple: [{ url: '/apple-icon?v=2', sizes: '180x180', type: 'image/png' }],
-  },
-  openGraph: {
-    title: "Costa Companion — A tu lado, en tu idioma",
-    description: "Plataforma de acompañamiento lingüístico para residentes y visitantes de la Costa del Sol.",
-    url: "https://www.costacompanion.com",
-    siteName: "Costa Companion",
-    images: [{ url: "/opengraph-image.png", width: 1200, height: 630 }],
-    locale: "es_ES",
-    type: "website",
-  },
+const OG_LOCALE: Record<Locale, string> = {
+  es: "es_ES",
+  en: "en_US",
+  fr: "fr_FR",
+  de: "de_DE",
+  nl: "nl_NL",
+  ru: "ru_RU",
+  uk: "uk_UA",
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const h = await headers();
+  const locale = (isLocale(h.get("x-locale")) ? h.get("x-locale") : "es") as Locale;
+  const pathname = h.get("x-pathname") || "/";
+  const { canonical, languages } = alternatesFor(pathname, locale);
+
+  return {
+    metadataBase: new URL("https://www.costacompanion.com"),
+    title: {
+      default: "Costa Companion — A tu lado, en tu idioma",
+      template: "%s | Costa Companion",
+    },
+    description:
+      "Plataforma de acompañamiento lingüístico para residentes y visitantes de la Costa del Sol.",
+    alternates: { canonical, languages },
+    icons: {
+      icon: [{ url: "/icon?v=2", type: "image/png", sizes: "32x32" }],
+      shortcut: "/icon?v=2",
+      apple: [{ url: "/apple-icon?v=2", sizes: "180x180", type: "image/png" }],
+    },
+    openGraph: {
+      title: "Costa Companion — A tu lado, en tu idioma",
+      description:
+        "Plataforma de acompañamiento lingüístico para residentes y visitantes de la Costa del Sol.",
+      url: canonical,
+      siteName: "Costa Companion",
+      images: [{ url: "/opengraph-image.png", width: 1200, height: 630 }],
+      locale: OG_LOCALE[locale],
+      type: "website",
+    },
+  };
+}
 
 export default async function RootLayout({
   children,

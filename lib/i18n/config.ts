@@ -80,3 +80,23 @@ export function localePath(locale: Locale, href: string): string {
   const clean = path.startsWith("/") ? path : `/${path}`;
   return `/${locale}${clean}${hash}`;
 }
+
+/**
+ * Construye canonical + hreflang para una ruta SIN prefijo de idioma
+ * (p. ej. "/servicios"). El canonical apunta a la versión del idioma actual;
+ * `languages` incluye una entrada por idioma (código BCP-47) más `x-default`
+ * que apunta al español (raíz). Rutas relativas: Next las resuelve contra
+ * `metadataBase`.
+ */
+export function alternatesFor(
+  pathname: string,
+  current: Locale = defaultLocale
+): { canonical: string; languages: Record<string, string> } {
+  const clean = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  const languages: Record<string, string> = {};
+  for (const l of locales) {
+    languages[htmlLang[l]] = localePath(l, clean);
+  }
+  languages["x-default"] = localePath(defaultLocale, clean);
+  return { canonical: localePath(current, clean), languages };
+}
