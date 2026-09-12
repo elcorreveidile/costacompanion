@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { actualizarAcompanante } from '@/lib/admin/acompanantes';
+import { actualizarAcompanante, resetPinAcompanante } from '@/lib/admin/acompanantes';
 import type { Acompanante } from '@/types/supabase';
 
 const IDIOMAS = [
@@ -37,8 +37,23 @@ export function FichaAdminForm({ acompanante }: { acompanante: Acompanante }) {
   const router = useRouter();
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pinLoading, setPinLoading] = useState(false);
+  const [nuevoPin, setNuevoPin] = useState<{ numeroUsuario?: string; pin?: string } | null>(null);
 
   const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
+
+  async function handleResetPin() {
+    if (!confirm('¿Reiniciar el PIN de este acompañante? El PIN anterior dejará de funcionar.')) return;
+    setNuevoPin(null);
+    setPinLoading(true);
+    const result = await resetPinAcompanante(acompanante.profile_id);
+    setPinLoading(false);
+    if (result.error) {
+      setStatus({ type: 'error', msg: result.error });
+    } else {
+      setNuevoPin({ numeroUsuario: result.numeroUsuario, pin: result.pin });
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -239,6 +254,42 @@ export function FichaAdminForm({ acompanante }: { acompanante: Acompanante }) {
             <span className="text-sm text-(--ink)">{field.label}</span>
           </label>
         ))}
+      </div>
+
+      {/* Acceso por PIN */}
+      <div className="rounded-lg p-4" style={{ background: 'var(--bone)', border: '1px solid var(--line)' }}>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-sm font-medium text-(--ink)">Acceso por PIN</p>
+            <p className="text-xs text-(--ink)/50 mt-0.5">
+              Genera un nuevo número de usuario y PIN si el acompañante los ha perdido.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleResetPin}
+            disabled={pinLoading}
+            className="text-sm px-4 py-2 rounded-lg border transition-opacity hover:opacity-70 disabled:opacity-60"
+            style={{ borderColor: 'var(--terra)', color: 'var(--terra)', background: 'transparent' }}
+          >
+            {pinLoading ? 'Reiniciando...' : 'Reiniciar PIN'}
+          </button>
+        </div>
+        {nuevoPin && (
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs text-(--ink)/50 mb-1">Número de usuario</p>
+              <p className="text-xl font-mono font-semibold tracking-widest text-(--ink)">{nuevoPin.numeroUsuario}</p>
+            </div>
+            <div>
+              <p className="text-xs text-(--ink)/50 mb-1">PIN nuevo</p>
+              <p className="text-xl font-mono font-semibold tracking-widest text-(--ink)">{nuevoPin.pin}</p>
+            </div>
+            <p className="text-xs text-(--terra) sm:col-span-2">
+              Apúntalo ahora: el PIN no se puede volver a consultar.
+            </p>
+          </div>
+        )}
       </div>
 
       {status && (

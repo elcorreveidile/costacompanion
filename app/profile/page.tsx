@@ -1,6 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { updateProfile, signOut } from "@/lib/auth/actions";
+import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import { db } from "@/lib/db";
+import { profiles } from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
+import { updateProfile, signOut } from "@/lib/auth/actions";
 
 const idiomas = [
   { value: "es", label: "Español" },
@@ -11,19 +15,22 @@ const idiomas = [
 ];
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) redirect("/auth/login");
 
   // Obtener datos del perfil
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single() as { data: { nombre: string | null; rol: string; telefono: string | null; idioma_preferido: string | null } | null; error: null };
+  const [profile] = await db
+    .select({
+      nombre: profiles.nombre,
+      rol: profiles.rol,
+      telefono: profiles.telefono,
+      idiomaPreferido: profiles.idiomaPreferido,
+    })
+    .from(profiles)
+    .where(eq(profiles.id, sessionUser.id))
+    .limit(1);
+
+  const rol = profile?.rol ?? sessionUser.rol;
 
   const rolLabels = {
     cliente: "Cliente",
@@ -56,7 +63,7 @@ export default async function ProfilePage() {
               <input
                 id="email"
                 type="email"
-                value={user.email}
+                value={sessionUser.email ?? ""}
                 disabled
                 className="w-full px-4 py-3 rounded-md border border-(--line) bg-(--bone)/50 text-(--ink)/50 cursor-not-allowed"
               />
@@ -73,7 +80,7 @@ export default async function ProfilePage() {
               <input
                 id="rol"
                 type="text"
-                value={rolLabels[profile?.rol as keyof typeof rolLabels] || profile?.rol}
+                value={rolLabels[rol as keyof typeof rolLabels] || rol || ""}
                 disabled
                 className="w-full px-4 py-3 rounded-md border border-(--line) bg-(--bone)/50 text-(--ink)/50 cursor-not-allowed"
               />
@@ -120,7 +127,7 @@ export default async function ProfilePage() {
               <select
                 id="idioma_preferido"
                 name="idioma_preferido"
-                defaultValue={profile?.idioma_preferido || "es"}
+                defaultValue={profile?.idiomaPreferido || "es"}
                 className="w-full px-4 py-3 rounded-md border border-(--line) bg-(--bone) text-(--ink) focus:outline-none focus:ring-2 focus:ring-(--terra) focus:border-transparent transition"
               >
                 {idiomas.map((idioma) => (
@@ -147,7 +154,7 @@ export default async function ProfilePage() {
         {/* Volver al dashboard */}
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
-            href={`/${profile?.rol === "superadmin" ? "admin" : profile?.rol}`}
+            href={`/${rol === "superadmin" ? "admin" : rol}`}
             className="inline-flex items-center justify-center px-6 py-3 bg-(--bone-2) hover:bg-(--line) text-(--ink) font-medium rounded-md transition-colors duration-200 text-center"
           >
             Volver a mi panel

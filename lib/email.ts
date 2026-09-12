@@ -1,11 +1,7 @@
-import { Resend } from 'resend';
+import { sendMail, MAIL_FROM } from '@/lib/mailer';
 
-const FROM = 'Costa Companion <hola@costacompanion.com>';
+const FROM = MAIL_FROM;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://costacompanion.com';
-
-function getResend() {
-  return new Resend(process.env.RESEND_API_KEY);
-}
 
 function html(body: string) {
   return `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a2e25">
@@ -35,7 +31,7 @@ export async function emailNuevaReserva(opts: {
   fechaStr: string;
   servicioNombre?: string;
 }) {
-  await getResend().emails.send({
+  await sendMail({
     from: FROM,
     to: [opts.toEmail],
     subject: `Nueva reserva recibida — ${opts.acompananteNombre}`,
@@ -58,7 +54,7 @@ export async function emailReservaConfirmada(opts: {
   acompananteSlug: string;
   fechaStr: string;
 }) {
-  await getResend().emails.send({
+  await sendMail({
     from: FROM,
     to: [opts.toEmail],
     subject: `Reserva confirmada con ${opts.acompananteNombre}`,
@@ -81,7 +77,7 @@ export async function emailReservaRechazada(opts: {
   acompananteSlug: string;
   fechaStr: string;
 }) {
-  await getResend().emails.send({
+  await sendMail({
     from: FROM,
     to: [opts.toEmail],
     subject: `Reserva no disponible — ${opts.acompananteNombre}`,
@@ -102,7 +98,7 @@ export async function emailNuevaSolicitud(opts: {
   acompananteNombre: string;
   descripcion: string;
 }) {
-  await getResend().emails.send({
+  await sendMail({
     from: FROM,
     to: [opts.toEmail],
     subject: `Nueva solicitud a medida — ${opts.acompananteNombre}`,
@@ -124,7 +120,7 @@ export async function emailSolicitudAceptada(opts: {
   acompananteSlug: string;
   precio?: number | null;
 }) {
-  await getResend().emails.send({
+  await sendMail({
     from: FROM,
     to: [opts.toEmail],
     subject: `Tu solicitud fue aceptada — ${opts.acompananteNombre}`,
@@ -143,7 +139,7 @@ export async function emailSolicitudRechazada(opts: {
   clienteNombre: string;
   acompananteNombre: string;
 }) {
-  await getResend().emails.send({
+  await sendMail({
     from: FROM,
     to: [opts.toEmail],
     subject: `Solicitud no disponible — ${opts.acompananteNombre}`,
@@ -197,7 +193,7 @@ export async function notificarNuevoMensaje(opts: {
   // Determinar la URL del chat según el idioma del receptor
   const chatUrl = `${SITE}/cliente/mensajes`;
 
-  await getResend().emails.send({
+  await sendMail({
     from: FROM,
     to: [opts.receptorEmail],
     subject: txt.titulo,

@@ -1,15 +1,14 @@
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { eq } from "drizzle-orm";
+import Link from "next/link";
+import { db } from "@/lib/db";
+import { profiles, anunciantes } from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
 import { accederPortalStripeAnunciante, cancelarMiSuscripcionAnunciante } from "@/lib/anunciante/billing";
-import Link from "next/link";
-import type { Anunciante, EstadoStripe } from "@/types/supabase";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { EstadoStripe } from "@/types/supabase";
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Mi Panel — Local Partner | Costa Companion' };
-
-type RawClient = SupabaseClient;
 
 const STRIPE_BADGE: Record<EstadoStripe, { label: string; bg: string; color: string }> = {
   active:          { label: 'Activa',            bg: 'rgba(74,111,80,0.12)',  color: 'var(--green-deep)' },
@@ -20,20 +19,28 @@ const STRIPE_BADGE: Record<EstadoStripe, { label: string; bg: string; color: str
 };
 
 export default async function AnuncianteDashboard() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles").select("nombre, rol").eq("id", user.id).single() as
-    { data: { nombre: string | null; rol: string } | null; error: null };
+  const [profile] = await db
+    .select({ nombre: profiles.nombre })
+    .from(profiles)
+    .where(eq(profiles.id, user.id))
+    .limit(1);
 
-  const admin = createAdminClient();
-  const { data: fichaData } = await (admin as RawClient)
-    .from('anunciantes')
-    .select('id, slug, nombre_negocio, plan, activo, stripe_customer_id, stripe_subscription_status')
-    .eq('profile_id', user.id)
-    .single() as { data: Pick<Anunciante, 'id' | 'slug' | 'nombre_negocio' | 'plan' | 'activo' | 'stripe_customer_id' | 'stripe_subscription_status'> | null };
+  const [fichaData] = await db
+    .select({
+      id: anunciantes.id,
+      slug: anunciantes.slug,
+      nombre_negocio: anunciantes.nombreNegocio,
+      plan: anunciantes.plan,
+      activo: anunciantes.activo,
+      stripe_customer_id: anunciantes.stripeCustomerId,
+      stripe_subscription_status: anunciantes.stripeSubscriptionStatus,
+    })
+    .from(anunciantes)
+    .where(eq(anunciantes.profileId, user.id))
+    .limit(1);
 
   const nombre = profile?.nombre || fichaData?.nombre_negocio || user.email;
 
@@ -145,7 +152,7 @@ export default async function AnuncianteDashboard() {
           <h3 className="font-medium text-(--green) mb-2">Información de cuenta</h3>
           <div className="text-sm text-(--ink)/70 space-y-1">
             <p>Email: {user.email}</p>
-            {profile?.nombre && <p>Nombre: {profile.nombre}</p>}
+            {profile?.nombre ? <p>Nombre: {profile.nombre}</p> : null}
           </div>
         </div>
 

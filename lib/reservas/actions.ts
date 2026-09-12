@@ -1,285 +1,258 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import {
+  reservas,
+  acompanantes,
+  disponibilidad,
+  profiles,
+  servicios,
+} from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
+import { getMiAcompananteId } from "@/lib/db/queries/acompanante";
 import {
   emailNuevaReserva,
   emailReservaConfirmada,
   emailReservaRechazada,
-} from '@/lib/email';
+} from "@/lib/email";
 
-type RawClient = SupabaseClient;
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function formatFecha(iso: string) {
-  return new Date(iso).toLocaleString('es-ES', {
-    weekday: 'long', day: 'numeric', month: 'long',
-    year: 'numeric', hour: '2-digit', minute: '2-digit',
+function formatFecha(iso: string | Date) {
+  return new Date(iso).toLocaleString("es-ES", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
-async function getEmailByUserId(userId: string): Promise<string | null> {
-  try {
-    const admin = createAdminClient();
-    const { data } = await admin.auth.admin.getUserById(userId);
-    return data.user?.email ?? null;
-  } catch {
-    return null;
-  }
+async function getClienteContacto(
+  userId: string
+): Promise<{ email: string | null; nombre: string | null }> {
+  const [p] = await db
+    .select({ email: profiles.email, nombre: profiles.nombre })
+    .from(profiles)
+    .where(eq(profiles.id, userId))
+    .limit(1);
+  return { email: p?.email ?? null, nombre: p?.nombre ?? null };
 }
 
-// ── crearReserva ───────────────────────────────────────────────────────────────
+type Modalidad = "presencial" | "remoto" | "ambos";
 
 export async function crearReserva(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) redirect('/auth/login');
+  const acompananteId = formData.get("acompanante_id") as string;
+  const servicioId = (formData.get("servicio_id") as string | null) || null;
+  const disponibilidadId = (formData.get("disponibilidad_id") as string | null) || null;
+  const fechaHora = formData.get("fecha_hora") as string;
+  const modalidad = formData.get("modalidad") as Modalidad;
+  const zona = (formData.get("zona") as string | null) || null;
+  const detalleServicio = (formData.get("detalle_servicio") as string | null) || null;
 
-  const acompanante_id = formData.get('acompanante_id') as string;
-  const servicio_id = (formData.get('servicio_id') as string | null) || null;
-  const disponibilidad_id = (formData.get('disponibilidad_id') as string | null) || null;
-  const fecha_hora = formData.get('fecha_hora') as string;
-  const modalidad = formData.get('modalidad') as string;
-  const zona = (formData.get('zona') as string | null) || null;
-  const detalle_servicio = (formData.get('detalle_servicio') as string | null) || null;
-
-  await (supabase as RawClient).from('reservas').insert({
-    acompanante_id,
-    cliente_id: user.id,
-    servicio_id: servicio_id || null,
-    disponibilidad_id: disponibilidad_id || null,
-    fecha_hora,
+  await db.insert(reservas).values({
+    acompananteId,
+    clienteId: user.id,
+    servicioId,
+    disponibilidadId,
+    fechaHora: new Date(fechaHora),
     modalidad,
     zona,
-    detalle_servicio,
-    estado: 'pendiente',
+    detalleServicio,
+    estado: "pendiente",
   });
 
   // Notificar al acompañante
-  const { data: acomp } = await (supabase as RawClient)
-    .from('acompanantes')
-    .select('nombre_publico, email_contacto, slug')
-    .eq('id', acompanante_id)
-    .single() as { data: { nombre_publico: string; email_contacto: string | null; slug: string } | null; error: null };
+  const [acomp] = await db
+    .select({
+      nombrePublico: acompanantes.nombrePublico,
+      emailContacto: acompanantes.emailContacto,
+      slug: acompanantes.slug,
+    })
+    .from(acompanantes)
+    .where(eq(acompanantes.id, acompananteId))
+    .limit(1);
 
-  if (acomp?.email_contacto) {
-    const { data: clienteProfile } = await (supabase as RawClient)
-      .from('profiles')
-      .select('nombre')
-      .eq('id', user.id)
-      .single() as { data: { nombre: string | null } | null; error: null };
-
+  if (acomp?.emailContacto) {
+    const cliente = await getClienteContacto(user.id);
     let servicioNombre: string | undefined;
-    if (servicio_id) {
-      const { data: svc } = await (supabase as RawClient)
-        .from('servicios')
-        .select('titulo')
-        .eq('id', servicio_id)
-        .single() as { data: { titulo: { es?: string } } | null; error: null };
-      servicioNombre = svc?.titulo?.es;
+    if (servicioId) {
+      const [svc] = await db
+        .select({ titulo: servicios.titulo })
+        .from(servicios)
+        .where(eq(servicios.id, servicioId))
+        .limit(1);
+      servicioNombre = (svc?.titulo as { es?: string } | undefined)?.es;
     }
-
     emailNuevaReserva({
-      toEmail: acomp.email_contacto,
-      clienteNombre: clienteProfile?.nombre ?? user.email ?? 'Un cliente',
-      acompananteNombre: acomp.nombre_publico,
-      fechaStr: formatFecha(fecha_hora),
+      toEmail: acomp.emailContacto,
+      clienteNombre: cliente.nombre ?? user.email ?? "Un cliente",
+      acompananteNombre: acomp.nombrePublico,
+      fechaStr: formatFecha(fechaHora),
       servicioNombre,
     });
   }
 
-  // Redirigir según rol: clientes van a su panel, otros roles vuelven al perfil
-  const { data: perfil } = await (supabase as RawClient)
-    .from('profiles')
-    .select('rol')
-    .eq('id', user.id)
-    .single() as { data: { rol: string } | null; error: null };
-
-  revalidatePath('/cliente/reservas');
-  if (perfil?.rol === 'cliente') {
-    redirect('/cliente/reservas');
+  revalidatePath("/cliente/reservas");
+  if (user.rol === "cliente") {
+    redirect("/cliente/reservas");
   } else {
-    redirect(`/${acomp?.slug ?? ''}`);
+    redirect(`/${acomp?.slug ?? ""}`);
   }
 }
-
-// ── cancelarReserva ────────────────────────────────────────────────────────────
 
 export async function cancelarReserva(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) redirect('/auth/login');
+  const reservaId = formData.get("reserva_id") as string;
 
-  const reserva_id = formData.get('reserva_id') as string;
+  const [reserva] = await db
+    .select({ disponibilidadId: reservas.disponibilidadId })
+    .from(reservas)
+    .where(and(eq(reservas.id, reservaId), eq(reservas.clienteId, user.id)))
+    .limit(1);
 
-  const { data: reserva } = await (supabase as RawClient)
-    .from('reservas')
-    .select('disponibilidad_id')
-    .eq('id', reserva_id)
-    .eq('cliente_id', user.id)
-    .single();
+  await db
+    .update(reservas)
+    .set({ estado: "cancelada", canceladaAt: new Date() })
+    .where(and(eq(reservas.id, reservaId), eq(reservas.clienteId, user.id)));
 
-  await (supabase as RawClient)
-    .from('reservas')
-    .update({ estado: 'cancelada', cancelada_at: new Date().toISOString() })
-    .eq('id', reserva_id)
-    .eq('cliente_id', user.id);
-
-  if (reserva?.disponibilidad_id) {
-    await (supabase as RawClient)
-      .from('disponibilidad')
-      .update({ estado: 'abierto' })
-      .eq('id', reserva.disponibilidad_id);
+  if (reserva?.disponibilidadId) {
+    await db
+      .update(disponibilidad)
+      .set({ estado: "abierto" })
+      .where(eq(disponibilidad.id, reserva.disponibilidadId));
   }
 
-  revalidatePath('/cliente/reservas');
+  revalidatePath("/cliente/reservas");
 }
-
-// ── confirmarReserva ───────────────────────────────────────────────────────────
 
 export async function confirmarReserva(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) redirect('/auth/login');
-
-  const reserva_id = formData.get('reserva_id') as string;
-
-  const { data: acompananteData } = await (supabase as RawClient)
-    .from('acompanantes')
-    .select('id, nombre_publico, slug')
-    .eq('profile_id', user.id)
-    .single() as { data: { id: string; nombre_publico: string; slug: string } | null; error: null };
-
-  if (!acompananteData) { revalidatePath('/acompanante/reservas'); return; }
-
-  const { data: reserva } = await (supabase as RawClient)
-    .from('reservas')
-    .select('disponibilidad_id, cliente_id, fecha_hora')
-    .eq('id', reserva_id)
-    .eq('acompanante_id', acompananteData.id)
-    .single() as { data: { disponibilidad_id: string | null; cliente_id: string; fecha_hora: string } | null; error: null };
-
-  await (supabase as RawClient)
-    .from('reservas')
-    .update({ estado: 'confirmada' })
-    .eq('id', reserva_id)
-    .eq('acompanante_id', acompananteData.id);
-
-  if (reserva?.disponibilidad_id) {
-    await (supabase as RawClient)
-      .from('disponibilidad')
-      .update({ estado: 'cerrado' })
-      .eq('id', reserva.disponibilidad_id);
+  const reservaId = formData.get("reserva_id") as string;
+  const acompananteId = await getMiAcompananteId(user.id);
+  if (!acompananteId) {
+    revalidatePath("/acompanante/reservas");
+    return;
   }
 
-  // Notificar al cliente
-  if (reserva) {
-    const clienteEmail = await getEmailByUserId(reserva.cliente_id);
-    const { data: clienteProfile } = await (supabase as RawClient)
-      .from('profiles')
-      .select('nombre')
-      .eq('id', reserva.cliente_id)
-      .single() as { data: { nombre: string | null } | null; error: null };
+  const [acomp] = await db
+    .select({ nombrePublico: acompanantes.nombrePublico, slug: acompanantes.slug })
+    .from(acompanantes)
+    .where(eq(acompanantes.id, acompananteId))
+    .limit(1);
 
-    if (clienteEmail) {
+  const [reserva] = await db
+    .select({
+      disponibilidadId: reservas.disponibilidadId,
+      clienteId: reservas.clienteId,
+      fechaHora: reservas.fechaHora,
+    })
+    .from(reservas)
+    .where(and(eq(reservas.id, reservaId), eq(reservas.acompananteId, acompananteId)))
+    .limit(1);
+
+  await db
+    .update(reservas)
+    .set({ estado: "confirmada" })
+    .where(and(eq(reservas.id, reservaId), eq(reservas.acompananteId, acompananteId)));
+
+  if (reserva?.disponibilidadId) {
+    await db
+      .update(disponibilidad)
+      .set({ estado: "cerrado" })
+      .where(eq(disponibilidad.id, reserva.disponibilidadId));
+  }
+
+  if (reserva && acomp) {
+    const cliente = await getClienteContacto(reserva.clienteId);
+    if (cliente.email) {
       emailReservaConfirmada({
-        toEmail: clienteEmail,
-        clienteNombre: clienteProfile?.nombre ?? 'Cliente',
-        acompananteNombre: acompananteData.nombre_publico,
-        acompananteSlug: acompananteData.slug,
-        fechaStr: formatFecha(reserva.fecha_hora),
+        toEmail: cliente.email,
+        clienteNombre: cliente.nombre ?? "Cliente",
+        acompananteNombre: acomp.nombrePublico,
+        acompananteSlug: acomp.slug,
+        fechaStr: formatFecha(reserva.fechaHora),
       });
     }
   }
 
-  revalidatePath('/acompanante/reservas');
+  revalidatePath("/acompanante/reservas");
 }
-
-// ── rechazarReserva ────────────────────────────────────────────────────────────
 
 export async function rechazarReserva(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) redirect('/auth/login');
+  const reservaId = formData.get("reserva_id") as string;
+  const acompananteId = await getMiAcompananteId(user.id);
+  if (!acompananteId) {
+    revalidatePath("/acompanante/reservas");
+    return;
+  }
 
-  const reserva_id = formData.get('reserva_id') as string;
+  const [acomp] = await db
+    .select({ nombrePublico: acompanantes.nombrePublico, slug: acompanantes.slug })
+    .from(acompanantes)
+    .where(eq(acompanantes.id, acompananteId))
+    .limit(1);
 
-  const { data: acompananteData } = await (supabase as RawClient)
-    .from('acompanantes')
-    .select('id, nombre_publico, slug')
-    .eq('profile_id', user.id)
-    .single() as { data: { id: string; nombre_publico: string; slug: string } | null; error: null };
+  const [reserva] = await db
+    .select({ clienteId: reservas.clienteId, fechaHora: reservas.fechaHora })
+    .from(reservas)
+    .where(and(eq(reservas.id, reservaId), eq(reservas.acompananteId, acompananteId)))
+    .limit(1);
 
-  if (!acompananteData) { revalidatePath('/acompanante/reservas'); return; }
+  await db
+    .update(reservas)
+    .set({ estado: "rechazada" })
+    .where(and(eq(reservas.id, reservaId), eq(reservas.acompananteId, acompananteId)));
 
-  const { data: reserva } = await (supabase as RawClient)
-    .from('reservas')
-    .select('cliente_id, fecha_hora')
-    .eq('id', reserva_id)
-    .eq('acompanante_id', acompananteData.id)
-    .single() as { data: { cliente_id: string; fecha_hora: string } | null; error: null };
-
-  await (supabase as RawClient)
-    .from('reservas')
-    .update({ estado: 'rechazada' })
-    .eq('id', reserva_id)
-    .eq('acompanante_id', acompananteData.id);
-
-  // Notificar al cliente
-  if (reserva) {
-    const clienteEmail = await getEmailByUserId(reserva.cliente_id);
-    const { data: clienteProfile } = await (supabase as RawClient)
-      .from('profiles')
-      .select('nombre')
-      .eq('id', reserva.cliente_id)
-      .single() as { data: { nombre: string | null } | null; error: null };
-
-    if (clienteEmail) {
+  if (reserva && acomp) {
+    const cliente = await getClienteContacto(reserva.clienteId);
+    if (cliente.email) {
       emailReservaRechazada({
-        toEmail: clienteEmail,
-        clienteNombre: clienteProfile?.nombre ?? 'Cliente',
-        acompananteNombre: acompananteData.nombre_publico,
-        acompananteSlug: acompananteData.slug,
-        fechaStr: formatFecha(reserva.fecha_hora),
+        toEmail: cliente.email,
+        clienteNombre: cliente.nombre ?? "Cliente",
+        acompananteNombre: acomp.nombrePublico,
+        acompananteSlug: acomp.slug,
+        fechaStr: formatFecha(reserva.fechaHora),
       });
     }
   }
 
-  revalidatePath('/acompanante/reservas');
+  revalidatePath("/acompanante/reservas");
 }
 
-// ── completarReserva ───────────────────────────────────────────────────────────
-
 export async function completarReserva(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) redirect('/auth/login');
+  const reservaId = formData.get("reserva_id") as string;
+  const acompananteId = await getMiAcompananteId(user.id);
+  if (!acompananteId) {
+    revalidatePath("/acompanante/reservas");
+    return;
+  }
 
-  const reserva_id = formData.get('reserva_id') as string;
+  await db
+    .update(reservas)
+    .set({ estado: "completada" })
+    .where(
+      and(
+        eq(reservas.id, reservaId),
+        eq(reservas.acompananteId, acompananteId),
+        eq(reservas.estado, "confirmada")
+      )
+    );
 
-  const { data: acompananteData } = await (supabase as RawClient)
-    .from('acompanantes')
-    .select('id')
-    .eq('profile_id', user.id)
-    .single();
-
-  if (!acompananteData) { revalidatePath('/acompanante/reservas'); return; }
-
-  await (supabase as RawClient)
-    .from('reservas')
-    .update({ estado: 'completada' })
-    .eq('id', reserva_id)
-    .eq('acompanante_id', (acompananteData as { id: string }).id)
-    .eq('estado', 'confirmada');
-
-  revalidatePath('/acompanante/reservas');
+  revalidatePath("/acompanante/reservas");
 }

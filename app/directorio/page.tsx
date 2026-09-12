@@ -1,6 +1,10 @@
-import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-import type { Acompanante, ServiceCategory } from '@/types/supabase';
+import type { Acompanante } from '@/types/supabase';
+import {
+  listServiceCategories,
+  listAcompanantesActivos,
+  filtrarAcompananteIdsPorCategoria,
+} from '@/lib/db/queries/public';
 import { LocalPartnersDestacados } from '@/components/LocalPartnersDestacados';
 
 export const metadata = {
@@ -171,49 +175,23 @@ function AcompananteCard({ acompanante }: { acompanante: Acompanante }) {
 
 export default async function DirectorioPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const supabase = await createClient();
 
   // Cargar categorías para el filtro
-  const { data: categoriasData } = await supabase
-    .from('service_categories')
-    .select('*')
-    .order('grupo');
+  const categorias = await listServiceCategories();
 
-  const categorias = (categoriasData ?? []) as unknown as ServiceCategory[];
+  // Acompañantes activos (con filtros opcionales de idioma/zona/modalidad)
+  let acompanantes = await listAcompanantesActivos({
+    idioma: params.idioma,
+    zona: params.zona,
+    modalidad: params.modalidad,
+  });
 
-  // Query principal
-  let query = supabase
-    .from('acompanantes')
-    .select('*')
-    .eq('activo', true)
-    .order('destacado', { ascending: false })
-    .order('valoracion_media', { ascending: false, nullsFirst: false });
-
-  // Filtros opcionales
-  if (params.idioma) {
-    query = query.contains('idiomas', [params.idioma]);
-  }
-  if (params.zona) {
-    query = query.contains('zonas', [params.zona]);
-  }
-  if (params.modalidad) {
-    query = query.contains('modalidades', [params.modalidad]);
-  }
-
-  const { data: acompanantesData } = await query;
-  let acompanantes = (acompanantesData ?? []) as unknown as Acompanante[];
-
-  // Filtro por categoría (requiere join; filtramos en memoria si viene el param)
+  // Filtro por categoría (requiere join con servicios)
   if (params.categoria && acompanantes.length > 0) {
-    const ids = acompanantes.map((a) => a.id);
-    const { data: serviciosData } = await supabase
-      .from('servicios')
-      .select('acompanante_id')
-      .eq('categoria', params.categoria)
-      .eq('activo', true)
-      .in('acompanante_id', ids) as { data: { acompanante_id: string }[] | null; error: null };
-
-    const idsConCategoria = new Set((serviciosData ?? []).map((s) => s.acompanante_id));
+    const idsConCategoria = await filtrarAcompananteIdsPorCategoria(
+      acompanantes.map((a) => a.id),
+      params.categoria
+    );
     acompanantes = acompanantes.filter((a) => idsConCategoria.has(a.id));
   }
 

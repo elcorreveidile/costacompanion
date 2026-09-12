@@ -1,34 +1,47 @@
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import type { Anunciante } from '@/types/supabase';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { anunciantes } from '@/lib/db/schema';
+import { getSessionUser } from '@/lib/auth/session';
+import type { MultilingualText } from '@/types/supabase';
 import { FichaAnuncianteForm } from './FichaAnuncianteForm';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Mi ficha — Local Partner | Costa Companion' };
 
-type RawClient = SupabaseClient;
-
 export default async function AnuncianteFichaPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) redirect('/auth/login');
 
-  const admin = createAdminClient();
-  const { data } = await (admin as RawClient)
-    .from('anunciantes')
-    .select('descripcion, logo_url, web, telefono, email, whatsapp, nombre_negocio, categoria, zona, plan, direccion')
-    .eq('profile_id', user.id)
-    .single() as { data: Pick<Anunciante, 'descripcion' | 'logo_url' | 'web' | 'telefono' | 'email' | 'whatsapp' | 'nombre_negocio' | 'categoria' | 'zona' | 'plan' | 'direccion'> | null };
+  const [row] = await db
+    .select({
+      descripcion: anunciantes.descripcion,
+      logo_url: anunciantes.logoUrl,
+      web: anunciantes.web,
+      telefono: anunciantes.telefono,
+      email: anunciantes.email,
+      whatsapp: anunciantes.whatsapp,
+      nombre_negocio: anunciantes.nombreNegocio,
+      categoria: anunciantes.categoria,
+      zona: anunciantes.zona,
+      plan: anunciantes.plan,
+      direccion: anunciantes.direccion,
+    })
+    .from(anunciantes)
+    .where(eq(anunciantes.profileId, user.id))
+    .limit(1);
 
-  if (!data) redirect('/anunciante');
+  if (!row) redirect('/anunciante');
+
+  const data = {
+    ...row,
+    descripcion: (row.descripcion as MultilingualText | null) ?? null,
+  };
 
   async function actualizarMiFicha(formData: FormData): Promise<{ error?: string }> {
     'use server';
-    const supabase2 = await createClient();
-    const { data: { user: u } } = await supabase2.auth.getUser();
+    const u = await getSessionUser();
     if (!u) return { error: 'No autenticado.' };
 
     const descripcion = {
@@ -36,20 +49,23 @@ export default async function AnuncianteFichaPage() {
       en: (formData.get('descripcion_en') as string | null) ?? '',
     };
 
-    const { error } = await (supabase2 as RawClient)
-      .from('anunciantes')
-      .update({
-        descripcion,
-        logo_url:  (formData.get('logo_url') as string | null) || null,
-        web:       (formData.get('web') as string | null) || null,
-        email:     (formData.get('email') as string | null) || null,
-        telefono:  (formData.get('telefono') as string | null) || null,
-        whatsapp:  (formData.get('whatsapp') as string | null) || null,
-        direccion: (formData.get('direccion') as string | null) || null,
-      })
-      .eq('profile_id', u.id);
-
-    if (error) return { error: error.message };
+    try {
+      await db
+        .update(anunciantes)
+        .set({
+          descripcion,
+          logoUrl: (formData.get('logo_url') as string | null) || null,
+          web: (formData.get('web') as string | null) || null,
+          email: (formData.get('email') as string | null) || null,
+          telefono: (formData.get('telefono') as string | null) || null,
+          whatsapp: (formData.get('whatsapp') as string | null) || null,
+          direccion: (formData.get('direccion') as string | null) || null,
+        })
+        .where(eq(anunciantes.profileId, u.id));
+    } catch (e) {
+      console.error('actualizarMiFicha (anunciante):', e);
+      return { error: 'No se pudo actualizar la ficha.' };
+    }
 
     revalidatePath('/anunciante/ficha');
     revalidatePath('/local-partners');

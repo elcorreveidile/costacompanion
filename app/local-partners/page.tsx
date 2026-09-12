@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import Image from 'next/image';
-import type { Anunciante, CategoriaAnunciante } from '@/types/supabase';
+import type { CategoriaAnunciante } from '@/types/supabase';
+import { listAnunciantesActivos } from '@/lib/db/queries/public';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
@@ -45,19 +45,8 @@ function zonaOrder(zona: string | null): number {
 
 export default async function LocalPartnersPage({ searchParams }: PageProps) {
   const { categoria, zona } = await searchParams;
-  const supabase = await createClient();
 
-  let query = supabase
-    .from('anunciantes')
-    .select('*')
-    .eq('activo', true);
-
-  if (categoria) query = query.eq('categoria', categoria);
-  if (zona) query = query.eq('zona', zona);
-
-  const { data } = await query;
-
-  const lista = ((data ?? []) as unknown as Anunciante[]).sort((a, b) => {
+  const lista = (await listAnunciantesActivos({ categoria, zona })).sort((a, b) => {
     const zonaA = zonaOrder(a.zona);
     const zonaB = zonaOrder(b.zona);
     if (zonaA !== zonaB) return zonaA - zonaB;

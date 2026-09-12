@@ -1,10 +1,16 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createAdminClient } from '@/lib/supabase/admin';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { eq, and, ne } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { profiles, anunciantes } from '@/lib/db/schema';
+import { getSessionUser } from '@/lib/auth/session';
+import type { CategoriaAnunciante, PlanAnunciante } from '@/types/supabase';
 
-type RawClient = SupabaseClient;
+async function requireSuperadmin(): Promise<boolean> {
+  const user = await getSessionUser();
+  return user?.rol === 'superadmin';
+}
 
 function generarSlug(nombre: string): string {
   return nombre
@@ -17,18 +23,20 @@ function generarSlug(nombre: string): string {
     .replace(/-{2,}/g, '-');
 }
 
-async function ensureUniqueSlug(
-  admin: RawClient,
-  baseSlug: string,
-  excludeId?: string
-): Promise<string> {
-  let slug = baseSlug;
+async function ensureUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
+  let slug = baseSlug || 'negocio';
   let counter = 2;
   while (true) {
-    let query = admin.from('anunciantes').select('id').eq('slug', slug);
-    if (excludeId) query = query.neq('id', excludeId);
-    const { data } = await query.maybeSingle();
-    if (!data) return slug;
+    const [row] = await db
+      .select({ id: anunciantes.id })
+      .from(anunciantes)
+      .where(
+        excludeId
+          ? and(eq(anunciantes.slug, slug), ne(anunciantes.id, excludeId))
+          : eq(anunciantes.slug, slug)
+      )
+      .limit(1);
+    if (!row) return slug;
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
@@ -37,51 +45,55 @@ async function ensureUniqueSlug(
 export async function crearAnunciante(
   formData: FormData
 ): Promise<{ error?: string }> {
-  const admin = createAdminClient() as RawClient;
+  if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
 
-  const email         = (formData.get('email') as string | null)?.trim();
+  const email          = (formData.get('email') as string | null)?.trim().toLowerCase();
   const nombre_negocio = (formData.get('nombre_negocio') as string | null)?.trim();
-  const slugInput     = (formData.get('slug') as string | null)?.trim();
-  const categoria     = (formData.get('categoria') as string | null)?.trim();
-  const zona          = (formData.get('zona') as string | null)?.trim() || null;
-  const plan          = (formData.get('plan') as string | null)?.trim() || 'basico';
+  const slugInput      = (formData.get('slug') as string | null)?.trim();
+  const categoria      = (formData.get('categoria') as string | null)?.trim();
+  const zona           = (formData.get('zona') as string | null)?.trim() || null;
+  const plan           = (formData.get('plan') as string | null)?.trim() || 'basico';
 
   if (!email || !nombre_negocio || !categoria) {
     return { error: 'Email, nombre del negocio y categoría son obligatorios.' };
   }
 
   try {
-    const { data: authData, error: authError } = await createAdminClient().auth.admin.createUser({
-      email,
-      email_confirm: true,
-    });
-    if (authError || !authData?.user) {
-      return { error: authError?.message ?? 'Error creando usuario en Auth.' };
+    const [existing] = await db
+      .select({ id: profiles.id })
+      .from(profiles)
+      .where(eq(profiles.email, email))
+      .limit(1);
+    if (existing) {
+      return {
+        error: 'Ya existe un usuario con ese email. Usa "asignar anunciante existente".',
+      };
     }
 
-    const userId = authData.user.id;
+    const [prof] = await db
+      .insert(profiles)
+      .values({
+        rol: 'anunciante',
+        nombre: nombre_negocio,
+        name: nombre_negocio,
+        email,
+        emailVerified: new Date(),
+        idiomaPreferido: 'es',
+      })
+      .returning({ id: profiles.id });
 
-    const { error: profileError } = await admin
-      .from('profiles')
-      .upsert(
-        { id: userId, rol: 'anunciante', nombre: nombre_negocio, idioma_preferido: 'es' },
-        { onConflict: 'id' }
-      );
-    if (profileError) return { error: profileError.message };
+    const baseSlug = generarSlug(slugInput || nombre_negocio);
+    const slug = await ensureUniqueSlug(baseSlug);
 
-    const baseSlug = slugInput ? generarSlug(slugInput) : generarSlug(nombre_negocio);
-    const slug = await ensureUniqueSlug(admin, baseSlug);
-
-    const { error: insertError } = await admin.from('anunciantes').insert({
-      profile_id: userId,
+    await db.insert(anunciantes).values({
+      profileId: prof.id,
       slug,
-      nombre_negocio,
-      categoria,
+      nombreNegocio: nombre_negocio,
+      categoria: categoria as CategoriaAnunciante,
       zona,
-      plan,
+      plan: plan as PlanAnunciante,
       email,
     });
-    if (insertError) return { error: insertError.message };
 
     revalidatePath('/admin/anunciantes');
     return {};
@@ -94,57 +106,53 @@ export async function crearAnunciante(
 export async function asignarAnuncianteExistente(
   formData: FormData
 ): Promise<{ error?: string }> {
-  const admin = createAdminClient() as RawClient;
+  if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
 
-  const email         = (formData.get('email') as string | null)?.trim().toLowerCase();
+  const email          = (formData.get('email') as string | null)?.trim().toLowerCase();
   const nombre_negocio = (formData.get('nombre_negocio') as string | null)?.trim();
-  const slugInput     = (formData.get('slug') as string | null)?.trim();
-  const categoria     = (formData.get('categoria') as string | null)?.trim();
-  const zona          = (formData.get('zona') as string | null)?.trim() || null;
-  const plan          = (formData.get('plan') as string | null)?.trim() || 'basico';
+  const slugInput      = (formData.get('slug') as string | null)?.trim();
+  const categoria      = (formData.get('categoria') as string | null)?.trim();
+  const zona           = (formData.get('zona') as string | null)?.trim() || null;
+  const plan           = (formData.get('plan') as string | null)?.trim() || 'basico';
 
   if (!email || !nombre_negocio || !categoria) {
     return { error: 'Email, nombre del negocio y categoría son obligatorios.' };
   }
 
   try {
-    const { data: listData, error: listError } = await createAdminClient().auth.admin.listUsers({
-      page: 1, perPage: 1000,
-    });
-    if (listError) return { error: listError.message };
-
-    const authUser = listData.users.find((u) => u.email?.toLowerCase() === email);
-    if (!authUser) {
+    const [user] = await db
+      .select({ id: profiles.id })
+      .from(profiles)
+      .where(eq(profiles.email, email))
+      .limit(1);
+    if (!user) {
       return { error: `No existe ningún usuario registrado con el email "${email}".` };
     }
 
-    const userId = authUser.id;
-
-    const { data: existing } = await admin
-      .from('anunciantes').select('id').eq('profile_id', userId).maybeSingle();
+    const [existing] = await db
+      .select({ id: anunciantes.id })
+      .from(anunciantes)
+      .where(eq(anunciantes.profileId, user.id))
+      .limit(1);
     if (existing) return { error: 'Este usuario ya tiene una ficha de anunciante.' };
 
-    const { error: profileError } = await admin
-      .from('profiles')
-      .upsert(
-        { id: userId, rol: 'anunciante', nombre: nombre_negocio, idioma_preferido: 'es' },
-        { onConflict: 'id' }
-      );
-    if (profileError) return { error: profileError.message };
+    await db
+      .update(profiles)
+      .set({ rol: 'anunciante', nombre: nombre_negocio })
+      .where(eq(profiles.id, user.id));
 
-    const baseSlug = slugInput ? generarSlug(slugInput) : generarSlug(nombre_negocio);
-    const slug = await ensureUniqueSlug(admin, baseSlug);
+    const baseSlug = generarSlug(slugInput || nombre_negocio);
+    const slug = await ensureUniqueSlug(baseSlug);
 
-    const { error: insertError } = await admin.from('anunciantes').insert({
-      profile_id: userId,
+    await db.insert(anunciantes).values({
+      profileId: user.id,
       slug,
-      nombre_negocio,
-      categoria,
+      nombreNegocio: nombre_negocio,
+      categoria: categoria as CategoriaAnunciante,
       zona,
-      plan,
+      plan: plan as PlanAnunciante,
       email,
     });
-    if (insertError) return { error: insertError.message };
 
     revalidatePath('/admin/anunciantes');
     return {};
@@ -158,7 +166,7 @@ export async function actualizarAnunciante(
   id: string,
   formData: FormData
 ): Promise<{ error?: string }> {
-  const admin = createAdminClient() as RawClient;
+  if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
 
   try {
     const descripcion = {
@@ -166,25 +174,23 @@ export async function actualizarAnunciante(
       en: (formData.get('descripcion_en') as string | null) ?? '',
     };
 
-    const { error } = await admin
-      .from('anunciantes')
-      .update({
-        nombre_negocio: (formData.get('nombre_negocio') as string | null) ?? '',
-        logo_url:       (formData.get('logo_url') as string | null) || null,
+    await db
+      .update(anunciantes)
+      .set({
+        nombreNegocio: (formData.get('nombre_negocio') as string | null) ?? '',
+        logoUrl:       (formData.get('logo_url') as string | null) || null,
         descripcion,
-        web:            (formData.get('web') as string | null) || null,
-        telefono:       (formData.get('telefono') as string | null) || null,
-        email:          (formData.get('email') as string | null) || null,
-        whatsapp:       (formData.get('whatsapp') as string | null) || null,
-        zona:      (formData.get('zona') as string | null) || null,
-        direccion: (formData.get('direccion') as string | null) || null,
-        categoria: (formData.get('categoria') as string | null) ?? '',
-        plan:      (formData.get('plan') as string | null) ?? 'basico',
-        activo:    formData.get('activo') === 'on',
+        web:           (formData.get('web') as string | null) || null,
+        telefono:      (formData.get('telefono') as string | null) || null,
+        email:         (formData.get('email') as string | null) || null,
+        whatsapp:      (formData.get('whatsapp') as string | null) || null,
+        zona:          (formData.get('zona') as string | null) || null,
+        direccion:     (formData.get('direccion') as string | null) || null,
+        categoria:     ((formData.get('categoria') as string | null) ?? '') as CategoriaAnunciante,
+        plan:          ((formData.get('plan') as string | null) ?? 'basico') as PlanAnunciante,
+        activo:        formData.get('activo') === 'on',
       })
-      .eq('id', id);
-
-    if (error) return { error: error.message };
+      .where(eq(anunciantes.id, id));
 
     revalidatePath('/admin/anunciantes');
     revalidatePath(`/admin/anunciantes/${id}`);
@@ -200,8 +206,8 @@ export async function toggleActivoAnunciante(
   id: string,
   activo: boolean
 ): Promise<void> {
-  const admin = createAdminClient() as RawClient;
-  await admin.from('anunciantes').update({ activo }).eq('id', id);
+  if (!(await requireSuperadmin())) return;
+  await db.update(anunciantes).set({ activo }).where(eq(anunciantes.id, id));
   revalidatePath('/admin/anunciantes');
   revalidatePath('/local-partners');
 }

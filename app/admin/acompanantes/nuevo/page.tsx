@@ -27,6 +27,7 @@ export default function NuevoAcompanantePage() {
   const [slugManual, setSlugManual] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [creds, setCreds] = useState<{ numeroUsuario?: string; pin?: string } | null>(null);
 
   function handleNombreChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
@@ -57,6 +58,9 @@ export default function NuevoAcompanantePage() {
 
     if (result.error) {
       setError(result.error);
+    } else if (result.numeroUsuario || result.pin) {
+      // Mostrar las credenciales una sola vez: el PIN no se puede recuperar después.
+      setCreds({ numeroUsuario: result.numeroUsuario, pin: result.pin });
     } else {
       router.push('/admin/acompanantes');
     }
@@ -107,6 +111,54 @@ export default function NuevoAcompanantePage() {
           </button>
         </div>
 
+        {creds ? (
+          <div
+            className="rounded-xl border shadow-sm p-8"
+            style={{ background: 'var(--bone-2)', borderColor: 'var(--green)' }}
+          >
+            <h2 className="font-display text-xl font-semibold text-(--green) mb-2">
+              Acompañante creado
+            </h2>
+            <p className="text-sm text-(--ink)/70 mb-6">
+              Apunta estas credenciales y entrégaselas al acompañante. El PIN
+              <strong> no se puede volver a consultar</strong>: si se pierde, habrá que
+              reiniciarlo desde la ficha.
+            </p>
+
+            <div className="space-y-4">
+              {creds.numeroUsuario && (
+                <div className="rounded-lg p-4" style={{ background: 'var(--bone)', border: '1px solid var(--line)' }}>
+                  <p className="text-xs text-(--ink)/50 mb-1">Número de usuario</p>
+                  <p className="text-2xl font-mono font-semibold tracking-widest text-(--ink)">
+                    {creds.numeroUsuario}
+                  </p>
+                </div>
+              )}
+              {creds.pin ? (
+                <div className="rounded-lg p-4" style={{ background: 'var(--bone)', border: '1px solid var(--line)' }}>
+                  <p className="text-xs text-(--ink)/50 mb-1">PIN de acceso</p>
+                  <p className="text-2xl font-mono font-semibold tracking-widest text-(--ink)">
+                    {creds.pin}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-(--ink)/60">
+                  Este usuario ya tenía un PIN. Se ha mantenido el que ya usaba; si no lo
+                  recuerda, reinícialo desde su ficha.
+                </p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.push('/admin/acompanantes')}
+              className="mt-8 w-full py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
+              style={{ background: 'var(--green)', color: 'var(--bone)' }}
+            >
+              Entendido, ir al listado
+            </button>
+          </div>
+        ) : (
         <div
           className="rounded-xl border shadow-sm p-8"
           style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
@@ -208,6 +260,7 @@ export default function NuevoAcompanantePage() {
             </div>
           </form>
         </div>
+        )}
       </div>
     </div>
   );

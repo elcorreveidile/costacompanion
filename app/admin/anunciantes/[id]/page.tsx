@@ -1,6 +1,8 @@
-import { createAdminClient } from '@/lib/supabase/admin';
+import { eq } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
-import type { Anunciante } from '@/types/supabase';
+import { db } from '@/lib/db';
+import { anunciantes } from '@/lib/db/schema';
+import { rowToAnunciante } from '@/lib/admin/anunciantes-map';
 import { FichaAdminFormAnunciante } from './FichaAdminFormAnunciante';
 
 interface PageProps {
@@ -11,12 +13,15 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminAnuncianteEditPage({ params }: PageProps) {
   const { id } = await params;
-  const admin = createAdminClient();
 
-  const { data, error } = await admin.from('anunciantes').select('*').eq('id', id).single();
-  if (error || !data) notFound();
+  const [row] = await db
+    .select()
+    .from(anunciantes)
+    .where(eq(anunciantes.id, id))
+    .limit(1);
+  if (!row) notFound();
 
-  const anunciante = data as unknown as Anunciante;
+  const anunciante = rowToAnunciante(row);
 
   return (
     <div className="min-h-screen bg-(--bone)">

@@ -1,11 +1,8 @@
 'use client';
 
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { useEffect, useState, useCallback } from 'react';
 import { enviarMensaje, marcarMensajesLeidos } from '@/lib/mensajes/actions';
-import { RealtimeChannel } from '@supabase/supabase-js';
 import Link from 'next/link';
 
 interface Mensaje {
@@ -33,10 +30,7 @@ interface Conversacion {
   mensajes: Mensaje[];
 }
 
-export default function AcompananteMensajesPage() {
-  const router = useRouter();
-  const supabase = createClient();
-  const [userId, setUserId] = useState<string | null>(null);
+export default function AcompananteMensajesPage({ userId }: { userId: string }) {
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
   const [conversacionActiva, setConversacionActiva] = useState<Conversacion | null>(null);
   const [textoMensaje, setTextoMensaje] = useState('');
@@ -44,21 +38,8 @@ export default function AcompananteMensajesPage() {
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
 
-  // Cargar usuario
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        router.push('/auth/login');
-        return;
-      }
-      setUserId(user.id);
-      cargarConversaciones(user.id);
-    });
-  }, [router, supabase]);
-
-  // Cargar conversaciones
-  const cargarConversaciones = async (uid: string) => {
-    setCargando(true);
+  // Cargar conversaciones (el usuario se resuelve en el servidor vía sesión)
+  const cargarConversaciones = useCallback(async () => {
     try {
       const response = await fetch('/api/mensajes/conversaciones');
       if (!response.ok) throw new Error('Error cargando conversaciones');
@@ -70,7 +51,12 @@ export default function AcompananteMensajesPage() {
     } finally {
       setCargando(false);
     }
-  };
+  }, []);
+
+  // Carga inicial
+  useEffect(() => {
+    cargarConversaciones();
+  }, [cargarConversaciones]);
 
   // Cargar mensajes de una conversación
   const cargarMensajes = async (otherUserId: string) => {
@@ -145,36 +131,19 @@ export default function AcompananteMensajesPage() {
     }
   };
 
-  // Realtime subscription
+  // Sondeo periódico (sustituye al realtime de Supabase)
   useEffect(() => {
-    if (!userId) return;
-
-    const channel: RealtimeChannel = supabase
-      .channel('mensajes-acompanante')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'mensajes',
-          filter: `receptor_id=eq.${userId}`,
-        },
-        () => {
-          // Recargar conversaciones cuando llega un nuevo mensaje
-          cargarConversaciones(userId);
-          if (conversacionActiva) {
-            cargarMensajes(conversacionActiva.otherUserId).then((mensajes) => {
-              setConversacionActiva((prev) => ({ ...prev!, mensajes }));
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, supabase, conversacionActiva]);
+    const id = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      cargarConversaciones();
+      if (conversacionActiva) {
+        cargarMensajes(conversacionActiva.otherUserId).then((mensajes) => {
+          setConversacionActiva((prev) => (prev ? { ...prev, mensajes } : prev));
+        });
+      }
+    }, 10000);
+    return () => clearInterval(id);
+  }, [conversacionActiva, cargarConversaciones]);
 
   if (cargando) {
     return (

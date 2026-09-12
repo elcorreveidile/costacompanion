@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ServiceCategory } from '@/types/supabase';
+import { listServiceCategories } from '@/lib/db/queries/public';
 import {
   IconSalud, IconTramites, IconNotaria, IconPropiedad,
   IconBanca, IconTelefono, IconEntrevista, IconEspanol,
@@ -87,17 +87,11 @@ const MULTI_KEYS: Record<string, string[]> = {
 };
 
 export default async function ServiciosPage() {
-  let supabase;
-  try {
-    supabase = await createClient();
-  } catch {
-    supabase = null;
-  }
-
   let categories: ServiceCategory[] = [];
-  if (supabase) {
-    const { data } = await supabase.from('service_categories').select('*');
-    categories = (data ?? []) as unknown as ServiceCategory[];
+  try {
+    categories = await listServiceCategories();
+  } catch {
+    categories = [];
   }
 
   function getCategoryId(key: string): string | null {

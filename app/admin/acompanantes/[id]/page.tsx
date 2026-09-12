@@ -1,6 +1,8 @@
-import { createAdminClient } from '@/lib/supabase/admin';
+import { eq } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
-import type { Acompanante } from '@/types/supabase';
+import { db } from '@/lib/db';
+import { acompanantes } from '@/lib/db/schema';
+import type { Acompanante, MultilingualText } from '@/types/supabase';
 import { FichaAdminForm } from './FichaAdminForm';
 
 interface PageProps {
@@ -11,17 +13,40 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminAcompananteEditPage({ params }: PageProps) {
   const { id } = await params;
-  const admin = createAdminClient();
 
-  const { data, error } = await admin
-    .from('acompanantes')
-    .select('*')
-    .eq('id', id)
-    .single();
+  const [row] = await db
+    .select()
+    .from(acompanantes)
+    .where(eq(acompanantes.id, id))
+    .limit(1);
 
-  if (error || !data) notFound();
+  if (!row) notFound();
 
-  const acompanante = data as unknown as Acompanante;
+  const acompanante: Acompanante = {
+    id: row.id,
+    profile_id: row.profileId,
+    slug: row.slug,
+    nombre_publico: row.nombrePublico,
+    foto_url: row.fotoUrl,
+    bio: (row.bio as MultilingualText | null) ?? null,
+    idiomas: row.idiomas ?? [],
+    zonas: row.zonas ?? [],
+    modalidades: (row.modalidades ?? []) as Acompanante['modalidades'],
+    email_contacto: row.emailContacto,
+    whatsapp: row.whatsapp,
+    titulacion: row.titulacion,
+    interprete_jurado: row.interpreteJurado,
+    anios_experiencia: row.aniosExperiencia,
+    imparte_clases: row.imparteClases,
+    valoracion_media: row.valoracionMedia === null ? null : Number(row.valoracionMedia),
+    num_resenas: row.numResenas,
+    activo: row.activo,
+    destacado: row.destacado,
+    stripe_customer_id: row.stripeCustomerId,
+    stripe_subscription_id: row.stripeSubscriptionId,
+    stripe_subscription_status: row.stripeSubscriptionStatus,
+    created_at: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
+  };
 
   return (
     <div className="min-h-screen bg-(--bone)">

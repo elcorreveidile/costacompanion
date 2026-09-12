@@ -2,33 +2,29 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 
 interface Props {
-  table: string;
-  filter: string; // e.g. "cliente_id=eq.uuid" or "acompanante_id=eq.uuid"
+  /** Compatibilidad con el uso previo; ya no se usan (antes filtraban el canal realtime). */
+  table?: string;
+  filter?: string;
+  /** Intervalo de sondeo en ms (por defecto 12s). */
+  intervalMs?: number;
 }
 
 /**
- * Escucha cambios en `table` filtrados por `filter` y llama a router.refresh()
- * para que el Server Component padre recargue los datos sin recargar la página.
+ * Refresca el Server Component padre por SONDEO (polling), sustituyendo al
+ * realtime de Supabase. Llama a router.refresh() cada `intervalMs` mientras la
+ * pestaña está visible, para que los datos se actualicen sin recargar la página.
  */
-export function RealtimeRefresher({ table, filter }: Props) {
+export function RealtimeRefresher({ intervalMs = 12000 }: Props) {
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`realtime-${table}-${filter}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table, filter },
-        () => router.refresh()
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [router, table, filter]);
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') router.refresh();
+    }, intervalMs);
+    return () => clearInterval(id);
+  }, [router, intervalMs]);
 
   return null;
 }

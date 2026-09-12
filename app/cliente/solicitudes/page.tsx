@@ -1,24 +1,9 @@
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { RealtimeRefresher } from '@/components/RealtimeRefresher';
-import type { EstadoSolicitud, Modalidad } from '@/types/supabase';
-
-interface AcompananteJoin {
-  nombre_publico: string;
-  slug: string;
-}
-
-interface SolicitudConJoins {
-  id: string;
-  descripcion: string;
-  fecha_hora_deseada: string | null;
-  modalidad: Modalidad;
-  zona: string | null;
-  precio_propuesto: number | null;
-  estado: EstadoSolicitud;
-  acompanantes: AcompananteJoin | null;
-}
+import { getSessionUser } from '@/lib/auth/session';
+import { getSolicitudesDeCliente } from '@/lib/db/queries/cliente';
+import type { EstadoSolicitud } from '@/types/supabase';
 
 const ESTADO_BADGE: Record<EstadoSolicitud, { label: string; bg: string; color: string }> = {
   pendiente: { label: 'Pendiente', bg: 'var(--terra-soft)', color: 'var(--terra)' },
@@ -29,24 +14,14 @@ const ESTADO_BADGE: Record<EstadoSolicitud, { label: string; bg: string; color: 
 export const metadata = { title: 'Mis solicitudes | Costa Companion' };
 
 export default async function ClienteSolicitudesPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/login');
 
-  if (!user) {
-    redirect('/auth/login');
-  }
-
-  const { data: solicitudesData } = await supabase
-    .from('solicitudes')
-    .select('id, descripcion, fecha_hora_deseada, modalidad, zona, precio_propuesto, estado, acompanantes(nombre_publico, slug)')
-    .eq('cliente_id', user.id)
-    .order('created_at', { ascending: false });
-
-  const solicitudes = (solicitudesData ?? []) as unknown as SolicitudConJoins[];
+  const solicitudes = await getSolicitudesDeCliente(user.id);
 
   return (
     <div className="min-h-screen bg-(--bone)">
-      <RealtimeRefresher table="solicitudes" filter={`cliente_id=eq.${user.id}`} />
+      <RealtimeRefresher />
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Encabezado */}
         <div className="mb-8">

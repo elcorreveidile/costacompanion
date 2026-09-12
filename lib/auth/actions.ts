@@ -1,89 +1,92 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { signIn, signOut as authSignOut } from "@/auth";
+import { AuthError } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { profiles } from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
 
 type IdiomaPreferido = "es" | "en" | "fr" | "de" | "nl";
 const IDIOMAS_VALIDOS: IdiomaPreferido[] = ["es", "en", "fr", "de", "nl"];
 
 /**
- * Envía un Magic Link al email del usuario.
+ * Envía un enlace mágico (Auth.js + SMTP de Brevo).
  * Redirige a /auth/login?sent=1 en caso de éxito.
  */
 export async function signInWithMagicLink(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const email = formData.get("email") as string;
+  const email = (formData.get("email") as string | null)?.trim();
   const next = (formData.get("redirect") as string | null) ?? "";
 
   if (!email || !email.includes("@")) {
     redirect("/auth/login?error=invalid_email");
   }
 
-  const callbackUrl = next
-    ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`
-    : `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
-
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: callbackUrl },
-  });
-
-  if (error) {
+  try {
+    await signIn("nodemailer", { email, redirect: false });
+  } catch (error) {
     console.error("Error enviando Magic Link:", error);
     redirect("/auth/login?error=send_failed");
   }
 
-  const sentUrl = next ? `/auth/login?sent=1&redirect=${encodeURIComponent(next)}` : "/auth/login?sent=1";
+  const sentUrl = next
+    ? `/auth/login?sent=1&redirect=${encodeURIComponent(next)}`
+    : "/auth/login?sent=1";
   redirect(sentUrl);
 }
 
 /**
- * Cierra la sesión del usuario y redirige al inicio.
+ * Acceso con número de usuario + PIN (Auth.js, provider Credentials).
+ * En éxito, signIn lanza la redirección a /post-login; si falla, capturamos
+ * el AuthError y volvemos al login con error.
  */
-export async function signOut(): Promise<void> {
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signOut();
+export async function signInWithPin(formData: FormData): Promise<void> {
+  const numeroUsuario = (formData.get("numeroUsuario") as string | null)?.trim();
+  const pin = (formData.get("pin") as string | null) ?? "";
 
-  if (error) {
-    console.error("Error cerrando sesión:", error);
+  if (!numeroUsuario || !pin) {
+    redirect("/auth/login?error=pin");
   }
 
-  revalidatePath("/", "layout");
-  redirect("/");
+  try {
+    await signIn("pin", { numeroUsuario, pin, redirectTo: "/post-login" });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      redirect("/auth/login?error=pin");
+    }
+    throw error; // re-lanza NEXT_REDIRECT (éxito) y otros
+  }
 }
 
-/**
- * Actualiza el perfil del usuario y recarga la página.
- */
-export async function updateProfile(formData: FormData): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+/** Cierra la sesión y redirige al inicio. */
+export async function signOut(): Promise<void> {
+  await authSignOut({ redirectTo: "/" });
+}
 
-  if (!user) {
-    redirect("/auth/login");
-  }
+/** Actualiza el perfil del usuario autenticado. */
+export async function updateProfile(formData: FormData): Promise<void> {
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
   const nombre = formData.get("nombre") as string;
   const telefono = formData.get("telefono") as string;
   const rawIdioma = formData.get("idioma_preferido") as string;
-  const idioma_preferido: IdiomaPreferido = IDIOMAS_VALIDOS.includes(rawIdioma as IdiomaPreferido)
+  const idioma_preferido: IdiomaPreferido = IDIOMAS_VALIDOS.includes(
+    rawIdioma as IdiomaPreferido
+  )
     ? (rawIdioma as IdiomaPreferido)
     : "es";
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase as any)
-    .from("profiles")
-    .update({
+  await db
+    .update(profiles)
+    .set({
       nombre: nombre || null,
       telefono: telefono || null,
-      idioma_preferido,
+      idiomaPreferido: idioma_preferido,
     })
-    .eq("id", user.id);
-
-  if (error) {
-    console.error("Error actualizando perfil:", error);
-  }
+    .where(eq(profiles.id, user.id));
 
   revalidatePath("/profile");
   redirect("/profile");

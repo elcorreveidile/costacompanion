@@ -1,9 +1,7 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { getSessionUser } from '@/lib/auth/session';
+import { getReservaResenable, resenaExisteParaReserva } from '@/lib/db/queries/ficha';
 import ResenaForm from './ResenaForm';
-
-type RawClient = SupabaseClient;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -36,32 +34,15 @@ export default async function ResenaPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const { reserva_id } = await searchParams;
 
-  const supabase = await createClient();
-
-  // 1. Get user → redirect if not authenticated
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) redirect('/auth/login');
 
-  // 2. If no reserva_id → show error
   if (!reserva_id) {
     return <ErrorPage message="Accede desde Mis reservas" slug={slug} />;
   }
 
-  // 3. Query reservation: must belong to user, be completada
-  const { data: reserva } = await (supabase as RawClient)
-    .from('reservas')
-    .select('id, acompanante_id, acompanantes(id, nombre_publico, slug)')
-    .eq('id', reserva_id)
-    .eq('cliente_id', user.id)
-    .eq('estado', 'completada')
-    .single() as {
-      data: {
-        id: string;
-        acompanante_id: string;
-        acompanantes: { id: string; nombre_publico: string; slug: string } | null;
-      } | null;
-    };
-
+  // La reserva debe ser del usuario y estar completada.
+  const reserva = await getReservaResenable(reserva_id, user.id);
   if (!reserva) {
     return (
       <ErrorPage
@@ -71,31 +52,18 @@ export default async function ResenaPage({ params, searchParams }: PageProps) {
     );
   }
 
-  // 4. Check no existing review for this reserva_id
-  const { data: existing } = await (supabase as RawClient)
-    .from('resenas')
-    .select('id')
-    .eq('reserva_id', reserva_id)
-    .maybeSingle();
-
-  if (existing) {
+  if (await resenaExisteParaReserva(reserva_id)) {
     return (
-      <ErrorPage
-        message="Ya has dejado una reseña para esta reserva"
-        slug={slug}
-      />
+      <ErrorPage message="Ya has dejado una reseña para esta reserva" slug={slug} />
     );
   }
 
-  // 5. All good — render the form
-  const acompanante = reserva.acompanantes;
-
   return (
     <ResenaForm
-      reservaId={reserva.id}
-      acompananteId={reserva.acompanante_id}
+      reservaId={reserva_id}
+      acompananteId={reserva.acompananteId}
       slug={slug}
-      acompananteNombre={acompanante?.nombre_publico ?? ''}
+      acompananteNombre={reserva.nombrePublico}
     />
   );
 }

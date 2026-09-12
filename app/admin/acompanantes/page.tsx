@@ -1,7 +1,9 @@
-import { createAdminClient } from '@/lib/supabase/admin';
+import { desc, eq } from 'drizzle-orm';
+import Link from 'next/link';
+import { db } from '@/lib/db';
+import { acompanantes as acompanantesTable, profiles } from '@/lib/db/schema';
 import { toggleActivo, toggleDestacado } from '@/lib/admin/acompanantes';
 import { activarConStripe, cancelarSuscripcionAdmin, reactivarSuscripcionAdmin } from '@/lib/admin/billing';
-import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Acompañantes — Admin | Costa Companion' };
@@ -30,14 +32,36 @@ const STRIPE_BADGE: Record<EstadoStripe, { label: string; bg: string; color: str
 };
 
 export default async function AdminAcompanantesPage() {
-  const admin = createAdminClient();
+  const rows = await db
+    .select({
+      id: acompanantesTable.id,
+      slug: acompanantesTable.slug,
+      nombre_publico: acompanantesTable.nombrePublico,
+      activo: acompanantesTable.activo,
+      destacado: acompanantesTable.destacado,
+      created_at: acompanantesTable.createdAt,
+      stripe_customer_id: acompanantesTable.stripeCustomerId,
+      stripe_subscription_id: acompanantesTable.stripeSubscriptionId,
+      stripe_subscription_status: acompanantesTable.stripeSubscriptionStatus,
+      profileId: acompanantesTable.profileId,
+      profileNombre: profiles.nombre,
+    })
+    .from(acompanantesTable)
+    .leftJoin(profiles, eq(profiles.id, acompanantesTable.profileId))
+    .orderBy(desc(acompanantesTable.createdAt));
 
-  const { data: acompanantes } = await admin
-    .from('acompanantes')
-    .select('id, slug, nombre_publico, activo, destacado, created_at, stripe_customer_id, stripe_subscription_id, stripe_subscription_status, profiles(nombre, id)')
-    .order('created_at', { ascending: false });
-
-  const lista = (acompanantes ?? []) as unknown as AcompananteConProfile[];
+  const lista: AcompananteConProfile[] = rows.map((r) => ({
+    id: r.id,
+    slug: r.slug,
+    nombre_publico: r.nombre_publico,
+    activo: r.activo,
+    destacado: r.destacado,
+    created_at: r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at),
+    stripe_customer_id: r.stripe_customer_id,
+    stripe_subscription_id: r.stripe_subscription_id,
+    stripe_subscription_status: (r.stripe_subscription_status ?? 'sin_suscripcion') as EstadoStripe,
+    profiles: { nombre: r.profileNombre, id: r.profileId },
+  }));
   const hayAlertasPago = lista.some(
     (a) => a.stripe_subscription_status === 'past_due'
   );

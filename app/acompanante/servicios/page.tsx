@@ -1,42 +1,21 @@
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import type { Servicio, PaqueteClases, ServiceCategory } from '@/types/supabase';
+import { getSessionUser } from '@/lib/auth/session';
+import { listServiceCategories } from '@/lib/db/queries/public';
+import { getMiAcompananteId, getServiciosConPaquetes } from '@/lib/db/queries/acompanante';
 import { ServiciosManager } from './ServiciosManager';
 
 export const metadata = { title: 'Mis servicios | Costa Companion' };
 
-interface ServicioConPaquetes extends Servicio {
-  paquetes_clases: PaqueteClases[];
-}
-
 export default async function AcompananteServiciosPage() {
-  const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) redirect('/auth/login');
 
-  // Obtener acompanante_id
-  const { data: acompananteData } = await supabase
-    .from('acompanantes')
-    .select('id')
-    .eq('profile_id', user.id)
-    .single() as { data: { id: string } | null; error: null };
+  const acompananteId = await getMiAcompananteId(user.id);
 
-  const acompananteId = acompananteData?.id ?? null;
-
-  const [serviciosRes, categoriasRes] = await Promise.all([
-    acompananteId
-      ? supabase
-          .from('servicios')
-          .select('*, paquetes_clases(*)')
-          .eq('acompanante_id', acompananteId)
-          .order('created_at', { ascending: false })
-      : Promise.resolve({ data: [], error: null }),
-    supabase.from('service_categories').select('*').order('grupo'),
+  const [servicios, categorias] = await Promise.all([
+    acompananteId ? getServiciosConPaquetes(acompananteId) : Promise.resolve([]),
+    listServiceCategories(),
   ]);
-
-  const servicios = (serviciosRes.data ?? []) as unknown as ServicioConPaquetes[];
-  const categorias = (categoriasRes.data ?? []) as unknown as ServiceCategory[];
 
   return (
     <div className="min-h-screen bg-(--bone)">

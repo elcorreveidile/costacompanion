@@ -1,272 +1,301 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { notificarNuevoMensaje } from '@/lib/email';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+import { db } from "@/lib/db";
+import { mensajes, profiles, acompanantes } from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
+import { notificarNuevoMensaje } from "@/lib/email";
 
-type RawClient = SupabaseClient;
+export interface MensajeDTO {
+  id: string;
+  emisor_id: string;
+  receptor_id: string;
+  texto: string;
+  leido: boolean;
+  created_at: string;
+  reserva_id: string | null;
+  solicitud_id: string | null;
+}
+
+export interface ConversacionDTO {
+  otherUserId: string;
+  otherUserName: string;
+  acompanante: {
+    id: string;
+    nombre_publico: string;
+    foto_url: string | null;
+    slug: string;
+  } | null;
+  ultimoMensaje: string;
+  ultimoMensajeFecha: string;
+  tieneNoLeidos: boolean;
+  reserva_id: string | null;
+  solicitud_id: string | null;
+  mensajes: MensajeDTO[];
+}
 
 /**
- * Envía un mensaje en el chat interno
- * Puede estar vinculado a una reserva, solicitud, o ser directo (ambos null)
+ * Envía un mensaje del chat interno. Puede ir ligado a una reserva, una
+ * solicitud, o ser directo.
  */
-export async function enviarMensaje(formData: FormData): Promise<{ error?: string }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export async function enviarMensaje(
+  formData: FormData
+): Promise<{ error?: string }> {
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) redirect('/auth/login');
+  const receptorId = (formData.get("receptor_id") as string | null)?.trim();
+  const texto = (formData.get("texto") as string | null)?.trim();
+  const reservaId = (formData.get("reserva_id") as string | null)?.trim() || null;
+  const solicitudId = (formData.get("solicitud_id") as string | null)?.trim() || null;
 
-  const receptor_id = (formData.get('receptor_id') as string | null)?.trim();
-  const texto = (formData.get('texto') as string | null)?.trim();
-  const reserva_id = (formData.get('reserva_id') as string | null)?.trim() || null;
-  const solicitud_id = (formData.get('solicitud_id') as string | null)?.trim() || null;
-
-  if (!receptor_id) {
-    return { error: 'Destinatario no válido.' };
-  }
-
-  if (!texto) {
-    return { error: 'El mensaje no puede estar vacío.' };
-  }
-
+  if (!receptorId) return { error: "Destinatario no válido." };
+  if (!texto) return { error: "El mensaje no puede estar vacío." };
   if (texto.length > 2000) {
-    return { error: 'El mensaje es demasiado largo (máximo 2000 caracteres).' };
+    return { error: "El mensaje es demasiado largo (máximo 2000 caracteres)." };
   }
 
-  // Verificar que el receptor existe — usar admin para evitar restricción RLS de profiles
-  const admin = createAdminClient();
-  const { data: receptor } = await (admin as RawClient)
-    .from('profiles')
-    .select('id, nombre, idioma_preferido')
-    .eq('id', receptor_id)
-    .single();
-
-  if (!receptor) {
-    return { error: 'Destinatario no encontrado.' };
-  }
-
-  // Insertar mensaje
-  const { data: mensaje, error } = await (supabase as RawClient).from('mensajes').insert({
-    emisor_id: user.id,
-    receptor_id,
-    texto,
-    reserva_id,
-    solicitud_id,
-  }).select('id')
-    .single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  // Revalidar paths del chat
-  revalidatePath('/cliente/mensajes');
-  revalidatePath('/acompanante/mensajes');
-
-  // Notificación inteligente: solo enviar email si no hay mensajes sin leer previos
-  const { data: pendientes } = await (supabase as RawClient)
-    .from('mensajes')
-    .select('id')
-    .eq('receptor_id', receptor_id)
-    .eq('emisor_id', user.id)
-    .eq('leido', false)
+  const [receptor] = await db
+    .select({
+      id: profiles.id,
+      nombre: profiles.nombre,
+      email: profiles.email,
+      idioma: profiles.idiomaPreferido,
+    })
+    .from(profiles)
+    .where(eq(profiles.id, receptorId))
     .limit(1);
+  if (!receptor) return { error: "Destinatario no encontrado." };
 
-  // Solo enviar notificación si no hay mensajes pendientes (es el primero de la "sesión")
-  if (!pendientes || pendientes.length === 0) {
-    const [{ data: emisorProfile }, { data: { user: receptorAuth } }] = await Promise.all([
-      (admin as RawClient).from('profiles').select('nombre').eq('id', user.id).single(),
-      admin.auth.admin.getUserById(receptor_id),
-    ]);
+  try {
+    await db.insert(mensajes).values({
+      emisorId: user.id,
+      receptorId,
+      texto,
+      reservaId,
+      solicitudId,
+    });
+  } catch (e) {
+    console.error("enviarMensaje:", e);
+    return { error: "No se pudo enviar el mensaje." };
+  }
 
-    if (receptorAuth?.email) {
-      await notificarNuevoMensaje({
-        receptorEmail: receptorAuth.email,
-        receptorNombre: receptor.nombre || 'Hola',
-        emisorNombre: emisorProfile?.nombre || 'Alguien',
-        idioma: receptor.idioma_preferido || 'es',
-      }).catch(console.error);
-    }
+  revalidatePath("/cliente/mensajes");
+  revalidatePath("/acompanante/mensajes");
+
+  // Notificación por email al receptor (con su email, ya en profiles).
+  if (receptor.email) {
+    const [emisor] = await db
+      .select({ nombre: profiles.nombre })
+      .from(profiles)
+      .where(eq(profiles.id, user.id))
+      .limit(1);
+    await notificarNuevoMensaje({
+      receptorEmail: receptor.email,
+      receptorNombre: receptor.nombre || "Hola",
+      emisorNombre: emisor?.nombre || "Alguien",
+      idioma: receptor.idioma || "es",
+    }).catch(console.error);
   }
 
   return {};
 }
 
-/**
- * Marca mensajes como leídos
- */
+/** Marca como leídos los mensajes recibidos de `emisorId`. */
 export async function marcarMensajesLeidos(emisorId: string): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
+  const user = await getSessionUser();
   if (!user) return;
 
-  // Marcar todos los mensajes del emisor como leídos
-  await (supabase as RawClient)
-    .from('mensajes')
-    .update({ leido: true })
-    .eq('emisor_id', emisorId)
-    .eq('receptor_id', user.id)
-    .eq('leido', false);
+  await db
+    .update(mensajes)
+    .set({ leido: true })
+    .where(
+      and(
+        eq(mensajes.emisorId, emisorId),
+        eq(mensajes.receptorId, user.id),
+        eq(mensajes.leido, false)
+      )
+    );
 
-  revalidatePath('/cliente/mensajes');
-  revalidatePath('/acompanante/mensajes');
+  revalidatePath("/cliente/mensajes");
+  revalidatePath("/acompanante/mensajes");
 }
 
-/**
- * Obtiene las conversaciones del usuario actual
- * Agrupa por el otro interlocutor
- */
-export async function getConversaciones(usuarioId: string, usuarioRol: string) {
-  const admin = createAdminClient();
+/** Conversaciones del usuario, agrupadas por interlocutor. */
+export async function getConversaciones(
+  usuarioId: string
+): Promise<ConversacionDTO[]> {
+  const emisorP = alias(profiles, "emisor_p");
+  const receptorP = alias(profiles, "receptor_p");
 
-  // Si es cliente, busca conversaciones con acompañantes
-  // Si es acompañante, busca conversaciones con clientes
-  const esCliente = usuarioRol === 'cliente';
+  const rows = await db
+    .select({
+      id: mensajes.id,
+      emisorId: mensajes.emisorId,
+      receptorId: mensajes.receptorId,
+      texto: mensajes.texto,
+      leido: mensajes.leido,
+      createdAt: mensajes.createdAt,
+      reservaId: mensajes.reservaId,
+      solicitudId: mensajes.solicitudId,
+      emisorNombre: emisorP.nombre,
+      receptorNombre: receptorP.nombre,
+    })
+    .from(mensajes)
+    .leftJoin(emisorP, eq(emisorP.id, mensajes.emisorId))
+    .leftJoin(receptorP, eq(receptorP.id, mensajes.receptorId))
+    .where(or(eq(mensajes.emisorId, usuarioId), eq(mensajes.receptorId, usuarioId)))
+    .orderBy(desc(mensajes.createdAt));
 
-  const { data } = await (admin as RawClient)
-    .from('mensajes')
-    .select(`
-      id,
-      emisor_id,
-      receptor_id,
-      texto,
-      leido,
-      created_at,
-      reserva_id,
-      solicitud_id,
-      emisor:profiles!emisor_id(nombre),
-      receptor:profiles!receptor_id(nombre)
-    `)
-    .or(`emisor_id.eq.${usuarioId},receptor_id.eq.${usuarioId}`)
-    .order('created_at', { ascending: false });
+  // Fichas de acompañante de los interlocutores (una sola consulta).
+  const otherIds = Array.from(
+    new Set(
+      rows.map((m) => (m.emisorId === usuarioId ? m.receptorId : m.emisorId))
+    )
+  );
+  const fichas =
+    otherIds.length > 0
+      ? await db
+          .select({
+            profileId: acompanantes.profileId,
+            id: acompanantes.id,
+            nombrePublico: acompanantes.nombrePublico,
+            fotoUrl: acompanantes.fotoUrl,
+            slug: acompanantes.slug,
+          })
+          .from(acompanantes)
+          .where(inArray(acompanantes.profileId, otherIds))
+      : [];
+  const fichaPorProfile = new Map(fichas.map((f) => [f.profileId, f]));
 
-  const mensajes = (data ?? []) as any[];
+  const convs = new Map<string, ConversacionDTO>();
+  for (const m of rows) {
+    const otherUserId = m.emisorId === usuarioId ? m.receptorId : m.emisorId;
+    const otherUserName =
+      m.emisorId === usuarioId ? m.receptorNombre : m.emisorNombre;
 
-  // Agrupar por interlocutor (la otra persona en la conversación)
-  const conversacionesMap = new Map<string, any>();
+    const dto: MensajeDTO = {
+      id: m.id,
+      emisor_id: m.emisorId,
+      receptor_id: m.receptorId,
+      texto: m.texto,
+      leido: m.leido,
+      created_at: m.createdAt.toISOString(),
+      reserva_id: m.reservaId,
+      solicitud_id: m.solicitudId,
+    };
 
-  for (const msg of mensajes) {
-    const otherUserId = msg.emisor_id === usuarioId ? msg.receptor_id : msg.emisor_id;
-    const otherUserName = msg.emisor_id === usuarioId
-      ? (msg.receptor?.nombre ?? null)
-      : (msg.emisor?.nombre ?? null);
-
-    if (!conversacionesMap.has(otherUserId)) {
-      // Buscar si el otro usuario es acompañante
-      const { data: acompanante } = await (admin as RawClient)
-        .from('acompanantes')
-        .select('id, nombre_publico, foto_url, slug')
-        .eq('profile_id', otherUserId)
-        .maybeSingle();
-
-      conversacionesMap.set(otherUserId, {
+    if (!convs.has(otherUserId)) {
+      const ficha = fichaPorProfile.get(otherUserId);
+      convs.set(otherUserId, {
         otherUserId,
-        otherUserName: otherUserName || 'Usuario',
-        acompanante,
-        ultimoMensaje: msg.texto,
-        ultimoMensajeFecha: msg.created_at,
-        tieneNoLeidos: msg.emisor_id !== usuarioId && !msg.leido,
-        reserva_id: msg.reserva_id,
-        solicitud_id: msg.solicitud_id,
+        otherUserName: otherUserName || "Usuario",
+        acompanante: ficha
+          ? {
+              id: ficha.id,
+              nombre_publico: ficha.nombrePublico,
+              foto_url: ficha.fotoUrl,
+              slug: ficha.slug,
+            }
+          : null,
+        ultimoMensaje: m.texto,
+        ultimoMensajeFecha: dto.created_at,
+        tieneNoLeidos: m.emisorId !== usuarioId && !m.leido,
+        reserva_id: m.reservaId,
+        solicitud_id: m.solicitudId,
         mensajes: [],
       });
     }
-
-    conversacionesMap.get(otherUserId).mensajes.push(msg);
+    convs.get(otherUserId)!.mensajes.push(dto);
   }
 
-  // Convertir a array y ordenar por fecha del último mensaje
-  return Array.from(conversacionesMap.values()).sort((a, b) =>
-    new Date(b.ultimoMensajeFecha).getTime() - new Date(a.ultimoMensajeFecha).getTime()
+  return Array.from(convs.values()).sort(
+    (a, b) =>
+      new Date(b.ultimoMensajeFecha).getTime() -
+      new Date(a.ultimoMensajeFecha).getTime()
   );
 }
 
-/**
- * Obtiene los mensajes de una conversación específica
- */
+/** Mensajes de una conversación concreta, en orden cronológico. */
 export async function getMensajesConversacion(
   usuarioId: string,
   otherUserId: string
-): Promise<any[]> {
-  const admin = createAdminClient();
+): Promise<MensajeDTO[]> {
+  const rows = await db
+    .select()
+    .from(mensajes)
+    .where(
+      or(
+        and(eq(mensajes.emisorId, usuarioId), eq(mensajes.receptorId, otherUserId)),
+        and(eq(mensajes.emisorId, otherUserId), eq(mensajes.receptorId, usuarioId))
+      )
+    )
+    .orderBy(asc(mensajes.createdAt));
 
-  const { data } = await (admin as RawClient)
-    .from('mensajes')
-    .select(`
-      id,
-      emisor_id,
-      texto,
-      leido,
-      created_at,
-      reserva_id,
-      solicitud_id
-    `)
-    .or(`and(emisor_id.eq.${usuarioId},receptor_id.eq.${otherUserId}),and(emisor_id.eq.${otherUserId},receptor_id.eq.${usuarioId})`)
-    .order('created_at', { ascending: true });
-
-  return data ?? [];
+  return rows.map((m) => ({
+    id: m.id,
+    emisor_id: m.emisorId,
+    receptor_id: m.receptorId,
+    texto: m.texto,
+    leido: m.leido,
+    created_at: m.createdAt.toISOString(),
+    reserva_id: m.reservaId,
+    solicitud_id: m.solicitudId,
+  }));
 }
 
-/**
- * Inicia una nueva conversación desde el perfil de un acompañante
- * Crea un mensaje inicial si no existe conversación previa
- */
-export async function iniciarConversacion(formData: FormData): Promise<{ error?: string }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+/** Inicia (o reabre) una conversación con un acompañante desde su ficha. */
+export async function iniciarConversacion(
+  formData: FormData
+): Promise<{ error?: string }> {
+  const user = await getSessionUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) redirect('/auth/login');
+  const slug = (formData.get("slug") as string | null)?.trim();
+  const mensajeInicial =
+    (formData.get("mensaje") as string | null)?.trim() ||
+    "Hola, me gustaría consultar algo sobre tus servicios.";
 
-  const acompananteSlug = (formData.get('slug') as string | null)?.trim();
-  const mensajeInicial = (formData.get('mensaje') as string | null)?.trim() || 'Hola, me gustaría consultar algo sobre tus servicios.';
+  if (!slug) return { error: "Acompañante no válido." };
 
-  if (!acompananteSlug) {
-    return { error: 'Acompañante no válido.' };
+  const [acomp] = await db
+    .select({ profileId: acompanantes.profileId })
+    .from(acompanantes)
+    .where(and(eq(acompanantes.slug, slug), eq(acompanantes.activo, true)))
+    .limit(1);
+  if (!acomp) return { error: "Acompañante no encontrado." };
+  if (acomp.profileId === user.id) {
+    return { error: "No puedes enviar mensajes a ti mismo." };
   }
 
-  // Obtener el acompañante
-  const { data: acompanante } = await (supabase as RawClient)
-    .from('acompanantes')
-    .select('profile_id')
-    .eq('slug', acompananteSlug)
-    .eq('activo', true)
-    .single();
+  const [previa] = await db
+    .select({ id: mensajes.id })
+    .from(mensajes)
+    .where(
+      or(
+        and(eq(mensajes.emisorId, user.id), eq(mensajes.receptorId, acomp.profileId)),
+        and(eq(mensajes.emisorId, acomp.profileId), eq(mensajes.receptorId, user.id))
+      )
+    )
+    .limit(1);
 
-  if (!acompanante) {
-    return { error: 'Acompañante no encontrado.' };
-  }
-
-  // Verificar que el cliente no se está enviando un mensaje a sí mismo
-  if (acompanante.profile_id === user.id) {
-    return { error: 'No puedes enviar mensajes a ti mismo.' };
-  }
-
-  // Si ya existe conversación, ir directamente al chat
-  const { data: conversacionPrevia } = await (supabase as RawClient)
-    .from('mensajes')
-    .select('id')
-    .or(`and(emisor_id.eq.${user.id},receptor_id.eq.${acompanante.profile_id}),and(emisor_id.eq.${acompanante.profile_id},receptor_id.eq.${user.id})`)
-    .limit(1)
-    .maybeSingle();
-
-  if (!conversacionPrevia) {
-    const { error } = await (supabase as RawClient).from('mensajes').insert({
-      emisor_id: user.id,
-      receptor_id: acompanante.profile_id,
-      texto: mensajeInicial,
-    });
-
-    if (error) {
-      return { error: error.message };
+  if (!previa) {
+    try {
+      await db.insert(mensajes).values({
+        emisorId: user.id,
+        receptorId: acomp.profileId,
+        texto: mensajeInicial,
+      });
+    } catch (e) {
+      console.error("iniciarConversacion:", e);
+      return { error: "No se pudo iniciar la conversación." };
     }
-
-    revalidatePath('/cliente/mensajes');
-    revalidatePath(`/${acompananteSlug}`);
+    revalidatePath("/cliente/mensajes");
+    revalidatePath(`/${slug}`);
   }
 
-  redirect('/cliente/mensajes');
+  redirect("/cliente/mensajes");
 }

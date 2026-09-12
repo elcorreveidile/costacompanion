@@ -1,27 +1,10 @@
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { confirmarReserva, rechazarReserva, completarReserva } from '@/lib/reservas/actions';
 import { RealtimeRefresher } from '@/components/RealtimeRefresher';
-import type { EstadoReserva, Modalidad } from '@/types/supabase';
-
-interface ProfileJoin {
-  nombre: string | null;
-}
-
-interface ServicioJoin {
-  titulo: { es?: string; en?: string } | null;
-}
-
-interface ReservaConJoins {
-  id: string;
-  fecha_hora: string;
-  modalidad: Modalidad;
-  zona: string | null;
-  estado: EstadoReserva;
-  profiles: ProfileJoin | null;
-  servicios: ServicioJoin | null;
-}
+import { getSessionUser } from '@/lib/auth/session';
+import { getMiAcompananteId, getReservasDeAcompanante } from '@/lib/db/queries/acompanante';
+import type { EstadoReserva } from '@/types/supabase';
 
 const ESTADO_BADGE: Record<EstadoReserva, { label: string; bg: string; color: string }> = {
   pendiente: { label: 'Pendiente', bg: 'var(--terra-soft)', color: 'var(--terra)' },
@@ -34,33 +17,13 @@ const ESTADO_BADGE: Record<EstadoReserva, { label: string; bg: string; color: st
 export const metadata = { title: 'Reservas recibidas | Costa Companion' };
 
 export default async function AcompananteReservasPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
+  if (!user) redirect('/auth/login');
 
-  if (!user) {
-    redirect('/auth/login');
-  }
+  const acompananteId = await getMiAcompananteId(user.id);
+  if (!acompananteId) redirect('/acompanante');
 
-  // Obtener acompanante_id
-  const { data: acompananteData } = await supabase
-    .from('acompanantes')
-    .select('id')
-    .eq('profile_id', user.id)
-    .single();
-
-  if (!acompananteData) {
-    redirect('/acompanante');
-  }
-
-  const acompananteId = (acompananteData as unknown as { id: string }).id;
-
-  const { data: reservasData } = await supabase
-    .from('reservas')
-    .select('id, fecha_hora, modalidad, zona, estado, profiles(nombre), servicios(titulo)')
-    .eq('acompanante_id', acompananteId)
-    .order('created_at', { ascending: false });
-
-  const reservas = (reservasData ?? []) as unknown as ReservaConJoins[];
+  const reservas = await getReservasDeAcompanante(acompananteId);
 
   return (
     <div className="min-h-screen bg-(--bone)">

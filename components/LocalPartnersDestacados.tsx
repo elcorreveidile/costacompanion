@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import Image from 'next/image';
-import type { Anunciante, CategoriaAnunciante } from '@/types/supabase';
+import type { CategoriaAnunciante } from '@/types/supabase';
+import { listAnunciantesDestacados } from '@/lib/db/queries/public';
 
 const CAT_LABEL: Record<CategoriaAnunciante, string> = {
   inmobiliaria: 'Inmobiliaria',
@@ -13,16 +13,7 @@ const CAT_LABEL: Record<CategoriaAnunciante, string> = {
 };
 
 export async function LocalPartnersDestacados() {
-  const supabase = await createClient();
-
-  const { data } = await supabase
-    .from('anunciantes')
-    .select('id, nombre_negocio, descripcion, logo_url, web, whatsapp, telefono, email, categoria, zona, slug, direccion')
-    .eq('activo', true)
-    .eq('plan', 'destacado')
-    .limit(3);
-
-  const lista = (data ?? []) as unknown as Anunciante[];
+  const lista = await listAnunciantesDestacados(3);
   if (lista.length === 0) return null;
 
   return (

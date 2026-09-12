@@ -1,21 +1,25 @@
-import { createClient } from "@/lib/supabase/server";
-import { signOut } from "@/lib/auth/actions";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
+import { db } from "@/lib/db";
+import { profiles } from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
+import { signOut } from "@/lib/auth/actions";
+
+export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
 
   if (!user) {
     return null;
   }
 
   // Obtener datos del perfil
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("nombre, rol")
-    .eq("id", user.id)
-    .single() as { data: { nombre: string | null; rol: string } | null; error: null };
+  const [profile] = await db
+    .select({ nombre: profiles.nombre })
+    .from(profiles)
+    .where(eq(profiles.id, user.id))
+    .limit(1);
 
   const nombre = profile?.nombre || user.email;
 
