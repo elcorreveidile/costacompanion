@@ -81,6 +81,53 @@ const fr: Dictionary = {
       verTodos: "Voir tous les accompagnateurs",
     },
   },
+  login: {
+    subtitle: "Connectez-vous sans mot de passe",
+    sentTitle: "Lien envoyé !",
+    sentBody: "Consultez votre boîte de réception et cliquez sur le lien pour vous connecter. Cela peut prendre quelques secondes.",
+    noLlego: "Vous n’avez pas reçu l’email ?",
+    volver: "Réessayer",
+    emailLabel: "Email",
+    enviar: "Envoyer le lien magique",
+    emailHelp: "Nous vous enverrons un lien de connexion par email. Aucun mot de passe nécessaire.",
+    pinTitulo: "Vous avez un numéro d’utilisateur et un code PIN ?",
+    numeroLabel: "Numéro d’utilisateur",
+    pinLabel: "Code PIN",
+    entrarPin: "Se connecter avec le PIN",
+    primeraVez: "Si c’est votre première fois, nous créerons automatiquement votre compte en tant que client.",
+    errores: {
+      generico: "Une erreur s’est produite. Veuillez réessayer.",
+      invalid_email: "Veuillez saisir un email valide.",
+      send_failed: "Impossible d’envoyer le lien. Veuillez réessayer.",
+      invalid_token: "Le lien a expiré ou n’est pas valide. Demandez-en un nouveau.",
+      no_user: "Nous n’avons pas pu vérifier votre identité. Veuillez réessayer.",
+      no_profile: "Profil introuvable. Contactez le support.",
+      invalid_role: "Rôle d’utilisateur non reconnu. Contactez le support.",
+      pin: "Numéro d’utilisateur ou PIN incorrect, ou compte temporairement bloqué.",
+    },
+  },
+  serviciosPage: {
+    hero: {
+      h1: "Ce que nous faisons avec vous",
+      subtitle:
+        "Chez Costa Companion, nous ne traduisons pas des documents pour ensuite vous laisser. Nous vous accompagnons dans la démarche, quelle qu’elle soit, et nous restons jusqu’à ce que tout soit clair.",
+    },
+    verAcompanantes: "Voir les accompagnateurs pour : {tema}",
+    cierre:
+      "Vous ne voyez pas exactement ce dont vous avez besoin ? Écrivez-nous sur WhatsApp et nous vous dirons si nous pouvons aider. Presque toujours, oui.",
+    whatsappBtn: "Écrire sur WhatsApp",
+    proximamente: "Contact WhatsApp — bientôt disponible",
+    items: [
+      { titulo: "Santé", texto: "Accompagnement chez le médecin, aux urgences ou chez le spécialiste.", detalle: "Expliquer ce qui vous arrive et comprendre le diagnostic, sans vous perdre pendant la consultation. Votre accompagnateur reste avec vous, de la salle d’attente jusqu’à la sortie, quand vous savez exactement quoi faire." },
+      { titulo: "Démarches et administration", texto: "Police, plaintes, Immigration et NIE, inscription à la mairie, rendez-vous officiels.", detalle: "La bureaucratie espagnole, dans votre langue. Votre accompagnateur vous aide à préparer les documents, vous accompagne au rendez-vous et vous explique ce qui s’est passé et la suite." },
+      { titulo: "Notaire et gestion administrative", texto: "Signatures, procurations, documents officiels.", detalle: "Savoir ce que vous signez avant de le signer. Votre accompagnateur relit le document avec vous, vous l’explique dans votre langue et est présent lors de la signature, sans surprises." },
+      { titulo: "Achat et vente de biens", texto: "Visites, négociation, signature.", detalle: "Un accompagnement pour l’une des décisions les plus importantes que vous prendrez ici. De la visite du bien à la signature chez le notaire, avec quelqu’un qui parle votre langue et celle d’ici." },
+      { titulo: "Banque", texto: "Ouvrir ou gérer des comptes, comprendre les conditions, parler avec votre agence.", detalle: "Pour les opérations bancaires où la langue compte : ouvrir des comptes, comprendre des contrats, résoudre des problèmes avec votre agence ou gérer des produits financiers." },
+      { titulo: "Interprétation téléphonique urgente", texto: "Quand vous avez besoin de quelqu’un au téléphone tout de suite, en direct.", detalle: "Pour ces moments où il faut appeler la sécurité sociale, la clinique ou un organisme et que la langue est un obstacle. Votre accompagnateur intervient en temps réel." },
+      { titulo: "Préparation aux entretiens", texto: "Pour arriver en confiance à un entretien d’embauche.", detalle: "Nous préparons avec vous les réponses habituelles, le vocabulaire propre au secteur et le contexte culturel pour que l’entretien se passe bien." },
+      { titulo: "Cours d’espagnol", texto: "Adaptés à votre niveau, des bases à la conversation. À l’unité ou en forfaits.", detalle: "Parce que parfois, la meilleure aide est de ne plus en avoir besoin. Cours individuels avec des accompagnateurs qui connaissent le quotidien de la vie sur la côte." },
+    ],
+  },
   home: {
     hero: {
       eyebrow: "Accompagnement linguistique sur la Costa del Sol",

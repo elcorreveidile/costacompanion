@@ -81,6 +81,53 @@ const nl: Dictionary = {
       verTodos: "Alle begeleiders bekijken",
     },
   },
+  login: {
+    subtitle: "Log in zonder wachtwoord",
+    sentTitle: "Link verzonden!",
+    sentBody: "Controleer uw inbox en klik op de link om in te loggen. Dit kan enkele seconden duren.",
+    noLlego: "Geen e-mail ontvangen?",
+    volver: "Opnieuw proberen",
+    emailLabel: "E-mail",
+    enviar: "Magische link versturen",
+    emailHelp: "We sturen een inloglink naar uw e-mail. Geen wachtwoord nodig.",
+    pinTitulo: "Hebt u een gebruikersnummer en pincode?",
+    numeroLabel: "Gebruikersnummer",
+    pinLabel: "Pincode",
+    entrarPin: "Inloggen met pincode",
+    primeraVez: "Als het uw eerste keer is, maken we automatisch uw account aan als klant.",
+    errores: {
+      generico: "Er is iets misgegaan. Probeer het opnieuw.",
+      invalid_email: "Voer een geldig e-mailadres in.",
+      send_failed: "Kon de link niet versturen. Probeer het opnieuw.",
+      invalid_token: "De link is verlopen of ongeldig. Vraag een nieuwe aan.",
+      no_user: "We konden uw identiteit niet verifiëren. Probeer het opnieuw.",
+      no_profile: "Profiel niet gevonden. Neem contact op met support.",
+      invalid_role: "Onbekende gebruikersrol. Neem contact op met support.",
+      pin: "Onjuist gebruikersnummer of pincode, of account tijdelijk geblokkeerd.",
+    },
+  },
+  serviciosPage: {
+    hero: {
+      h1: "Wat we samen met u doen",
+      subtitle:
+        "Bij Costa Companion vertalen we niet zomaar documenten en nemen we afscheid. We gaan met u mee naar de kwestie, welke dan ook, en blijven tot alles duidelijk is.",
+    },
+    verAcompanantes: "Begeleiders bekijken voor {tema}",
+    cierre:
+      "Ziet u niet precies wat u nodig hebt? Stuur ons een bericht op WhatsApp en we vertellen u of we kunnen helpen. Bijna altijd wel.",
+    whatsappBtn: "Bericht via WhatsApp",
+    proximamente: "WhatsApp-contact — binnenkort",
+    items: [
+      { titulo: "Gezondheid", texto: "Begeleiding naar de dokter, de spoedeisende hulp of de specialist.", detalle: "Uitleggen wat er is en de diagnose begrijpen, zonder de draad kwijt te raken. Uw begeleider is bij u vanaf de wachtkamer tot u weer buiten staat en precies weet wat te doen." },
+      { titulo: "Formaliteiten & administratie", texto: "Politie, aangiften, Vreemdelingenzaken en NIE, inschrijving bij de gemeente, officiële afspraken.", detalle: "De Spaanse bureaucratie, in uw taal. Uw begeleider helpt de documenten voor te bereiden, gaat met u mee naar de afspraak en legt uit wat er is gebeurd en wat u daarna moet doen." },
+      { titulo: "Notaris & administratie", texto: "Handtekeningen, volmachten, officiële documenten.", detalle: "Weten wat u ondertekent voordat u het ondertekent. Uw begeleider neemt het document met u door, legt het uit in uw taal en is aanwezig bij de ondertekening, zonder verrassingen." },
+      { titulo: "Aan- en verkoop van vastgoed", texto: "Bezichtigingen, onderhandeling, ondertekening.", detalle: "Begeleiding bij een van de belangrijkste beslissingen die u hier neemt. Van de bezichtiging tot de ondertekening bij de notaris, met iemand die uw taal én die van hier spreekt." },
+      { titulo: "Bankzaken", texto: "Rekeningen openen of beheren, de voorwaarden begrijpen, met uw kantoor spreken.", detalle: "Voor bankzaken waarbij taal telt: rekeningen openen, contracten begrijpen, problemen met uw kantoor oplossen of financiële producten beheren." },
+      { titulo: "Dringende telefonische tolkendienst", texto: "Wanneer u nu meteen iemand aan de telefoon nodig hebt, live.", detalle: "Voor die momenten waarop u de sociale zekerheid, de kliniek of een instantie moet bellen en taal een barrière is. Uw begeleider bemiddelt in realtime." },
+      { titulo: "Sollicitatievoorbereiding", texto: "Om met vertrouwen naar een sollicitatiegesprek te gaan.", detalle: "We bereiden samen de gebruikelijke vragen, het vakspecifieke vocabulaire en de culturele context voor zodat het gesprek goed verloopt." },
+      { titulo: "Spaanse lessen", texto: "Afgestemd op uw niveau, van de basis tot conversatie. Los of in pakketten.", detalle: "Omdat de beste hulp soms is dat u ze niet meer nodig hebt. Privélessen met begeleiders die de alledaagse situaties van het leven aan de kust kennen." },
+    ],
+  },
   home: {
     hero: {
       eyebrow: "Taalbegeleiding aan de Costa del Sol",

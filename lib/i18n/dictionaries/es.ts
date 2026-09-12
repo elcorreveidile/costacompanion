@@ -82,6 +82,53 @@ const es = {
       verTodos: "Ver todos los acompañantes",
     },
   },
+  login: {
+    subtitle: "Accede sin contraseña",
+    sentTitle: "¡Enlace enviado!",
+    sentBody: "Revisa tu bandeja de entrada y haz clic en el enlace para acceder. Puede tardar unos segundos.",
+    noLlego: "¿No ha llegado el email?",
+    volver: "Volver a intentarlo",
+    emailLabel: "Email",
+    enviar: "Enviar enlace mágico",
+    emailHelp: "Te enviaremos un enlace de acceso a tu email. No necesitas contraseña.",
+    pinTitulo: "¿Tienes número de usuario y PIN?",
+    numeroLabel: "Número de usuario",
+    pinLabel: "PIN",
+    entrarPin: "Entrar con PIN",
+    primeraVez: "Si es tu primera vez, crearemos automáticamente tu cuenta como cliente.",
+    errores: {
+      generico: "Ha ocurrido un error. Inténtalo de nuevo.",
+      invalid_email: "Por favor, introduce un email válido.",
+      send_failed: "No se pudo enviar el enlace. Inténtalo de nuevo.",
+      invalid_token: "El enlace ha expirado o no es válido. Solicita uno nuevo.",
+      no_user: "No se pudo verificar tu identidad. Inténtalo de nuevo.",
+      no_profile: "No se encontró tu perfil. Contacta con soporte.",
+      invalid_role: "Rol de usuario no reconocido. Contacta con soporte.",
+      pin: "Número de usuario o PIN incorrectos, o cuenta bloqueada temporalmente.",
+    },
+  },
+  serviciosPage: {
+    hero: {
+      h1: "Lo que hacemos contigo",
+      subtitle:
+        "En Costa Companion no traducimos documentos y nos despedimos. Te acompañamos a la gestión, sea cual sea, y nos quedamos hasta que todo está claro.",
+    },
+    verAcompanantes: "Ver acompañantes para {tema}",
+    cierre:
+      "¿No ves exactamente lo que necesitas? Escríbenos por WhatsApp y te decimos si podemos ayudarte. Casi siempre, sí.",
+    whatsappBtn: "Escribir por WhatsApp",
+    proximamente: "Contacto por WhatsApp — próximamente",
+    items: [
+      { titulo: "Salud", texto: "Acompañamiento al médico, a urgencias o al especialista.", detalle: "Explicar lo que te pasa y entender el diagnóstico, sin perderte en la consulta. Tu acompañante está contigo desde la espera hasta que salís y ya sabes exactamente qué hacer." },
+      { titulo: "Trámites y administración", texto: "Policía, denuncias, Extranjería y NIE, empadronamiento, citas oficiales.", detalle: "La burocracia española, en tu idioma. Tu acompañante te ayuda a preparar la documentación, te acompaña a la cita y te explica qué ha pasado y qué tienes que hacer después." },
+      { titulo: "Notaría y gestoría", texto: "Firmas, poderes, documentos oficiales.", detalle: "Saber qué estás firmando antes de firmarlo. Tu acompañante revisa contigo el documento, te lo explica en tu idioma y está presente durante la firma para que no haya sorpresas." },
+      { titulo: "Compraventa de propiedades", texto: "Visitas, negociación, firma.", detalle: "Acompañamiento en una de las decisiones más importantes que tomarás aquí. Desde la visita al inmueble hasta la firma ante notario, con alguien que habla tu idioma y el de aquí." },
+      { titulo: "Banca", texto: "Abrir o gestionar cuentas, entender las condiciones, hablar con tu oficina.", detalle: "Para las gestiones bancarias donde el idioma importa: abrir cuentas, entender contratos, resolver problemas con tu oficina o gestionar productos financieros." },
+      { titulo: "Interpretación telefónica urgente", texto: "Cuando necesitas a alguien al teléfono ahora mismo, en directo.", detalle: "Para esos momentos en los que hay que llamar a la seguridad social, a la clínica o a cualquier organismo y el idioma es una barrera. Tu acompañante media en tiempo real." },
+      { titulo: "Preparación de entrevistas", texto: "Para llegar con seguridad a una entrevista de trabajo.", detalle: "Preparamos contigo las respuestas habituales, el vocabulario específico del sector y el contexto cultural para que la entrevista salga bien." },
+      { titulo: "Clases de español", texto: "Adaptadas a tu nivel, desde lo básico hasta la conversación. Sueltas o en bonos.", detalle: "Porque a veces la mejor ayuda es dejar de necesitarla. Clases individuales con acompañantes que conocen las situaciones cotidianas de la vida en la costa." },
+    ],
+  },
   home: {
     hero: {
       eyebrow: "Acompañamiento lingüístico en la Costa del Sol",

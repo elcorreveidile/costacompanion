@@ -81,6 +81,53 @@ const en: Dictionary = {
       verTodos: "See all companions",
     },
   },
+  login: {
+    subtitle: "Sign in without a password",
+    sentTitle: "Link sent!",
+    sentBody: "Check your inbox and click the link to sign in. It may take a few seconds.",
+    noLlego: "Didn’t get the email?",
+    volver: "Try again",
+    emailLabel: "Email",
+    enviar: "Send magic link",
+    emailHelp: "We’ll send a sign-in link to your email. No password needed.",
+    pinTitulo: "Have a user number and PIN?",
+    numeroLabel: "User number",
+    pinLabel: "PIN",
+    entrarPin: "Sign in with PIN",
+    primeraVez: "If it’s your first time, we’ll automatically create your account as a client.",
+    errores: {
+      generico: "Something went wrong. Please try again.",
+      invalid_email: "Please enter a valid email.",
+      send_failed: "Couldn’t send the link. Please try again.",
+      invalid_token: "The link has expired or is invalid. Request a new one.",
+      no_user: "We couldn’t verify your identity. Please try again.",
+      no_profile: "Profile not found. Please contact support.",
+      invalid_role: "Unrecognized user role. Please contact support.",
+      pin: "Wrong user number or PIN, or account temporarily locked.",
+    },
+  },
+  serviciosPage: {
+    hero: {
+      h1: "What we do with you",
+      subtitle:
+        "At Costa Companion we don’t translate documents and say goodbye. We go with you to whatever you need to handle, and we stay until everything is clear.",
+    },
+    verAcompanantes: "See companions for {tema}",
+    cierre:
+      "Don’t see exactly what you need? Message us on WhatsApp and we’ll tell you if we can help. Almost always, we can.",
+    whatsappBtn: "Message us on WhatsApp",
+    proximamente: "WhatsApp contact — coming soon",
+    items: [
+      { titulo: "Health", texto: "Support at the doctor, A&E or a specialist.", detalle: "Explaining what’s wrong and understanding the diagnosis, without getting lost in the appointment. Your companion is with you from the waiting room until you leave knowing exactly what to do." },
+      { titulo: "Paperwork & admin", texto: "Police, reports, Immigration and NIE, town-hall registration, official appointments.", detalle: "Spanish bureaucracy, in your language. Your companion helps you prepare the documents, goes with you to the appointment and explains what happened and what to do next." },
+      { titulo: "Notary & legal admin", texto: "Signings, powers of attorney, official documents.", detalle: "Knowing what you’re signing before you sign it. Your companion reviews the document with you, explains it in your language and is present during the signing so there are no surprises." },
+      { titulo: "Buying & selling property", texto: "Viewings, negotiation, signing.", detalle: "Support through one of the most important decisions you’ll make here. From the viewing to the signing at the notary, with someone who speaks your language and the local one." },
+      { titulo: "Banking", texto: "Opening or managing accounts, understanding the terms, talking to your branch.", detalle: "For banking matters where language counts: opening accounts, understanding contracts, resolving issues with your branch or managing financial products." },
+      { titulo: "Urgent phone interpretation", texto: "When you need someone on the phone right now, live.", detalle: "For those moments when you have to call social security, the clinic or any office and language is a barrier. Your companion mediates in real time." },
+      { titulo: "Interview preparation", texto: "To walk into a job interview with confidence.", detalle: "We prepare the usual questions, the sector’s specific vocabulary and the cultural context with you so the interview goes well." },
+      { titulo: "Spanish lessons", texto: "Tailored to your level, from the basics to conversation. One-off or in packs.", detalle: "Because sometimes the best help is no longer needing it. One-to-one lessons with companions who know the everyday situations of life on the coast." },
+    ],
+  },
   home: {
     hero: {
       eyebrow: "Language accompaniment on the Costa del Sol",

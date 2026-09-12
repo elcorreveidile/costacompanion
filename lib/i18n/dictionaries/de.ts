@@ -81,6 +81,53 @@ const de: Dictionary = {
       verTodos: "Alle Begleiter ansehen",
     },
   },
+  login: {
+    subtitle: "Ohne Passwort anmelden",
+    sentTitle: "Link gesendet!",
+    sentBody: "Prüfen Sie Ihren Posteingang und klicken Sie auf den Link, um sich anzumelden. Es kann ein paar Sekunden dauern.",
+    noLlego: "Keine E-Mail erhalten?",
+    volver: "Erneut versuchen",
+    emailLabel: "E-Mail",
+    enviar: "Magischen Link senden",
+    emailHelp: "Wir senden Ihnen einen Anmeldelink per E-Mail. Kein Passwort nötig.",
+    pinTitulo: "Haben Sie eine Benutzernummer und PIN?",
+    numeroLabel: "Benutzernummer",
+    pinLabel: "PIN",
+    entrarPin: "Mit PIN anmelden",
+    primeraVez: "Wenn es Ihr erstes Mal ist, erstellen wir automatisch Ihr Konto als Kunde.",
+    errores: {
+      generico: "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+      invalid_email: "Bitte geben Sie eine gültige E-Mail ein.",
+      send_failed: "Der Link konnte nicht gesendet werden. Bitte erneut versuchen.",
+      invalid_token: "Der Link ist abgelaufen oder ungültig. Fordern Sie einen neuen an.",
+      no_user: "Wir konnten Ihre Identität nicht überprüfen. Bitte erneut versuchen.",
+      no_profile: "Profil nicht gefunden. Bitte wenden Sie sich an den Support.",
+      invalid_role: "Unbekannte Benutzerrolle. Bitte wenden Sie sich an den Support.",
+      pin: "Falsche Benutzernummer oder PIN, oder Konto vorübergehend gesperrt.",
+    },
+  },
+  serviciosPage: {
+    hero: {
+      h1: "Was wir mit Ihnen tun",
+      subtitle:
+        "Bei Costa Companion übersetzen wir nicht einfach Dokumente und verabschieden uns. Wir begleiten Sie zum Anliegen – welches auch immer – und bleiben, bis alles klar ist.",
+    },
+    verAcompanantes: "Begleiter für {tema} ansehen",
+    cierre:
+      "Sie finden nicht genau das, was Sie brauchen? Schreiben Sie uns auf WhatsApp und wir sagen Ihnen, ob wir helfen können. Fast immer ja.",
+    whatsappBtn: "Auf WhatsApp schreiben",
+    proximamente: "WhatsApp-Kontakt — demnächst",
+    items: [
+      { titulo: "Gesundheit", texto: "Begleitung zum Arzt, in die Notaufnahme oder zum Facharzt.", detalle: "Erklären, was Ihnen fehlt, und die Diagnose verstehen, ohne im Gespräch den Faden zu verlieren. Ihre Begleitung ist vom Wartezimmer bis zum Ausgang bei Ihnen – bis Sie genau wissen, was zu tun ist." },
+      { titulo: "Behördengänge & Verwaltung", texto: "Polizei, Anzeigen, Ausländerbehörde und NIE, Anmeldung, Behördentermine.", detalle: "Die spanische Bürokratie, in Ihrer Sprache. Ihre Begleitung hilft bei den Unterlagen, begleitet Sie zum Termin und erklärt, was passiert ist und was als Nächstes zu tun ist." },
+      { titulo: "Notar & Verwaltung", texto: "Unterschriften, Vollmachten, offizielle Dokumente.", detalle: "Wissen, was Sie unterschreiben, bevor Sie unterschreiben. Ihre Begleitung geht das Dokument mit Ihnen durch, erklärt es in Ihrer Sprache und ist bei der Unterschrift dabei – ohne Überraschungen." },
+      { titulo: "Immobilienkauf & -verkauf", texto: "Besichtigungen, Verhandlung, Unterschrift.", detalle: "Begleitung bei einer der wichtigsten Entscheidungen, die Sie hier treffen. Von der Besichtigung bis zur Unterschrift beim Notar, mit jemandem, der Ihre Sprache und die von hier spricht." },
+      { titulo: "Bankgeschäfte", texto: "Konten eröffnen oder verwalten, die Konditionen verstehen, mit Ihrer Filiale sprechen.", detalle: "Für Bankangelegenheiten, bei denen die Sprache zählt: Konten eröffnen, Verträge verstehen, Probleme mit Ihrer Filiale lösen oder Finanzprodukte verwalten." },
+      { titulo: "Dringende Telefondolmetschung", texto: "Wenn Sie jetzt sofort jemanden am Telefon brauchen, live.", detalle: "Für die Momente, in denen Sie die Sozialversicherung, die Klinik oder eine Behörde anrufen müssen und die Sprache eine Hürde ist. Ihre Begleitung vermittelt in Echtzeit." },
+      { titulo: "Vorbereitung auf Vorstellungsgespräche", texto: "Um sicher in ein Vorstellungsgespräch zu gehen.", detalle: "Wir bereiten mit Ihnen die üblichen Antworten, das branchenspezifische Vokabular und den kulturellen Kontext vor, damit das Gespräch gut läuft." },
+      { titulo: "Spanischunterricht", texto: "Auf Ihr Niveau abgestimmt, von den Grundlagen bis zur Konversation. Einzeln oder im Paket.", detalle: "Weil die beste Hilfe manchmal darin besteht, sie nicht mehr zu brauchen. Einzelunterricht mit Begleitern, die den Alltag an der Küste kennen." },
+    ],
+  },
   home: {
     hero: {
       eyebrow: "Sprachbegleitung an der Costa del Sol",
