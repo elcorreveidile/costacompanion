@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Anunciante } from '@/types/supabase';
+import type { Dictionary } from '@/lib/i18n/dictionaries/es';
+import { localePath, type Locale } from '@/lib/i18n/config';
 
 const inputClass = 'w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-2';
 const inputStyle = { background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' };
@@ -11,9 +13,11 @@ const labelClass = 'block text-sm font-medium mb-1.5 text-(--ink)';
 interface Props {
   anunciante: Pick<Anunciante, 'descripcion' | 'logo_url' | 'web' | 'telefono' | 'email' | 'whatsapp' | 'nombre_negocio' | 'categoria' | 'zona' | 'plan' | 'direccion'>;
   action: (formData: FormData) => Promise<{ error?: string }>;
+  t: Dictionary['panelAnunciante']['ficha'];
+  locale: Locale;
 }
 
-export function FichaAnuncianteForm({ anunciante, action }: Props) {
+export function FichaAnuncianteForm({ anunciante, action, t, locale }: Props) {
   const router = useRouter();
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,7 +34,7 @@ export function FichaAnuncianteForm({ anunciante, action }: Props) {
     if (result.error) {
       setStatus({ type: 'error', msg: result.error });
     } else {
-      setStatus({ type: 'success', msg: 'Cambios guardados.' });
+      setStatus({ type: 'success', msg: t.guardado });
       router.refresh();
     }
   }
@@ -41,68 +45,68 @@ export function FichaAnuncianteForm({ anunciante, action }: Props) {
       <div className="rounded-lg p-4 text-sm space-y-1" style={{ background: 'var(--bone)', border: '1px solid var(--line)' }}>
         <p className="font-medium text-(--ink)">{anunciante.nombre_negocio}</p>
         {anunciante.zona && <p className="text-(--ink)/60">{anunciante.zona}</p>}
-        <p className="text-xs text-(--ink)/40">Nombre, categoría y zona son gestionados por el equipo de Costa Companion.</p>
+        <p className="text-xs text-(--ink)/40">{t.infoGestionada}</p>
       </div>
 
       {/* Logo URL */}
       <div>
-        <label className={labelClass}>URL del logo</label>
+        <label className={labelClass}>{t.logoUrl}</label>
         <input name="logo_url" type="url" defaultValue={anunciante.logo_url ?? ''}
-          placeholder="https://tu-web.com/logo.png" className={inputClass} style={inputStyle} />
-        <p className="text-xs text-(--ink)/40 mt-1">Imagen cuadrada recomendada, mínimo 200×200 px.</p>
+          placeholder={t.logoUrlPlaceholder} className={inputClass} style={inputStyle} />
+        <p className="text-xs text-(--ink)/40 mt-1">{t.logoNota}</p>
       </div>
 
       {/* Descripción ES */}
       <div>
-        <label className={labelClass}>Descripción en español</label>
+        <label className={labelClass}>{t.descEs}</label>
         <textarea name="descripcion_es" rows={4} defaultValue={desc.es ?? ''}
-          placeholder="Describe tu negocio para los clientes hispanohablantes…"
+          placeholder={t.descEsPlaceholder}
           className={inputClass} style={{ ...inputStyle, resize: 'vertical' }} />
       </div>
 
       {/* Descripción EN */}
       <div>
-        <label className={labelClass}>Descripción en inglés</label>
+        <label className={labelClass}>{t.descEn}</label>
         <textarea name="descripcion_en" rows={4} defaultValue={desc.en ?? ''}
-          placeholder="Describe your business for English-speaking clients…"
+          placeholder={t.descEnPlaceholder}
           className={inputClass} style={{ ...inputStyle, resize: 'vertical' }} />
       </div>
 
       {/* Web */}
       <div>
-        <label className={labelClass}>Página web</label>
+        <label className={labelClass}>{t.web}</label>
         <input name="web" type="url" defaultValue={anunciante.web ?? ''}
-          placeholder="https://tu-negocio.com" className={inputClass} style={inputStyle} />
+          placeholder={t.webPlaceholder} className={inputClass} style={inputStyle} />
       </div>
 
       {/* Email */}
       <div>
-        <label className={labelClass}>Email de contacto</label>
+        <label className={labelClass}>{t.email}</label>
         <input name="email" type="email" defaultValue={anunciante.email ?? ''}
-          placeholder="contacto@tu-negocio.com" className={inputClass} style={inputStyle} />
+          placeholder={t.emailPlaceholder} className={inputClass} style={inputStyle} />
       </div>
 
       {/* Teléfono / WhatsApp */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelClass}>Teléfono</label>
+          <label className={labelClass}>{t.telefono}</label>
           <input name="telefono" type="tel" defaultValue={anunciante.telefono ?? ''}
-            placeholder="+34 600 000 000" className={inputClass} style={inputStyle} />
+            placeholder={t.telWhatsPlaceholder} className={inputClass} style={inputStyle} />
         </div>
         <div>
-          <label className={labelClass}>WhatsApp</label>
+          <label className={labelClass}>{t.whatsapp}</label>
           <input name="whatsapp" type="tel" defaultValue={anunciante.whatsapp ?? ''}
-            placeholder="+34 600 000 000" className={inputClass} style={inputStyle} />
+            placeholder={t.telWhatsPlaceholder} className={inputClass} style={inputStyle} />
         </div>
       </div>
 
       {/* Dirección */}
       <div>
-        <label className={labelClass}>Dirección</label>
+        <label className={labelClass}>{t.direccion}</label>
         <input name="direccion" type="text" defaultValue={anunciante.direccion ?? ''}
-          placeholder="Calle Ejemplo 1, Estepona, Málaga"
+          placeholder={t.direccionPlaceholder}
           className={inputClass} style={inputStyle} />
-        <p className="text-xs text-(--ink)/40 mt-1">Se mostrará con un enlace a Google Maps en tu ficha.</p>
+        <p className="text-xs text-(--ink)/40 mt-1">{t.direccionNota}</p>
       </div>
 
       {status && (
@@ -117,15 +121,15 @@ export function FichaAnuncianteForm({ anunciante, action }: Props) {
       )}
 
       <div className="flex gap-3 pt-2">
-        <button type="button" onClick={() => router.push('/anunciante')}
+        <button type="button" onClick={() => router.push(localePath(locale, '/anunciante'))}
           className="px-5 py-2.5 rounded-lg text-sm font-medium border transition-opacity hover:opacity-70"
           style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}>
-          ← Volver
+          {t.volver}
         </button>
         <button type="submit" disabled={loading}
           className="flex-1 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-60"
           style={{ background: 'var(--green)', color: 'var(--bone)' }}>
-          {loading ? 'Guardando...' : 'Guardar cambios'}
+          {loading ? t.guardando : t.guardar}
         </button>
       </div>
     </form>
