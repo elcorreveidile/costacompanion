@@ -24,6 +24,9 @@ const ROLE_ROUTES: Record<string, string> = {
 };
 
 export default {
+  // Confía en el host de la petición (necesario en previews *.vercel.app y en
+  // dominios propios) para construir bien la URL de callback del enlace mágico.
+  trustHost: true,
   pages: { signIn: "/auth/login" },
   providers: [], // se rellenan en auth.ts (Node)
   callbacks: {
