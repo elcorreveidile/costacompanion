@@ -1,7 +1,14 @@
 import { sendMail, MAIL_FROM } from '@/lib/mailer';
+import { isLocale, type Locale } from '@/lib/i18n/config';
+import * as S from '@/lib/email/emailStrings';
 
 const FROM = MAIL_FROM;
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://costacompanion.com';
+
+/** Idioma del destinatario, con fallback a español. */
+function loc(idioma?: string): Locale {
+  return isLocale(idioma) ? idioma : 'es';
+}
 
 function html(body: string) {
   return `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a2e25">
@@ -29,20 +36,25 @@ function btn(label: string, href: string) {
  * A diferencia del resto, NO captura el error: si el envío falla, Auth.js debe
  * enterarse para mostrar el aviso al usuario.
  */
-export async function emailMagicLink(opts: { to: string; url: string }) {
+export async function emailMagicLink(opts: {
+  to: string;
+  url: string;
+  idioma?: string;
+}) {
+  const t = S.magicLink[loc(opts.idioma)];
   await sendMail({
     from: FROM,
     to: [opts.to],
-    subject: 'Tu acceso a Costa Companion',
+    subject: t.subject,
     html: html(`
-      <h2 style="margin:0 0 14px;font-size:20px">Tu enlace de acceso</h2>
-      <p>Pulsa el botón para entrar en tu cuenta de Costa Companion.</p>
-      <p style="color:#555;font-size:13px">Por seguridad, el enlace caduca en unos minutos y solo puede usarse una vez.</p>
-      ${btn('Iniciar sesión', opts.url)}
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro}</p>
+      <p style="color:#555;font-size:13px">${t.security}</p>
+      ${btn(t.button, opts.url)}
       <p style="color:#888;font-size:12px;word-break:break-all;margin-top:18px">
-        ¿No funciona el botón? Copia y pega este enlace en tu navegador:<br>${opts.url}
+        ${t.fallback}<br>${opts.url}
       </p>
-      <p style="color:#999;font-size:12px;margin-top:14px">Si no has solicitado acceder, ignora este correo.</p>
+      <p style="color:#999;font-size:12px;margin-top:14px">${t.ignore}</p>
     `),
   });
 }
@@ -55,19 +67,21 @@ export async function emailNuevaReserva(opts: {
   acompananteNombre: string;
   fechaStr: string;
   servicioNombre?: string;
+  idioma?: string;            // idioma del acompañante
 }) {
+  const t = S.nuevaReserva[loc(opts.idioma)];
   await sendMail({
     from: FROM,
     to: [opts.toEmail],
-    subject: `Nueva reserva recibida — ${opts.acompananteNombre}`,
+    subject: t.subject({ acompananteNombre: opts.acompananteNombre }),
     html: html(`
-      <h2 style="margin:0 0 14px;font-size:20px">Nueva reserva</h2>
-      <p><strong>${opts.clienteNombre}</strong> ha solicitado una cita contigo.</p>
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre })}</p>
       <ul style="padding-left:18px;line-height:1.8">
-        ${opts.servicioNombre ? `<li><strong>Servicio:</strong> ${opts.servicioNombre}</li>` : ''}
-        <li><strong>Fecha:</strong> ${opts.fechaStr}</li>
+        ${opts.servicioNombre ? `<li><strong>${t.labelServicio}</strong> ${opts.servicioNombre}</li>` : ''}
+        <li><strong>${t.labelFecha}</strong> ${opts.fechaStr}</li>
       </ul>
-      ${btn('Ver mis reservas', `${SITE}/acompanante/reservas`)}
+      ${btn(t.button, `${SITE}/acompanante/reservas`)}
     `),
   }).catch(console.error);
 }
@@ -78,19 +92,21 @@ export async function emailReservaConfirmada(opts: {
   acompananteNombre: string;
   acompananteSlug: string;
   fechaStr: string;
+  idioma?: string;            // idioma del cliente
 }) {
+  const t = S.reservaConfirmada[loc(opts.idioma)];
   await sendMail({
     from: FROM,
     to: [opts.toEmail],
-    subject: `Reserva confirmada con ${opts.acompananteNombre}`,
+    subject: t.subject({ acompananteNombre: opts.acompananteNombre }),
     html: html(`
-      <h2 style="margin:0 0 14px;font-size:20px">¡Reserva confirmada!</h2>
-      <p>Hola ${opts.clienteNombre}, <strong>${opts.acompananteNombre}</strong> ha confirmado tu cita.</p>
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre, acompananteNombre: opts.acompananteNombre })}</p>
       <ul style="padding-left:18px;line-height:1.8">
-        <li><strong>Fecha:</strong> ${opts.fechaStr}</li>
+        <li><strong>${t.labelFecha}</strong> ${opts.fechaStr}</li>
       </ul>
-      <p style="color:#555;font-size:13px">Puedes contactar directamente con el acompañante desde su perfil si necesitas coordinar algo.</p>
-      ${btn('Ver mis reservas', `${SITE}/cliente/reservas`)}
+      <p style="color:#555;font-size:13px">${t.note}</p>
+      ${btn(t.button, `${SITE}/cliente/reservas`)}
     `),
   }).catch(console.error);
 }
@@ -101,16 +117,18 @@ export async function emailReservaRechazada(opts: {
   acompananteNombre: string;
   acompananteSlug: string;
   fechaStr: string;
+  idioma?: string;            // idioma del cliente
 }) {
+  const t = S.reservaRechazada[loc(opts.idioma)];
   await sendMail({
     from: FROM,
     to: [opts.toEmail],
-    subject: `Reserva no disponible — ${opts.acompananteNombre}`,
+    subject: t.subject({ acompananteNombre: opts.acompananteNombre }),
     html: html(`
-      <h2 style="margin:0 0 14px;font-size:20px">Reserva no disponible</h2>
-      <p>Hola ${opts.clienteNombre}, lamentablemente <strong>${opts.acompananteNombre}</strong> no puede atenderte en esa franja (${opts.fechaStr}).</p>
-      <p style="color:#555;font-size:13px">Te animamos a ver otros horarios disponibles o explorar más acompañantes en el directorio.</p>
-      ${btn('Ver directorio', `${SITE}/directorio`)}
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre, acompananteNombre: opts.acompananteNombre, fechaStr: opts.fechaStr })}</p>
+      <p style="color:#555;font-size:13px">${t.note}</p>
+      ${btn(t.button, `${SITE}/directorio`)}
     `),
   }).catch(console.error);
 }
@@ -122,18 +140,20 @@ export async function emailNuevaSolicitud(opts: {
   clienteNombre: string;
   acompananteNombre: string;
   descripcion: string;
+  idioma?: string;            // idioma del acompañante
 }) {
+  const t = S.nuevaSolicitud[loc(opts.idioma)];
   await sendMail({
     from: FROM,
     to: [opts.toEmail],
-    subject: `Nueva solicitud a medida — ${opts.acompananteNombre}`,
+    subject: t.subject({ acompananteNombre: opts.acompananteNombre }),
     html: html(`
-      <h2 style="margin:0 0 14px;font-size:20px">Nueva solicitud a medida</h2>
-      <p><strong>${opts.clienteNombre}</strong> te ha enviado una solicitud:</p>
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre })}</p>
       <div style="margin:12px 0;padding:14px 16px;background:#fff;border-radius:8px;border-left:4px solid #2C4A3B;font-size:14px;color:#333;line-height:1.6">
         ${opts.descripcion}
       </div>
-      ${btn('Ver solicitudes', `${SITE}/acompanante/solicitudes`)}
+      ${btn(t.button, `${SITE}/acompanante/solicitudes`)}
     `),
   }).catch(console.error);
 }
@@ -144,17 +164,19 @@ export async function emailSolicitudAceptada(opts: {
   acompananteNombre: string;
   acompananteSlug: string;
   precio?: number | null;
+  idioma?: string;            // idioma del cliente
 }) {
+  const t = S.solicitudAceptada[loc(opts.idioma)];
   await sendMail({
     from: FROM,
     to: [opts.toEmail],
-    subject: `Tu solicitud fue aceptada — ${opts.acompananteNombre}`,
+    subject: t.subject({ acompananteNombre: opts.acompananteNombre }),
     html: html(`
-      <h2 style="margin:0 0 14px;font-size:20px">¡Solicitud aceptada!</h2>
-      <p>Hola ${opts.clienteNombre}, <strong>${opts.acompananteNombre}</strong> ha aceptado tu solicitud.</p>
-      ${opts.precio != null ? `<p style="font-size:18px;font-weight:600;color:#2C4A3B">Precio propuesto: ${opts.precio}€</p>` : ''}
-      <p style="color:#555;font-size:13px">Puedes contactar al acompañante desde su perfil para coordinar los detalles.</p>
-      ${btn('Ver solicitudes', `${SITE}/cliente/solicitudes`)}
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre, acompananteNombre: opts.acompananteNombre })}</p>
+      ${opts.precio != null ? `<p style="font-size:18px;font-weight:600;color:#2C4A3B">${t.precio({ precio: opts.precio })}</p>` : ''}
+      <p style="color:#555;font-size:13px">${t.note}</p>
+      ${btn(t.button, `${SITE}/cliente/solicitudes`)}
     `),
   }).catch(console.error);
 }
@@ -163,16 +185,18 @@ export async function emailSolicitudRechazada(opts: {
   toEmail: string;
   clienteNombre: string;
   acompananteNombre: string;
+  idioma?: string;            // idioma del cliente
 }) {
+  const t = S.solicitudRechazada[loc(opts.idioma)];
   await sendMail({
     from: FROM,
     to: [opts.toEmail],
-    subject: `Solicitud no disponible — ${opts.acompananteNombre}`,
+    subject: t.subject({ acompananteNombre: opts.acompananteNombre }),
     html: html(`
-      <h2 style="margin:0 0 14px;font-size:20px">Solicitud no disponible</h2>
-      <p>Hola ${opts.clienteNombre}, <strong>${opts.acompananteNombre}</strong> no puede atender tu solicitud en este momento.</p>
-      <p style="color:#555;font-size:13px">Puedes explorar otros acompañantes en el directorio o enviar una nueva solicitud.</p>
-      ${btn('Ver directorio', `${SITE}/directorio`)}
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre, acompananteNombre: opts.acompananteNombre })}</p>
+      <p style="color:#555;font-size:13px">${t.note}</p>
+      ${btn(t.button, `${SITE}/directorio`)}
     `),
   }).catch(console.error);
 }
@@ -183,50 +207,22 @@ export async function notificarNuevoMensaje(opts: {
   receptorEmail: string;
   receptorNombre: string;
   emisorNombre: string;
-  idioma: string; // es, en, fr, de, nl
+  idioma?: string; // es, en, fr, de, nl, ru, uk
 }) {
-  const textos: Record<string, { titulo: string; mensaje: string; boton: string }> = {
-    es: {
-      titulo: 'Nuevo mensaje recibido',
-      mensaje: `Tienes un nuevo mensaje de <strong>${opts.emisorNombre}</strong> en Costa Companion.`,
-      boton: 'Ver mensaje',
-    },
-    en: {
-      titulo: 'New message received',
-      mensaje: `You have a new message from <strong>${opts.emisorNombre}</strong> on Costa Companion.`,
-      boton: 'View message',
-    },
-    fr: {
-      titulo: 'Nouveau message reçu',
-      mensaje: `Vous avez un nouveau message de <strong>${opts.emisorNombre}</strong> sur Costa Companion.`,
-      boton: 'Voir le message',
-    },
-    de: {
-      titulo: 'Neue Nachricht erhalten',
-      mensaje: `Sie haben eine neue Nachricht von <strong>${opts.emisorNombre}</strong> auf Costa Companion.`,
-      boton: 'Nachricht anzeigen',
-    },
-    nl: {
-      titulo: 'Nieuw bericht ontvangen',
-      mensaje: `U heeft een nieuw bericht van <strong>${opts.emisorNombre}</strong> op Costa Companion.`,
-      boton: 'Bericht bekijken',
-    },
-  };
+  const t = S.nuevoMensaje[loc(opts.idioma)];
 
-  const txt = textos[opts.idioma] || textos.es;
-
-  // Determinar la URL del chat según el idioma del receptor
+  // La URL del chat es siempre la de la plataforma; ambos roles llegan aquí.
   const chatUrl = `${SITE}/cliente/mensajes`;
 
   await sendMail({
     from: FROM,
     to: [opts.receptorEmail],
-    subject: txt.titulo,
+    subject: t.subject,
     html: html(`
-      <h2 style="margin:0 0 14px;font-size:20px">${txt.titulo}</h2>
-      <p>Hola ${opts.receptorNombre}, ${txt.mensaje}</p>
-      <p style="color:#555;font-size:13px">Accede a la plataforma para leerlo y responder.</p>
-      ${btn(txt.boton, chatUrl)}
+      <h2 style="margin:0 0 14px;font-size:20px">${t.subject}</h2>
+      <p>${t.intro({ receptorNombre: opts.receptorNombre, emisorNombre: opts.emisorNombre })}</p>
+      <p style="color:#555;font-size:13px">${t.note}</p>
+      ${btn(t.button, chatUrl)}
     `),
   }).catch(console.error);
 }

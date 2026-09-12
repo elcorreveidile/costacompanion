@@ -17,13 +17,21 @@ type Modalidad = "presencial" | "remoto" | "ambos";
 
 async function getClienteContacto(
   userId: string
-): Promise<{ email: string | null; nombre: string | null }> {
+): Promise<{ email: string | null; nombre: string | null; idioma: string | null }> {
   const [p] = await db
-    .select({ email: profiles.email, nombre: profiles.nombre })
+    .select({
+      email: profiles.email,
+      nombre: profiles.nombre,
+      idioma: profiles.idiomaPreferido,
+    })
     .from(profiles)
     .where(eq(profiles.id, userId))
     .limit(1);
-  return { email: p?.email ?? null, nombre: p?.nombre ?? null };
+  return {
+    email: p?.email ?? null,
+    nombre: p?.nombre ?? null,
+    idioma: p?.idioma ?? null,
+  };
 }
 
 export async function crearSolicitud(formData: FormData): Promise<void> {
@@ -52,8 +60,10 @@ export async function crearSolicitud(formData: FormData): Promise<void> {
     .select({
       nombrePublico: acompanantes.nombrePublico,
       emailContacto: acompanantes.emailContacto,
+      idioma: profiles.idiomaPreferido,
     })
     .from(acompanantes)
+    .leftJoin(profiles, eq(profiles.id, acompanantes.profileId))
     .where(eq(acompanantes.id, acompananteId))
     .limit(1);
 
@@ -64,6 +74,7 @@ export async function crearSolicitud(formData: FormData): Promise<void> {
       clienteNombre: cliente.nombre ?? user.email ?? "Un cliente",
       acompananteNombre: acomp.nombrePublico,
       descripcion,
+      idioma: acomp.idioma ?? undefined,
     });
   }
 
@@ -113,6 +124,7 @@ export async function aceptarSolicitud(formData: FormData): Promise<void> {
         acompananteNombre: acomp.nombrePublico,
         acompananteSlug: acomp.slug,
         precio: precioPropuesto,
+        idioma: cliente.idioma ?? undefined,
       });
     }
   }
@@ -155,6 +167,7 @@ export async function rechazarSolicitud(formData: FormData): Promise<void> {
         toEmail: cliente.email,
         clienteNombre: cliente.nombre ?? "Cliente",
         acompananteNombre: acomp.nombrePublico,
+        idioma: cliente.idioma ?? undefined,
       });
     }
   }
