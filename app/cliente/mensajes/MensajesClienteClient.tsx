@@ -4,6 +4,8 @@
 import { useEffect, useState, useOptimistic, useCallback } from 'react';
 import { enviarMensaje, marcarMensajesLeidos } from '@/lib/mensajes/actions';
 import Link from 'next/link';
+import type { Dictionary } from '@/lib/i18n/dictionaries/es';
+import { localePath, type Locale } from '@/lib/i18n/config';
 
 interface Mensaje {
   id: string;
@@ -30,7 +32,14 @@ interface Conversacion {
   mensajes: Mensaje[];
 }
 
-export default function ClienteMensajesPage({ userId }: { userId: string }) {
+interface Props {
+  userId: string;
+  t: Dictionary['panelCliente']['mensajes'];
+  volverAlPanel: string;
+  locale: Locale;
+}
+
+export default function ClienteMensajesPage({ userId, t, volverAlPanel, locale }: Props) {
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
   const [conversacionActiva, setConversacionActiva] = useState<Conversacion | null>(null);
   const [textoMensaje, setTextoMensaje] = useState('');
@@ -47,11 +56,11 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
       setConversaciones(data);
     } catch (err) {
       console.error('Error:', err);
-      setError('Error cargando conversaciones');
+      setError(t.errorCargar);
     } finally {
       setCargando(false);
     }
-  }, []);
+  }, [t]);
 
   // Carga inicial
   useEffect(() => {
@@ -125,7 +134,7 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
         setConversacionActiva((prev) => ({ ...prev!, mensajes }));
       }
     } catch (err) {
-      setError('Error enviando mensaje');
+      setError(t.errorEnviar);
     } finally {
       setEnviando(false);
     }
@@ -148,7 +157,7 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
   if (cargando) {
     return (
       <div className="min-h-screen bg-(--bone) flex items-center justify-center">
-        <p className="text-(--ink)/50">Cargando mensajes...</p>
+        <p className="text-(--ink)/50">{t.cargando}</p>
       </div>
     );
   }
@@ -159,19 +168,19 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
         {/* Encabezado */}
         <div className="mb-8">
           <Link
-            href="/cliente"
+            href={localePath(locale, "/cliente")}
             className="inline-flex items-center gap-1.5 text-sm text-(--ink)/60 hover:opacity-80 transition-opacity mb-4"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Volver al panel
+            {volverAlPanel}
           </Link>
           <h1 className="font-display text-3xl font-semibold text-(--green) mb-2">
-            Mis mensajes
+            {t.h1}
           </h1>
           <p className="text-(--ink)/60">
-            {conversaciones.length} conversación{conversaciones.length !== 1 ? 'es' : ''}
+            {conversaciones.length} {conversaciones.length === 1 ? t.conversacionSingular : t.conversacionPlural}
           </p>
         </div>
 
@@ -180,9 +189,9 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
             className="rounded-xl border p-10 text-center"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
-            <p className="text-(--ink)/40 text-lg">No tienes conversaciones todavía</p>
+            <p className="text-(--ink)/40 text-lg">{t.vacioTitulo}</p>
             <p className="text-(--ink)/30 text-sm mt-2">
-              Cuando reserves un servicio o contactes con un acompañante, los mensajes aparecerán aquí.
+              {t.vacioTexto}
             </p>
           </div>
         ) : (
@@ -193,7 +202,7 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
               style={{ borderColor: 'var(--line)' }}
             >
               <div className="p-4 border-b" style={{ borderColor: 'var(--line)' }}>
-                <h2 className="font-medium text-(--ink)">Conversaciones</h2>
+                <h2 className="font-medium text-(--ink)">{t.listaTitulo}</h2>
               </div>
               <div className="divide-y" style={{ borderColor: 'var(--line)' }}>
                 {conversaciones.map((conv) => (
@@ -239,7 +248,7 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
                           {conv.ultimoMensaje}
                         </p>
                         <p className="text-xs text-(--ink)/30 mt-1">
-                          {new Date(conv.ultimoMensajeFecha).toLocaleDateString('es-ES', {
+                          {new Date(conv.ultimoMensajeFecha).toLocaleDateString(locale, {
                             day: 'numeric',
                             month: 'short',
                           })}
@@ -280,10 +289,10 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
                       </p>
                       {conversacionActiva.acompanante && (
                         <Link
-                          href={`/${conversacionActiva.acompanante.slug}`}
+                          href={localePath(locale, `/${conversacionActiva.acompanante.slug}`)}
                           className="text-xs text-(--green) hover:opacity-70"
                         >
-                          Ver perfil
+                          {t.verPerfil}
                         </Link>
                       )}
                     </div>
@@ -293,8 +302,8 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {conversacionActiva.mensajes.length === 0 ? (
                       <div className="text-center text-(--ink)/40 py-8">
-                        <p>Esta conversación está vacía</p>
-                        <p className="text-sm mt-1">Envía el primer mensaje</p>
+                        <p>{t.conversacionVacia}</p>
+                        <p className="text-sm mt-1">{t.enviaPrimero}</p>
                       </div>
                     ) : (
                       conversacionActiva.mensajes.map((msg) => {
@@ -320,7 +329,7 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
                                   esMio ? 'text-(--bone)/60' : 'text-(--ink)/40'
                                 }`}
                               >
-                                {new Date(msg.created_at).toLocaleTimeString('es-ES', {
+                                {new Date(msg.created_at).toLocaleTimeString(locale, {
                                   hour: '2-digit',
                                   minute: '2-digit',
                                 })}
@@ -347,7 +356,7 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
                         type="text"
                         value={textoMensaje}
                         onChange={(e) => setTextoMensaje(e.target.value)}
-                        placeholder="Escribe un mensaje..."
+                        placeholder={t.placeholder}
                         className="flex-1 px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-2"
                         style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
                       />
@@ -357,7 +366,7 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
                         className="px-5 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
                         style={{ background: 'var(--green)', color: 'var(--bone)' }}
                       >
-                        {enviando ? 'Enviando...' : 'Enviar'}
+                        {enviando ? t.enviando : t.enviar}
                       </button>
                     </div>
                   </form>
@@ -369,7 +378,7 @@ export default function ClienteMensajesPage({ userId }: { userId: string }) {
                   className="rounded-xl border p-10 text-center"
                   style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
                 >
-                  <p className="text-(--ink)/40">Selecciona una conversación para ver los mensajes</p>
+                  <p className="text-(--ink)/40">{t.seleccionaConversacion}</p>
                 </div>
               </div>
             )}
