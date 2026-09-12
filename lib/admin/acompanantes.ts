@@ -1,121 +1,129 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { createAdminClient } from '@/lib/supabase/admin';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { revalidatePath } from "next/cache";
+import { and, eq, ne } from "drizzle-orm";
+import bcrypt from "bcryptjs";
+import { db } from "@/lib/db";
+import { profiles, acompanantes } from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
 
-// Usamos SupabaseClient sin genérico para operaciones DML con JSONB y arrays
-type RawClient = SupabaseClient;
+type Modalidad = "presencial" | "remoto" | "ambos";
 
-// ── Helpers de slug ───────────────────────────────────────────────────────────
+export interface AltaResult {
+  error?: string;
+  numeroUsuario?: string;
+  pin?: string;
+}
+
+async function requireSuperadmin(): Promise<{ ok: boolean }> {
+  const user = await getSessionUser();
+  return { ok: user?.rol === "superadmin" };
+}
+
+// ── Helpers de slug / credenciales ────────────────────────────────────────────
 
 function generarSlug(nombre: string): string {
   return nombre
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '') // quita diacríticos
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, '') // quita caracteres no alfanuméricos excepto espacios
+    .replace(/[^a-z0-9\s]/g, "")
     .trim()
-    .replace(/\s+/g, '-') // espacios → guiones
-    .replace(/-{2,}/g, '-'); // guiones dobles → uno
+    .replace(/\s+/g, "-")
+    .replace(/-{2,}/g, "-");
 }
 
-async function ensureUniqueSlug(
-  admin: RawClient,
-  baseSlug: string,
-  excludeId?: string
-): Promise<string> {
-  let slug = baseSlug;
+async function ensureUniqueSlug(baseSlug: string): Promise<string> {
+  let slug = baseSlug || "acompanante";
   let counter = 2;
-
   while (true) {
-    let query = admin
-      .from('acompanantes')
-      .select('id')
-      .eq('slug', slug);
-
-    if (excludeId) {
-      query = query.neq('id', excludeId);
-    }
-
-    const { data } = await query.maybeSingle();
-
-    if (!data) return slug;
-
+    const [row] = await db
+      .select({ id: acompanantes.id })
+      .from(acompanantes)
+      .where(eq(acompanantes.slug, slug))
+      .limit(1);
+    if (!row) return slug;
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
 }
 
+function pin6(): string {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+async function numeroUnico(): Promise<string> {
+  for (let i = 0; i < 30; i++) {
+    const n = pin6();
+    const [row] = await db
+      .select({ id: profiles.id })
+      .from(profiles)
+      .where(eq(profiles.numeroUsuario, n))
+      .limit(1);
+    if (!row) return n;
+  }
+  throw new Error("No se pudo generar un número de usuario único.");
+}
+
 // ── Server Actions ────────────────────────────────────────────────────────────
 
-export async function crearAcompanante(
-  formData: FormData
-): Promise<{ error?: string }> {
-  const admin = createAdminClient() as RawClient;
+export async function crearAcompanante(formData: FormData): Promise<AltaResult> {
+  if (!(await requireSuperadmin()).ok) return { error: "No autorizado." };
 
-  const email = (formData.get('email') as string | null)?.trim();
-  const nombre_publico = (formData.get('nombre_publico') as string | null)?.trim();
-  const slugInput = (formData.get('slug') as string | null)?.trim();
+  const email = (formData.get("email") as string | null)?.trim().toLowerCase();
+  const nombrePublico = (formData.get("nombre_publico") as string | null)?.trim();
+  const slugInput = (formData.get("slug") as string | null)?.trim();
 
-  if (!email || !nombre_publico) {
-    return { error: 'Email y nombre son obligatorios.' };
+  if (!email || !nombrePublico) {
+    return { error: "Email y nombre son obligatorios." };
   }
 
   try {
-    // 1. Crear usuario en Auth (el trigger SQL crea el profile automáticamente con rol='cliente')
-    const { data: authData, error: authError } = await (createAdminClient()).auth.admin.createUser({
-      email,
-      email_confirm: true,
-    });
-
-    if (authError || !authData?.user) {
-      return { error: authError?.message ?? 'Error creando usuario en Auth.' };
+    const [existing] = await db
+      .select({ id: profiles.id })
+      .from(profiles)
+      .where(eq(profiles.email, email))
+      .limit(1);
+    if (existing) {
+      return {
+        error:
+          'Ya existe un usuario con ese email. Usa "asignar acompañante existente".',
+      };
     }
 
-    const userId = authData.user.id;
+    const numero = await numeroUnico();
+    const pin = pin6();
+    const pinHash = await bcrypt.hash(pin, 10);
 
-    // 2. Upsert del profile con rol='acompanante'.
-    // Usamos upsert porque el trigger on_auth_user_created puede no haber
-    // terminado aún cuando llegamos aquí (race condition con la API de Auth).
-    // Si el profile ya existe: actualiza rol y nombre.
-    // Si no existe todavía: lo crea con el rol correcto (el trigger luego
-    // hace ON CONFLICT DO NOTHING, así que no lo sobreescribe).
-    const { error: profileError } = await admin
-      .from('profiles')
-      .upsert(
-        { id: userId, rol: 'acompanante', nombre: nombre_publico, idioma_preferido: 'es' },
-        { onConflict: 'id' }
-      );
+    const [prof] = await db
+      .insert(profiles)
+      .values({
+        rol: "acompanante",
+        nombre: nombrePublico,
+        name: nombrePublico,
+        email,
+        emailVerified: new Date(),
+        idiomaPreferido: "es",
+        numeroUsuario: numero,
+        pinHash,
+      })
+      .returning({ id: profiles.id });
 
-    if (profileError) {
-      return { error: profileError.message };
-    }
+    const baseSlug = generarSlug(slugInput || nombrePublico);
+    const slug = await ensureUniqueSlug(baseSlug);
 
-    // 3. Generar slug único
-    const baseSlug = slugInput ? generarSlug(slugInput) : generarSlug(nombre_publico);
-    const slug = await ensureUniqueSlug(admin, baseSlug);
-
-    // 4. Insertar en acompanantes
-    const { error: insertError } = await admin.from('acompanantes').insert({
-      profile_id: userId,
+    await db.insert(acompanantes).values({
+      profileId: prof.id,
       slug,
-      nombre_publico,
-      email_contacto: email,
-      idiomas: [],
-      zonas: [],
-      modalidades: [],
+      nombrePublico,
+      emailContacto: email,
     });
 
-    if (insertError) {
-      return { error: insertError.message };
-    }
-
-    revalidatePath('/admin/acompanantes');
-    return {};
+    revalidatePath("/admin/acompanantes");
+    return { numeroUsuario: numero, pin };
   } catch (err) {
-    console.error('crearAcompanante error:', err);
-    return { error: 'Error inesperado al crear el acompañante.' };
+    console.error("crearAcompanante:", err);
+    return { error: "Error inesperado al crear el acompañante." };
   }
 }
 
@@ -123,161 +131,160 @@ export async function actualizarAcompanante(
   id: string,
   formData: FormData
 ): Promise<{ error?: string }> {
-  const admin = createAdminClient() as RawClient;
+  if (!(await requireSuperadmin()).ok) return { error: "No autorizado." };
 
   try {
-    // Leer slug actual para revalidar el microsite
-    const { data: current } = await admin
-      .from('acompanantes')
-      .select('slug')
-      .eq('id', id)
-      .single() as { data: { slug: string } | null; error: null };
+    const [current] = await db
+      .select({ slug: acompanantes.slug })
+      .from(acompanantes)
+      .where(eq(acompanantes.id, id))
+      .limit(1);
 
-    const idiomas = (formData.getAll('idiomas') as string[]).filter(Boolean);
-    const zonas = (formData.getAll('zonas') as string[]).filter(Boolean);
-    const modalidades = (formData.getAll('modalidades') as string[]).filter(Boolean);
+    const idiomas = (formData.getAll("idiomas") as string[]).filter(Boolean);
+    const zonas = (formData.getAll("zonas") as string[]).filter(Boolean);
+    const modalidades = (formData.getAll("modalidades") as string[]).filter(
+      Boolean
+    ) as Modalidad[];
 
     const bio = {
-      es: (formData.get('bio_es') as string | null) ?? '',
-      en: (formData.get('bio_en') as string | null) ?? '',
+      es: (formData.get("bio_es") as string | null) ?? "",
+      en: (formData.get("bio_en") as string | null) ?? "",
     };
+    const aniosRaw = formData.get("anios_experiencia");
+    const aniosExperiencia = aniosRaw ? Number(aniosRaw) || null : null;
 
-    const anios_raw = formData.get('anios_experiencia');
-    const anios_experiencia = anios_raw ? (Number(anios_raw) || null) : null;
-
-    const { error } = await admin
-      .from('acompanantes')
-      .update({
-        nombre_publico: (formData.get('nombre_publico') as string | null) ?? '',
-        foto_url: (formData.get('foto_url') as string | null) || null,
+    await db
+      .update(acompanantes)
+      .set({
+        nombrePublico: (formData.get("nombre_publico") as string | null) ?? "",
+        fotoUrl: (formData.get("foto_url") as string | null) || null,
         bio,
         idiomas,
         zonas,
         modalidades,
-        email_contacto: (formData.get('email_contacto') as string | null) || null,
-        whatsapp: (formData.get('whatsapp') as string | null) || null,
-        titulacion: (formData.get('titulacion') as string | null) || null,
-        interprete_jurado: formData.get('interprete_jurado') === 'on',
-        anios_experiencia,
-        imparte_clases: formData.get('imparte_clases') === 'on',
-        activo: formData.get('activo') === 'on',
-        destacado: formData.get('destacado') === 'on',
+        emailContacto: (formData.get("email_contacto") as string | null) || null,
+        whatsapp: (formData.get("whatsapp") as string | null) || null,
+        titulacion: (formData.get("titulacion") as string | null) || null,
+        interpreteJurado: formData.get("interprete_jurado") === "on",
+        aniosExperiencia,
+        imparteClases: formData.get("imparte_clases") === "on",
+        activo: formData.get("activo") === "on",
+        destacado: formData.get("destacado") === "on",
       })
-      .eq('id', id);
+      .where(eq(acompanantes.id, id));
 
-    if (error) {
-      return { error: error.message };
-    }
-
-    revalidatePath('/admin/acompanantes');
+    revalidatePath("/admin/acompanantes");
     revalidatePath(`/admin/acompanantes/${id}`);
-    if (current?.slug) {
-      revalidatePath(`/${current.slug}`);
-    }
-
+    if (current?.slug) revalidatePath(`/${current.slug}`);
     return {};
   } catch (err) {
-    console.error('actualizarAcompanante error:', err);
-    return { error: 'Error inesperado al actualizar el acompañante.' };
+    console.error("actualizarAcompanante:", err);
+    return { error: "Error inesperado al actualizar el acompañante." };
   }
 }
 
-export async function toggleActivo(
-  id: string,
-  activo: boolean
-): Promise<void> {
-  const admin = createAdminClient() as RawClient;
-
-  await admin.from('acompanantes').update({ activo }).eq('id', id);
-
-  revalidatePath('/admin/acompanantes');
-  revalidatePath('/directorio');
+export async function toggleActivo(id: string, activo: boolean): Promise<void> {
+  if (!(await requireSuperadmin()).ok) return;
+  await db.update(acompanantes).set({ activo }).where(eq(acompanantes.id, id));
+  revalidatePath("/admin/acompanantes");
+  revalidatePath("/directorio");
 }
 
 export async function toggleDestacado(
   id: string,
   destacado: boolean
 ): Promise<void> {
-  const admin = createAdminClient() as RawClient;
+  if (!(await requireSuperadmin()).ok) return;
+  await db.update(acompanantes).set({ destacado }).where(eq(acompanantes.id, id));
+  revalidatePath("/admin/acompanantes");
+}
 
-  await admin.from('acompanantes').update({ destacado }).eq('id', id);
-
-  revalidatePath('/admin/acompanantes');
+/** Reinicia el PIN de un acompañante (genera uno nuevo) y lo devuelve. */
+export async function resetPinAcompanante(profileId: string): Promise<AltaResult> {
+  if (!(await requireSuperadmin()).ok) return { error: "No autorizado." };
+  const pin = pin6();
+  const pinHash = await bcrypt.hash(pin, 10);
+  const [prof] = await db
+    .select({ numeroUsuario: profiles.numeroUsuario })
+    .from(profiles)
+    .where(eq(profiles.id, profileId))
+    .limit(1);
+  let numero = prof?.numeroUsuario ?? null;
+  if (!numero) numero = await numeroUnico();
+  await db
+    .update(profiles)
+    .set({ pinHash, numeroUsuario: numero, pinIntentos: 0, pinBloqueadoHasta: null })
+    .where(eq(profiles.id, profileId));
+  revalidatePath("/admin/acompanantes");
+  return { numeroUsuario: numero, pin };
 }
 
 export async function asignarAcompananteExistente(
   formData: FormData
-): Promise<{ error?: string }> {
-  const admin = createAdminClient() as RawClient;
+): Promise<AltaResult> {
+  if (!(await requireSuperadmin()).ok) return { error: "No autorizado." };
 
-  const email = (formData.get('email') as string | null)?.trim().toLowerCase();
-  const nombre_publico = (formData.get('nombre_publico') as string | null)?.trim();
-  const slugInput = (formData.get('slug') as string | null)?.trim();
+  const email = (formData.get("email") as string | null)?.trim().toLowerCase();
+  const nombrePublico = (formData.get("nombre_publico") as string | null)?.trim();
+  const slugInput = (formData.get("slug") as string | null)?.trim();
 
-  if (!email || !nombre_publico) {
-    return { error: 'Email y nombre son obligatorios.' };
+  if (!email || !nombrePublico) {
+    return { error: "Email y nombre son obligatorios." };
   }
 
   try {
-    // Buscar el usuario por email en Auth
-    const { data: listData, error: listError } = await createAdminClient().auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
+    const [user] = await db
+      .select({
+        id: profiles.id,
+        numeroUsuario: profiles.numeroUsuario,
+        pinHash: profiles.pinHash,
+      })
+      .from(profiles)
+      .where(eq(profiles.email, email))
+      .limit(1);
 
-    if (listError) return { error: listError.message };
-
-    const authUser = listData.users.find(
-      (u) => u.email?.toLowerCase() === email
-    );
-
-    if (!authUser) {
+    if (!user) {
       return { error: `No existe ningún usuario registrado con el email "${email}".` };
     }
 
-    const userId = authUser.id;
-
-    // Comprobar que no tenga ya una ficha de acompañante
-    const { data: existing } = await admin
-      .from('acompanantes')
-      .select('id')
-      .eq('profile_id', userId)
-      .maybeSingle();
-
-    if (existing) {
-      return { error: 'Este usuario ya tiene una ficha de acompañante.' };
+    const [existingFicha] = await db
+      .select({ id: acompanantes.id })
+      .from(acompanantes)
+      .where(eq(acompanantes.profileId, user.id))
+      .limit(1);
+    if (existingFicha) {
+      return { error: "Este usuario ya tiene una ficha de acompañante." };
     }
 
-    // Actualizar rol a 'acompanante'
-    const { error: profileError } = await admin
-      .from('profiles')
-      .upsert(
-        { id: userId, rol: 'acompanante', nombre: nombre_publico, idioma_preferido: 'es' },
-        { onConflict: 'id' }
-      );
+    // Rol acompañante + credenciales de PIN si aún no tiene.
+    let numero = user.numeroUsuario;
+    let pinPlano: string | undefined;
+    let pinHash = user.pinHash;
+    if (!numero) numero = await numeroUnico();
+    if (!pinHash) {
+      pinPlano = pin6();
+      pinHash = await bcrypt.hash(pinPlano, 10);
+    }
 
-    if (profileError) return { error: profileError.message };
+    await db
+      .update(profiles)
+      .set({ rol: "acompanante", nombre: nombrePublico, numeroUsuario: numero, pinHash })
+      .where(eq(profiles.id, user.id));
 
-    // Crear ficha
-    const baseSlug = slugInput ? generarSlug(slugInput) : generarSlug(nombre_publico);
-    const slug = await ensureUniqueSlug(admin, baseSlug);
+    const baseSlug = generarSlug(slugInput || nombrePublico);
+    const slug = await ensureUniqueSlug(baseSlug);
 
-    const { error: insertError } = await admin.from('acompanantes').insert({
-      profile_id: userId,
+    await db.insert(acompanantes).values({
+      profileId: user.id,
       slug,
-      nombre_publico,
-      email_contacto: email,
-      idiomas: [],
-      zonas: [],
-      modalidades: [],
+      nombrePublico,
+      emailContacto: email,
     });
 
-    if (insertError) return { error: insertError.message };
-
-    revalidatePath('/admin/acompanantes');
-    return {};
+    revalidatePath("/admin/acompanantes");
+    return { numeroUsuario: numero ?? undefined, pin: pinPlano };
   } catch (err) {
-    console.error('asignarAcompananteExistente error:', err);
-    return { error: 'Error inesperado al asignar el acompañante.' };
+    console.error("asignarAcompananteExistente:", err);
+    return { error: "Error inesperado al asignar el acompañante." };
   }
 }
