@@ -2,6 +2,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { CategoriaAnunciante } from '@/types/supabase';
 import { listAnunciantesActivos } from '@/lib/db/queries/public';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
+import { pickLang } from '@/lib/i18n/pick';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
@@ -13,13 +16,8 @@ interface PageProps {
   searchParams: Promise<{ categoria?: string; zona?: string }>;
 }
 
-const CATEGORIAS: { value: CategoriaAnunciante; label: string }[] = [
-  { value: 'inmobiliaria', label: 'Inmobiliaria' },
-  { value: 'salud',        label: 'Salud' },
-  { value: 'legal',        label: 'Legal' },
-  { value: 'restauracion', label: 'Restauración' },
-  { value: 'comercio',     label: 'Comercio' },
-  { value: 'otros',        label: 'Otros' },
+const CATEGORIA_VALUES: CategoriaAnunciante[] = [
+  'inmobiliaria', 'salud', 'legal', 'restauracion', 'comercio', 'otros',
 ];
 
 const ZONAS = [
@@ -45,6 +43,12 @@ function zonaOrder(zona: string | null): number {
 
 export default async function LocalPartnersPage({ searchParams }: PageProps) {
   const { categoria, zona } = await searchParams;
+  const { locale, dict } = await getI18n();
+  const t = dict.localPartners;
+  const lp = (href: string) => localePath(locale, href);
+  const catLabel = (c: string) =>
+    (dict.common.categoriasAnunciante as Record<string, string>)[c] ?? c;
+  const CATEGORIAS = CATEGORIA_VALUES.map((value) => ({ value, label: catLabel(value) }));
 
   const lista = (await listAnunciantesActivos({ categoria, zona })).sort((a, b) => {
     const zonaA = zonaOrder(a.zona);
@@ -63,7 +67,7 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
           <p className="text-sm font-medium text-(--terra) mb-2 tracking-wide uppercase">Costa del Sol</p>
           <h1 className="font-display text-4xl font-semibold text-(--green) mb-3">Local Partners</h1>
           <p className="text-(--ink)/60 text-lg max-w-2xl">
-            Negocios locales de confianza para residentes y visitantes internacionales.
+            {t.subtitle}
           </p>
         </div>
 
@@ -71,7 +75,7 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
         <div className="flex flex-wrap gap-3 mb-8">
           {/* Todas las categorías */}
           <Link
-            href={zona ? `/local-partners?zona=${zona}` : '/local-partners'}
+            href={lp(zona ? `/local-partners?zona=${zona}` : '/local-partners')}
             className="px-4 py-2 rounded-full text-sm font-medium transition-opacity hover:opacity-80"
             style={{
               background: !categoria ? 'var(--green)' : 'var(--bone-2)',
@@ -79,13 +83,13 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
               border: `1px solid ${!categoria ? 'var(--green)' : 'var(--line)'}`,
             }}
           >
-            Todos
+            {t.todos}
           </Link>
           {CATEGORIAS.map((c) => {
             const params = new URLSearchParams();
             if (c.value !== categoria) params.set('categoria', c.value);
             if (zona) params.set('zona', zona);
-            const href = `/local-partners${params.toString() ? `?${params}` : ''}`;
+            const href = lp(`/local-partners${params.toString() ? `?${params}` : ''}`);
             const active = categoria === c.value;
             return (
               <Link key={c.value} href={href}
@@ -104,20 +108,20 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
         {/* Filtro por zona */}
         <div className="flex flex-wrap gap-2 mb-10">
           <Link
-            href={categoria ? `/local-partners?categoria=${categoria}` : '/local-partners'}
+            href={lp(categoria ? `/local-partners?categoria=${categoria}` : '/local-partners')}
             className="px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
             style={{
               background: !zona ? 'var(--green)' : 'transparent',
               color: !zona ? 'var(--bone)' : 'var(--ink)/60',
               border: `1px solid ${!zona ? 'var(--green)' : 'var(--line)'}`,
             }}>
-            Toda la Costa del Sol
+            {t.todaCostaDelSol}
           </Link>
           {ZONAS.map((z) => {
             const params = new URLSearchParams();
             if (categoria) params.set('categoria', categoria);
             if (z !== zona) params.set('zona', z);
-            const href = `/local-partners${params.toString() ? `?${params}` : ''}`;
+            const href = lp(`/local-partners${params.toString() ? `?${params}` : ''}`);
             const active = zona === z;
             return (
               <Link key={z} href={href}
@@ -137,22 +141,22 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
         {lista.length === 0 ? (
           <div className="rounded-xl border p-12 text-center" style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}>
             <p className="text-(--ink)/50 text-lg">
-              {categoria || zona ? 'No hay anunciantes con estos filtros.' : 'Próximamente: negocios locales de confianza.'}
+              {categoria || zona ? t.ningunoFiltros : t.ningunoVacio}
             </p>
             {(categoria || zona) && (
-              <Link href="/local-partners" className="mt-4 inline-block text-(--green) font-medium hover:opacity-80 transition-opacity">
-                Ver todos →
+              <Link href={lp('/local-partners')} className="mt-4 inline-block text-(--green) font-medium hover:opacity-80 transition-opacity">
+                {t.verTodos}
               </Link>
             )}
           </div>
         ) : (
           <>
             <p className="text-sm text-(--ink)/50 mb-6">
-              {lista.length} negocio{lista.length !== 1 ? 's' : ''} encontrado{lista.length !== 1 ? 's' : ''}
+              {lista.length} {lista.length !== 1 ? t.negociosVarios : t.negociosUno}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {lista.map((an) => {
-                const desc = (an.descripcion ?? {}) as { es?: string; en?: string };
+                const descText = pickLang(an.descripcion as Record<string, unknown> | null, locale);
                 const whatsappNum = an.whatsapp?.replace(/\D/g, '');
                 return (
                   <div key={an.id}
@@ -163,7 +167,7 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
                       <div className="px-4 pt-3 pb-0">
                         <span className="text-xs font-medium px-2 py-0.5 rounded-full"
                           style={{ background: 'rgba(201,123,74,0.15)', color: 'var(--terra)' }}>
-                          ★ Destacado
+                          {t.destacadoBadge}
                         </span>
                       </div>
                     )}
@@ -190,15 +194,15 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
                         <div>
                           <h2 className="font-display text-base font-semibold text-(--green) leading-tight">{an.nombre_negocio}</h2>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs text-(--ink)/50">{CATEGORIAS.find(c => c.value === an.categoria)?.label}</span>
+                            <span className="text-xs text-(--ink)/50">{catLabel(an.categoria)}</span>
                             {an.zona && <><span className="text-(--ink)/30">·</span><span className="text-xs text-(--ink)/50">{an.zona}</span></>}
                           </div>
                         </div>
                       </div>
 
                       {/* Descripción */}
-                      {desc.es && (
-                        <p className="text-sm text-(--ink)/70 leading-relaxed line-clamp-3">{desc.es}</p>
+                      {descText && (
+                        <p className="text-sm text-(--ink)/70 leading-relaxed line-clamp-3">{descText}</p>
                       )}
 
                       {/* Dirección + mapa */}
@@ -222,10 +226,10 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
 
                       {/* Contacto */}
                       <div className="flex flex-wrap gap-2 mt-auto pt-2">
-                        <Link href={`/local-partners/${an.slug}`}
+                        <Link href={lp(`/local-partners/${an.slug}`)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
                           style={{ background: 'var(--green)', color: 'var(--bone)' }}>
-                          Ver ficha
+                          {t.verFicha}
                         </Link>
                         {whatsappNum && (
                           <a href={`https://wa.me/${whatsappNum}`} target="_blank" rel="noopener noreferrer"
@@ -245,7 +249,7 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
                           <a href={`mailto:${an.email}`}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
                             style={{ background: 'var(--bone)', color: 'var(--ink)', border: '1px solid var(--line)' }}>
-                            Email
+                            {t.email}
                           </a>
                         )}
                         {an.direccion && (
@@ -258,7 +262,7 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
                                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            Ver en mapa
+                            {t.verEnMapa}
                           </a>
                         )}
                       </div>

@@ -1,20 +1,17 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import type { CategoriaAnunciante } from '@/types/supabase';
 import { listAnunciantesDestacados } from '@/lib/db/queries/public';
-
-const CAT_LABEL: Record<CategoriaAnunciante, string> = {
-  inmobiliaria: 'Inmobiliaria',
-  salud:        'Salud',
-  legal:        'Legal',
-  restauracion: 'Restauración',
-  comercio:     'Comercio',
-  otros:        'Otros',
-};
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
+import { pickLang } from '@/lib/i18n/pick';
 
 export async function LocalPartnersDestacados() {
   const lista = await listAnunciantesDestacados(3);
   if (lista.length === 0) return null;
+
+  const { locale, dict } = await getI18n();
+  const catLabel = (c: string) =>
+    (dict.common.categoriasAnunciante as Record<string, string>)[c] ?? c;
 
   return (
     <section className="mt-12 mb-4">
@@ -26,7 +23,7 @@ export async function LocalPartnersDestacados() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {lista.map((an) => {
-          const desc = (an.descripcion ?? {}) as { es?: string };
+          const descText = pickLang(an.descripcion as Record<string, unknown> | null, locale);
           const whatsappNum = an.whatsapp?.replace(/\D/g, '');
           const mapsHref = an.direccion
             ? `https://maps.google.com/?q=${encodeURIComponent(an.direccion)}`
@@ -58,14 +55,14 @@ export async function LocalPartnersDestacados() {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-(--green) truncate">{an.nombre_negocio}</p>
                   <p className="text-xs text-(--ink)/50">
-                    {CAT_LABEL[an.categoria]}{an.zona ? ` · ${an.zona}` : ''}
+                    {catLabel(an.categoria)}{an.zona ? ` · ${an.zona}` : ''}
                   </p>
                 </div>
               </div>
 
               {/* Descripción */}
-              {desc.es && (
-                <p className="text-xs text-(--ink)/60 leading-relaxed line-clamp-2">{desc.es}</p>
+              {descText && (
+                <p className="text-xs text-(--ink)/60 leading-relaxed line-clamp-2">{descText}</p>
               )}
 
               {/* Dirección */}
@@ -86,10 +83,10 @@ export async function LocalPartnersDestacados() {
 
               {/* Botones de acción */}
               <div className="flex gap-2 mt-auto flex-wrap">
-                <Link href={`/local-partners/${an.slug}`}
+                <Link href={localePath(locale, `/local-partners/${an.slug}`)}
                   className="flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-opacity hover:opacity-80"
                   style={{ background: 'var(--green)', color: 'var(--bone)', minWidth: '52px' }}>
-                  Ver ficha
+                  {dict.localPartners.verFicha}
                 </Link>
                 {whatsappNum && (
                   <a href={`https://wa.me/${whatsappNum}`} target="_blank" rel="noopener noreferrer"
@@ -102,7 +99,7 @@ export async function LocalPartnersDestacados() {
                   <a href={mapsHref} target="_blank" rel="noopener noreferrer"
                     className="flex-1 text-center text-xs py-1.5 rounded-lg font-medium transition-opacity hover:opacity-80"
                     style={{ background: 'rgba(66,133,244,0.1)', color: '#2563eb', minWidth: '52px' }}>
-                    Mapa
+                    {dict.localPartners.mapa}
                   </a>
                 )}
               </div>
@@ -112,9 +109,9 @@ export async function LocalPartnersDestacados() {
       </div>
 
       <p className="text-center mt-4">
-        <Link href="/local-partners"
+        <Link href={localePath(locale, '/local-partners')}
           className="text-xs text-(--ink)/50 hover:text-(--ink) transition-colors">
-          Ver todos los Local Partners →
+          {dict.localPartners.verTodosDestacados}
         </Link>
       </p>
     </section>
