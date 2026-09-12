@@ -13,6 +13,7 @@ import {
   verificationTokens,
 } from "@/lib/db/schema";
 import { MAIL_FROM } from "@/lib/mailer";
+import { emailMagicLink } from "@/lib/email";
 
 /**
  * Motor de Auth.js completo (runtime Node): adaptador Drizzle + providers.
@@ -64,6 +65,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
       },
       from: MAIL_FROM,
+      // Correo con la marca Costa Companion (sustituye a la plantilla genérica).
+      async sendVerificationRequest({ identifier, url }) {
+        await emailMagicLink({ to: identifier, url });
+      },
     }),
     // Número de usuario + PIN (solo acompañantes y admin), con bloqueo.
     Credentials({

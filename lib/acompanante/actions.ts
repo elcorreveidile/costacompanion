@@ -275,15 +275,45 @@ export async function eliminarDisponibilidad(
   return {};
 }
 
-// ── Subida de foto de perfil ──────────────────────────────────────────────────
-// Pendiente de migrar a Vercel Blob (Fase 3). De momento deshabilitada para no
-// depender del storage de Supabase.
+// ── Subida de foto de perfil (Vercel Blob) ────────────────────────────────────
+
+const FOTO_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const FOTO_TIPOS = ["image/jpeg", "image/png", "image/webp"];
 
 export async function subirFotoAcompanante(
-  _formData: FormData
+  formData: FormData
 ): Promise<{ url?: string; error?: string }> {
-  return {
-    error:
-      "La subida de foto estará disponible en breve (migración de almacenamiento en curso).",
-  };
+  const acompananteId = await getMiAcompananteId();
+  if (!acompananteId) return { error: "No se encontró tu ficha de acompañante." };
+
+  const file = formData.get("foto");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "No se recibió ninguna imagen." };
+  }
+  if (!FOTO_TIPOS.includes(file.type)) {
+    return { error: "Formato no válido. Usa JPG, PNG o WEBP." };
+  }
+  if (file.size > FOTO_MAX_BYTES) {
+    return { error: "La imagen supera el máximo de 5 MB." };
+  }
+
+  try {
+    const { put } = await import("@vercel/blob");
+    const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const blob = await put(`acompanantes/${acompananteId}/${Date.now()}.${ext}`, file, {
+      access: "public",
+      contentType: file.type,
+    });
+
+    await db
+      .update(acompanantes)
+      .set({ fotoUrl: blob.url })
+      .where(eq(acompanantes.id, acompananteId));
+
+    revalidatePath("/acompanante/ficha");
+    return { url: blob.url };
+  } catch (e) {
+    console.error("subirFotoAcompanante:", e);
+    return { error: "No se pudo subir la imagen. Inténtalo de nuevo." };
+  }
 }
