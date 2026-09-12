@@ -6,13 +6,28 @@ import type { Dictionary } from '@/lib/i18n/dictionaries/es';
 
 type FotoDict = Dictionary['panelAcompanante']['ficha']['foto'];
 
+// Fallback en español para usos sin i18n (p. ej. el panel de admin).
+const FOTO_DEFAULT_ES: FotoDict = {
+  subiendo: 'Subiendo…',
+  cambiar: 'Cambiar foto',
+  subir: 'Subir foto',
+  alt: 'Foto de perfil',
+  ayuda: 'JPG, PNG o WEBP. Máximo 5 MB.',
+};
+
 interface FotoUploadProps {
   initialUrl?: string | null;
   onUrlChange: (url: string) => void;
-  t: FotoDict;
+  t?: FotoDict;
+  /** Acción de subida a usar. Por defecto, la del propio acompañante. */
+  uploadAction?: (fd: FormData) => Promise<{ url?: string; error?: string }>;
+  /** Campos extra a adjuntar al FormData (p. ej. acompanante_id en admin). */
+  extraFields?: Record<string, string>;
 }
 
-export function FotoUpload({ initialUrl, onUrlChange, t }: FotoUploadProps) {
+export function FotoUpload({ initialUrl, onUrlChange, t, uploadAction, extraFields }: FotoUploadProps) {
+  const labels = t ?? FOTO_DEFAULT_ES;
+  const doUpload = uploadAction ?? subirFotoAcompanante;
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(initialUrl ?? null);
@@ -30,7 +45,8 @@ export function FotoUpload({ initialUrl, onUrlChange, t }: FotoUploadProps) {
 
     const fd = new FormData();
     fd.append('foto', file);
-    const result = await subirFotoAcompanante(fd);
+    for (const [k, v] of Object.entries(extraFields ?? {})) fd.append(k, v);
+    const result = await doUpload(fd);
 
     setUploading(false);
     if (result.error) {
@@ -53,7 +69,7 @@ export function FotoUpload({ initialUrl, onUrlChange, t }: FotoUploadProps) {
         style={{ background: 'var(--bone)', borderColor: 'var(--line)' }}
       >
         {preview ? (
-          <img src={preview} alt={t.alt} className="w-full h-full object-cover" />
+          <img src={preview} alt={labels.alt} className="w-full h-full object-cover" />
         ) : (
           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2} style={{ color: 'var(--ink)', opacity: 0.2 }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -76,10 +92,10 @@ export function FotoUpload({ initialUrl, onUrlChange, t }: FotoUploadProps) {
           className="px-4 py-2 rounded-lg text-sm font-medium border transition-opacity hover:opacity-80 disabled:opacity-50"
           style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'var(--bone)' }}
         >
-          {uploading ? t.subiendo : preview ? t.cambiar : t.subir}
+          {uploading ? labels.subiendo : preview ? labels.cambiar : labels.subir}
         </button>
         <p className="text-xs" style={{ color: 'var(--ink)', opacity: 0.4 }}>
-          {t.ayuda}
+          {labels.ayuda}
         </p>
         {uploadError && (
           <p className="text-xs" style={{ color: 'var(--terra)' }}>{uploadError}</p>

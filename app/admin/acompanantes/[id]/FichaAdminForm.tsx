@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { actualizarAcompanante, resetPinAcompanante } from '@/lib/admin/acompanantes';
+import { actualizarAcompanante, resetPinAcompanante, subirFotoAcompananteAdmin } from '@/lib/admin/acompanantes';
 import type { Acompanante } from '@/types/supabase';
+import { FotoUpload } from '@/app/acompanante/ficha/FotoUpload';
 
 const IDIOMAS = [
   { label: 'Español', value: 'es' },
@@ -39,6 +40,7 @@ export function FichaAdminForm({ acompanante }: { acompanante: Acompanante }) {
   const [loading, setLoading] = useState(false);
   const [pinLoading, setPinLoading] = useState(false);
   const [nuevoPin, setNuevoPin] = useState<{ numeroUsuario?: string; pin?: string } | null>(null);
+  const [fotoUrl, setFotoUrl] = useState<string>(acompanante.foto_url ?? '');
 
   const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
 
@@ -92,17 +94,17 @@ export function FichaAdminForm({ acompanante }: { acompanante: Acompanante }) {
         />
       </div>
 
-      {/* Foto URL */}
+      {/* Foto de perfil */}
       <div>
-        <label className={labelClass}>URL de foto</label>
-        <input
-          name="foto_url"
-          type="url"
-          defaultValue={acompanante.foto_url ?? ''}
-          placeholder="https://..."
-          className={inputClass}
-          style={inputStyle}
+        <label className={labelClass}>Foto de perfil</label>
+        <FotoUpload
+          initialUrl={acompanante.foto_url}
+          onUrlChange={setFotoUrl}
+          uploadAction={subirFotoAcompananteAdmin}
+          extraFields={{ acompanante_id: acompanante.id }}
         />
+        {/* El formulario envía siempre la URL actual de la foto */}
+        <input type="hidden" name="foto_url" value={fotoUrl} readOnly />
       </div>
 
       {/* Bio */}
