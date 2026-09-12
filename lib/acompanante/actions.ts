@@ -1,112 +1,116 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { revalidatePath } from "next/cache";
+import { and, eq, inArray } from "drizzle-orm";
+import { db } from "@/lib/db";
+import {
+  acompanantes,
+  servicios,
+  paquetesClases,
+  disponibilidad,
+} from "@/lib/db/schema";
+import { getSessionUser } from "@/lib/auth/session";
 
-// Usamos un cliente sin tipado genérico para las operaciones DML que tienen
-// payloads con JSONB y arrays, que el tipo Partial<T> no cubre bien.
-type RawClient = SupabaseClient;
+type Modalidad = "presencial" | "remoto" | "ambos";
+type UnidadPrecio = "hora" | "servicio" | "sesion";
 
-// ── Helper: obtener acompanante_id del usuario autenticado ────────────────────
-
-async function getAcompananteId(
-  supabase: Awaited<ReturnType<typeof createClient>>
-): Promise<string | null> {
-  const { data } = await supabase.rpc('mi_acompanante_id');
-  return data ?? null;
+/**
+ * ID del acompañante del usuario autenticado (sustituye a la RPC
+ * mi_acompanante_id() de Supabase). Toda escritura se acota por este id, que es
+ * la comprobación de propiedad que antes garantizaba la RLS.
+ */
+async function getMiAcompananteId(): Promise<string | null> {
+  const user = await getSessionUser();
+  if (!user) return null;
+  const [row] = await db
+    .select({ id: acompanantes.id })
+    .from(acompanantes)
+    .where(eq(acompanantes.profileId, user.id))
+    .limit(1);
+  return row?.id ?? null;
 }
-
-// ── Server Actions ────────────────────────────────────────────────────────────
 
 export async function actualizarFicha(
   formData: FormData
 ): Promise<{ error?: string }> {
-  const supabase = await createClient();
+  const acompananteId = await getMiAcompananteId();
+  if (!acompananteId) return { error: "No se encontró tu ficha de acompañante." };
 
-  const acompananteId = await getAcompananteId(supabase);
-  if (!acompananteId) {
-    return { error: 'No se encontró tu ficha de acompañante.' };
-  }
-
-  const idiomas = (formData.getAll('idiomas') as string[]).filter(Boolean);
-  const zonas = (formData.getAll('zonas') as string[]).filter(Boolean);
-  const modalidades = (formData.getAll('modalidades') as string[]).filter(Boolean);
+  const idiomas = (formData.getAll("idiomas") as string[]).filter(Boolean);
+  const zonas = (formData.getAll("zonas") as string[]).filter(Boolean);
+  const modalidades = (formData.getAll("modalidades") as string[]).filter(
+    Boolean
+  ) as Modalidad[];
 
   const bio = {
-    es: (formData.get('bio_es') as string | null) ?? '',
-    en: (formData.get('bio_en') as string | null) ?? '',
+    es: (formData.get("bio_es") as string | null) ?? "",
+    en: (formData.get("bio_en") as string | null) ?? "",
   };
 
-  const anios_raw = formData.get('anios_experiencia');
-  const anios_experiencia = anios_raw ? (Number(anios_raw) || null) : null;
+  const aniosRaw = formData.get("anios_experiencia");
+  const aniosExperiencia = aniosRaw ? Number(aniosRaw) || null : null;
 
-  const { error } = await (supabase as RawClient)
-    .from('acompanantes')
-    .update({
-      nombre_publico: (formData.get('nombre_publico') as string | null) ?? '',
-      foto_url: (formData.get('foto_url') as string | null) || null,
-      bio,
-      idiomas,
-      zonas,
-      modalidades,
-      email_contacto: (formData.get('email_contacto') as string | null) || null,
-      whatsapp: (formData.get('whatsapp') as string | null) || null,
-      titulacion: (formData.get('titulacion') as string | null) || null,
-      interprete_jurado: formData.get('interprete_jurado') === 'on',
-      anios_experiencia,
-      imparte_clases: formData.get('imparte_clases') === 'on',
-    })
-    .eq('id', acompananteId);
-
-  if (error) {
-    return { error: error.message };
+  try {
+    await db
+      .update(acompanantes)
+      .set({
+        nombrePublico: (formData.get("nombre_publico") as string | null) ?? "",
+        fotoUrl: (formData.get("foto_url") as string | null) || null,
+        bio,
+        idiomas,
+        zonas,
+        modalidades,
+        emailContacto: (formData.get("email_contacto") as string | null) || null,
+        whatsapp: (formData.get("whatsapp") as string | null) || null,
+        titulacion: (formData.get("titulacion") as string | null) || null,
+        interpreteJurado: formData.get("interprete_jurado") === "on",
+        aniosExperiencia,
+        imparteClases: formData.get("imparte_clases") === "on",
+      })
+      .where(eq(acompanantes.id, acompananteId));
+  } catch (e) {
+    console.error("actualizarFicha:", e);
+    return { error: "No se pudo actualizar la ficha." };
   }
 
-  revalidatePath('/acompanante/ficha');
+  revalidatePath("/acompanante/ficha");
   return {};
 }
 
 export async function crearServicio(
   formData: FormData
 ): Promise<{ error?: string }> {
-  const supabase = await createClient();
-
-  const acompananteId = await getAcompananteId(supabase);
-  if (!acompananteId) {
-    return { error: 'No se encontró tu ficha de acompañante.' };
-  }
+  const acompananteId = await getMiAcompananteId();
+  if (!acompananteId) return { error: "No se encontró tu ficha de acompañante." };
 
   const titulo = {
-    es: (formData.get('titulo_es') as string | null) ?? '',
-    en: (formData.get('titulo_en') as string | null) ?? '',
+    es: (formData.get("titulo_es") as string | null) ?? "",
+    en: (formData.get("titulo_en") as string | null) ?? "",
   };
-
   const descripcion = {
-    es: (formData.get('descripcion_es') as string | null) ?? '',
-    en: (formData.get('descripcion_en') as string | null) ?? '',
+    es: (formData.get("descripcion_es") as string | null) ?? "",
+    en: (formData.get("descripcion_en") as string | null) ?? "",
   };
+  const precio = Number(formData.get("precio")) || 0;
 
-  const precio = Number(formData.get('precio')) || 0;
-
-  const { error } = await (supabase as RawClient).from('servicios').insert({
-    acompanante_id: acompananteId,
-    categoria: formData.get('categoria') as string,
-    titulo,
-    descripcion,
-    modalidad: formData.get('modalidad') as string,
-    precio,
-    unidad_precio: formData.get('unidad_precio') as string,
-    es_clase: formData.get('es_clase') === 'on',
-    activo: true,
-  });
-
-  if (error) {
-    return { error: error.message };
+  try {
+    await db.insert(servicios).values({
+      acompananteId,
+      categoria: formData.get("categoria") as string,
+      titulo,
+      descripcion,
+      modalidad: formData.get("modalidad") as Modalidad,
+      precio: precio.toString(),
+      unidadPrecio: formData.get("unidad_precio") as UnidadPrecio,
+      esClase: formData.get("es_clase") === "on",
+      activo: true,
+    });
+  } catch (e) {
+    console.error("crearServicio:", e);
+    return { error: "No se pudo crear el servicio." };
   }
 
-  revalidatePath('/acompanante/servicios');
+  revalidatePath("/acompanante/servicios");
   return {};
 }
 
@@ -114,88 +118,112 @@ export async function actualizarServicio(
   id: string,
   formData: FormData
 ): Promise<{ error?: string }> {
-  const supabase = await createClient();
+  const acompananteId = await getMiAcompananteId();
+  if (!acompananteId) return { error: "No se encontró tu ficha de acompañante." };
 
   const titulo = {
-    es: (formData.get('titulo_es') as string | null) ?? '',
-    en: (formData.get('titulo_en') as string | null) ?? '',
+    es: (formData.get("titulo_es") as string | null) ?? "",
+    en: (formData.get("titulo_en") as string | null) ?? "",
   };
-
   const descripcion = {
-    es: (formData.get('descripcion_es') as string | null) ?? '',
-    en: (formData.get('descripcion_en') as string | null) ?? '',
+    es: (formData.get("descripcion_es") as string | null) ?? "",
+    en: (formData.get("descripcion_en") as string | null) ?? "",
   };
+  const precio = Number(formData.get("precio")) || 0;
 
-  const precio = Number(formData.get('precio')) || 0;
-
-  const { error } = await (supabase as RawClient)
-    .from('servicios')
-    .update({
-      categoria: formData.get('categoria') as string,
-      titulo,
-      descripcion,
-      modalidad: formData.get('modalidad') as string,
-      precio,
-      unidad_precio: formData.get('unidad_precio') as string,
-      es_clase: formData.get('es_clase') === 'on',
-    })
-    .eq('id', id);
-
-  if (error) {
-    return { error: error.message };
+  try {
+    await db
+      .update(servicios)
+      .set({
+        categoria: formData.get("categoria") as string,
+        titulo,
+        descripcion,
+        modalidad: formData.get("modalidad") as Modalidad,
+        precio: precio.toString(),
+        unidadPrecio: formData.get("unidad_precio") as UnidadPrecio,
+        esClase: formData.get("es_clase") === "on",
+      })
+      // acota por propiedad: solo servicios del propio acompañante
+      .where(and(eq(servicios.id, id), eq(servicios.acompananteId, acompananteId)));
+  } catch (e) {
+    console.error("actualizarServicio:", e);
+    return { error: "No se pudo actualizar el servicio." };
   }
 
-  revalidatePath('/acompanante/servicios');
+  revalidatePath("/acompanante/servicios");
   return {};
 }
 
-export async function eliminarServicio(
-  id: string
-): Promise<{ error?: string }> {
-  const supabase = await createClient();
+export async function eliminarServicio(id: string): Promise<{ error?: string }> {
+  const acompananteId = await getMiAcompananteId();
+  if (!acompananteId) return { error: "No se encontró tu ficha de acompañante." };
 
-  const { error } = await (supabase as RawClient).from('servicios').delete().eq('id', id);
-
-  if (error) {
-    return { error: error.message };
+  try {
+    await db
+      .delete(servicios)
+      .where(and(eq(servicios.id, id), eq(servicios.acompananteId, acompananteId)));
+  } catch (e) {
+    console.error("eliminarServicio:", e);
+    return { error: "No se pudo eliminar el servicio." };
   }
 
-  revalidatePath('/acompanante/servicios');
+  revalidatePath("/acompanante/servicios");
   return {};
 }
 
 export async function crearPaquete(
   formData: FormData
 ): Promise<{ error?: string }> {
-  const supabase = await createClient();
+  const acompananteId = await getMiAcompananteId();
+  if (!acompananteId) return { error: "No se encontró tu ficha de acompañante." };
 
-  const { error } = await (supabase as RawClient).from('paquetes_clases').insert({
-    servicio_id: formData.get('servicio_id') as string,
-    num_sesiones: Number(formData.get('num_sesiones')) || 1,
-    precio_total: Number(formData.get('precio_total')) || 0,
-    activo: true,
-  });
+  const servicioId = formData.get("servicio_id") as string;
 
-  if (error) {
-    return { error: error.message };
+  // Verifica que el servicio pertenece al acompañante.
+  const [srv] = await db
+    .select({ id: servicios.id })
+    .from(servicios)
+    .where(and(eq(servicios.id, servicioId), eq(servicios.acompananteId, acompananteId)))
+    .limit(1);
+  if (!srv) return { error: "Servicio no encontrado." };
+
+  try {
+    await db.insert(paquetesClases).values({
+      servicioId,
+      numSesiones: Number(formData.get("num_sesiones")) || 1,
+      precioTotal: (Number(formData.get("precio_total")) || 0).toString(),
+      activo: true,
+    });
+  } catch (e) {
+    console.error("crearPaquete:", e);
+    return { error: "No se pudo crear el paquete." };
   }
 
-  revalidatePath('/acompanante/servicios');
+  revalidatePath("/acompanante/servicios");
   return {};
 }
 
-export async function eliminarPaquete(
-  id: string
-): Promise<{ error?: string }> {
-  const supabase = await createClient();
+export async function eliminarPaquete(id: string): Promise<{ error?: string }> {
+  const acompananteId = await getMiAcompananteId();
+  if (!acompananteId) return { error: "No se encontró tu ficha de acompañante." };
 
-  const { error } = await (supabase as RawClient).from('paquetes_clases').delete().eq('id', id);
+  const misServicios = db
+    .select({ id: servicios.id })
+    .from(servicios)
+    .where(eq(servicios.acompananteId, acompananteId));
 
-  if (error) {
-    return { error: error.message };
+  try {
+    await db
+      .delete(paquetesClases)
+      .where(
+        and(eq(paquetesClases.id, id), inArray(paquetesClases.servicioId, misServicios))
+      );
+  } catch (e) {
+    console.error("eliminarPaquete:", e);
+    return { error: "No se pudo eliminar el paquete." };
   }
 
-  revalidatePath('/acompanante/servicios');
+  revalidatePath("/acompanante/servicios");
   return {};
 }
 
@@ -205,91 +233,57 @@ export async function crearDisponibilidad(data: {
   modalidad: string;
   zona: string;
 }): Promise<{ error?: string }> {
-  const supabase = await createClient();
+  const acompananteId = await getMiAcompananteId();
+  if (!acompananteId) return { error: "No se encontró tu ficha de acompañante." };
 
-  const acompananteId = await getAcompananteId(supabase);
-  if (!acompananteId) {
-    return { error: 'No se encontró tu ficha de acompañante.' };
+  try {
+    await db.insert(disponibilidad).values({
+      acompananteId,
+      fechaHora: new Date(data.fechaHora),
+      duracionMin: data.duracionMin,
+      modalidad: data.modalidad as Modalidad,
+      zona: data.zona || null,
+      estado: "abierto",
+    });
+  } catch (e) {
+    console.error("crearDisponibilidad:", e);
+    return { error: "No se pudo crear la disponibilidad." };
   }
 
-  const { error } = await (supabase as RawClient).from('disponibilidad').insert({
-    acompanante_id: acompananteId,
-    fecha_hora: data.fechaHora,
-    duracion_min: data.duracionMin,
-    modalidad: data.modalidad,
-    zona: data.zona || null,
-    estado: 'abierto',
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidatePath('/acompanante/disponibilidad');
+  revalidatePath("/acompanante/disponibilidad");
   return {};
 }
 
 export async function eliminarDisponibilidad(
   id: string
 ): Promise<{ error?: string }> {
-  const supabase = await createClient();
+  const acompananteId = await getMiAcompananteId();
+  if (!acompananteId) return { error: "No se encontró tu ficha de acompañante." };
 
-  const { error } = await (supabase as RawClient).from('disponibilidad').delete().eq('id', id);
-
-  if (error) {
-    return { error: error.message };
+  try {
+    await db
+      .delete(disponibilidad)
+      .where(
+        and(eq(disponibilidad.id, id), eq(disponibilidad.acompananteId, acompananteId))
+      );
+  } catch (e) {
+    console.error("eliminarDisponibilidad:", e);
+    return { error: "No se pudo eliminar la disponibilidad." };
   }
 
-  revalidatePath('/acompanante/disponibilidad');
+  revalidatePath("/acompanante/disponibilidad");
   return {};
 }
 
 // ── Subida de foto de perfil ──────────────────────────────────────────────────
-
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
-const BUCKET = 'fotos-acompanantes';
+// Pendiente de migrar a Vercel Blob (Fase 3). De momento deshabilitada para no
+// depender del storage de Supabase.
 
 export async function subirFotoAcompanante(
-  formData: FormData
+  _formData: FormData
 ): Promise<{ url?: string; error?: string }> {
-  const supabase = await createClient();
-  const admin = createAdminClient();
-
-  const acompananteId = await getAcompananteId(supabase);
-  if (!acompananteId) return { error: 'No se encontró tu ficha de acompañante.' };
-
-  const file = formData.get('foto') as File | null;
-  if (!file || file.size === 0) return { error: 'No se seleccionó ninguna imagen.' };
-  if (file.size > MAX_BYTES) return { error: 'La imagen no puede superar 5 MB.' };
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return { error: 'Formato no permitido. Usa JPG, PNG o WEBP.' };
-  }
-
-  const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
-  const path = `${acompananteId}.${ext}`;
-
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  const { error: uploadError } = await admin.storage
-    .from(BUCKET)
-    .upload(path, buffer, { contentType: file.type, upsert: true });
-
-  if (uploadError) return { error: uploadError.message };
-
-  const { data: { publicUrl } } = admin.storage.from(BUCKET).getPublicUrl(path);
-
-  // Cache-bust so the browser fetches the new image
-  const url = `${publicUrl}?t=${Date.now()}`;
-
-  const { error: dbError } = await (supabase as RawClient)
-    .from('acompanantes')
-    .update({ foto_url: publicUrl })
-    .eq('id', acompananteId);
-
-  if (dbError) return { error: dbError.message };
-
-  revalidatePath('/acompanante/ficha');
-  return { url };
+  return {
+    error:
+      "La subida de foto estará disponible en breve (migración de almacenamiento en curso).",
+  };
 }
