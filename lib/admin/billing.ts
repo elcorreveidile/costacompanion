@@ -3,115 +3,30 @@
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { acompanantes, profiles } from '@/lib/db/schema';
+import { acompanantes } from '@/lib/db/schema';
 import { getSessionUser } from '@/lib/auth/session';
 import { getStripe, mapStripeStatus } from '@/lib/stripe';
+import { iniciarCobroAcompanante } from '@/lib/acompanante/altaCobro';
 
 async function requireSuperadmin(): Promise<boolean> {
   const user = await getSessionUser();
   return user?.rol === 'superadmin';
 }
 
+/**
+ * Activación manual del cobro desde el panel (reintento/override). Aplica el
+ * mismo modelo que el automático: 49 € de alta (pago único) + 19 €/mes.
+ * El cobro real se dispara solo al confirmar la 1ª reserva; este botón sirve
+ * para arrancarlo a mano si hiciera falta.
+ */
 export async function activarConStripe(
   acompananteId: string
 ): Promise<{ error?: string }> {
   if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
-  const stripe = getStripe();
 
-  const SETUP    = process.env.STRIPE_PRICE_ACOMP_SETUP;
-  const LAUNCH   = process.env.STRIPE_PRICE_ACOMP_LAUNCH;
-  const STANDARD = process.env.STRIPE_PRICE_ACOMP_STANDARD;
-
-  if (!SETUP || !LAUNCH || !STANDARD) {
-    return { error: 'Variables STRIPE_PRICE_ACOMP_* no configuradas.' };
-  }
-
-  const [acomp] = await db
-    .select({
-      id: acompanantes.id,
-      nombrePublico: acompanantes.nombrePublico,
-      emailContacto: acompanantes.emailContacto,
-      profileId: acompanantes.profileId,
-      stripeCustomerId: acompanantes.stripeCustomerId,
-      profileEmail: profiles.email,
-    })
-    .from(acompanantes)
-    .leftJoin(profiles, eq(profiles.id, acompanantes.profileId))
-    .where(eq(acompanantes.id, acompananteId))
-    .limit(1);
-
-  if (!acomp) return { error: 'Acompañante no encontrado.' };
-  if (acomp.stripeCustomerId) return { error: 'Este acompañante ya tiene suscripción Stripe.' };
-
-  const email = acomp.profileEmail ?? acomp.emailContacto;
-  if (!email) return { error: 'No hay email asociado a este acompañante.' };
-
-  try {
-    // 1. Crear customer en Stripe
-    const customer = await stripe.customers.create({
-      email,
-      name: acomp.nombrePublico,
-      metadata: { acompanante_id: acomp.id },
-    });
-
-    // 2. Crear suscripción con subscriptionSchedule:
-    //    Fase 1: precio lanzamiento × 12 meses + cargo único de setup en la primera factura
-    //    Fase 2: precio estándar indefinido
-    const schedule = await stripe.subscriptionSchedules.create({
-      customer: customer.id,
-      start_date: 'now',
-      end_behavior: 'release',
-      phases: [
-        {
-          items: [{ price: LAUNCH }],
-          duration: { interval: 'month', interval_count: 12 },
-          collection_method: 'send_invoice',
-          invoice_settings: { days_until_due: 30 },
-          add_invoice_items: [{ price: SETUP }],
-        },
-        {
-          items: [{ price: STANDARD }],
-          collection_method: 'send_invoice',
-          invoice_settings: { days_until_due: 30 },
-        },
-      ],
-    });
-
-    const subscriptionId = typeof schedule.subscription === 'string'
-      ? schedule.subscription
-      : (schedule.subscription as { id: string } | null)?.id ?? null;
-
-    // 3. Finalizar y enviar la primera factura (empieza como borrador)
-    if (subscriptionId) {
-      const drafts = await stripe.invoices.list({
-        subscription: subscriptionId,
-        status: 'draft',
-        limit: 1,
-      });
-      if (drafts.data[0]) {
-        const finalized = await stripe.invoices.finalizeInvoice(drafts.data[0].id);
-        await stripe.invoices.sendInvoice(finalized.id);
-      }
-    }
-
-    // 4. Persistir y activar al acompañante
-    await db
-      .update(acompanantes)
-      .set({
-        stripeCustomerId: customer.id,
-        stripeSubscriptionId: subscriptionId,
-        stripeSubscriptionStatus: 'active',
-        activo: true,
-      })
-      .where(eq(acompanantes.id, acompananteId));
-
-    revalidatePath('/admin/acompanantes');
-    return {};
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Error en Stripe';
-    console.error('activarConStripe error:', err);
-    return { error: msg };
-  }
+  const res = await iniciarCobroAcompanante(acompananteId);
+  if (res.yaActivo) return { error: 'Este acompañante ya tiene suscripción Stripe.' };
+  return res.error ? { error: res.error } : {};
 }
 
 export async function sincronizarEstadoStripe(

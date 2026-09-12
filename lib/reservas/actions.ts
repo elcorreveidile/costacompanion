@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { getMiAcompananteId } from "@/lib/db/queries/acompanante";
+import { iniciarCobroAcompanante } from "@/lib/acompanante/altaCobro";
 import {
   emailNuevaReserva,
   emailReservaConfirmada,
@@ -145,7 +146,11 @@ export async function confirmarReserva(formData: FormData): Promise<void> {
   }
 
   const [acomp] = await db
-    .select({ nombrePublico: acompanantes.nombrePublico, slug: acompanantes.slug })
+    .select({
+      nombrePublico: acompanantes.nombrePublico,
+      slug: acompanantes.slug,
+      stripeCustomerId: acompanantes.stripeCustomerId,
+    })
     .from(acompanantes)
     .where(eq(acompanantes.id, acompananteId))
     .limit(1);
@@ -170,6 +175,14 @@ export async function confirmarReserva(formData: FormData): Promise<void> {
       .update(disponibilidad)
       .set({ estado: "cerrado" })
       .where(eq(disponibilidad.id, reserva.disponibilidadId));
+  }
+
+  // 1ª reserva confirmada → arranca el cobro (49 € alta + 19 €/mes). Idempotente
+  // por stripe_customer_id; no bloquea la confirmación si el cobro falla.
+  if (reserva && !acomp?.stripeCustomerId) {
+    iniciarCobroAcompanante(acompananteId).catch((e) =>
+      console.error("iniciarCobroAcompanante (confirmarReserva):", e)
+    );
   }
 
   if (reserva && acomp) {

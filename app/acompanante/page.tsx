@@ -194,7 +194,8 @@ export default async function AcompananteDashboard() {
                   )}
                   {estado === 'sin_suscripcion' && (
                     <p className="text-sm text-(--ink)/60">
-                      Contacta con el equipo de Costa Companion para activar tu cuenta.
+                      Tu ficha está activa y es <strong>gratuita</strong>. Empezarás a pagar
+                      (49 € de alta, una vez, + 19 €/mes) al confirmar tu primera reserva.
                     </p>
                   )}
                 </div>
