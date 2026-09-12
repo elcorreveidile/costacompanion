@@ -1,7 +1,9 @@
 'use server';
 
+import { and, eq } from 'drizzle-orm';
 import { sendMail } from '@/lib/mailer';
-import { createClient } from '@/lib/supabase/server';
+import { db } from '@/lib/db';
+import { acompanantes } from '@/lib/db/schema';
 
 export async function enviarContacto(
   formData: FormData
@@ -15,26 +17,24 @@ export async function enviarContacto(
     return { error: 'Todos los campos son obligatorios.' };
   }
 
-  const supabase = await createClient();
-  const { data: acomp } = await supabase
-    .from('acompanantes')
-    .select('nombre_publico, email_contacto')
-    .eq('slug', slug)
-    .eq('activo', true)
-    .single() as {
-      data: { nombre_publico: string; email_contacto: string | null } | null;
-      error: null;
-    };
+  const [acomp] = await db
+    .select({
+      nombrePublico: acompanantes.nombrePublico,
+      emailContacto: acompanantes.emailContacto,
+    })
+    .from(acompanantes)
+    .where(and(eq(acompanantes.slug, slug), eq(acompanantes.activo, true)))
+    .limit(1);
 
-  if (!acomp?.email_contacto) {
+  if (!acomp?.emailContacto) {
     return { error: 'No se pudo enviar el mensaje. Inténtalo de nuevo.' };
   }
 
   try {
     await sendMail({
-      to: acomp.email_contacto,
+      to: acomp.emailContacto,
       replyTo: email,
-      subject: `Nuevo contacto en tu perfil — ${acomp.nombre_publico}`,
+      subject: `Nuevo contacto en tu perfil — ${acomp.nombrePublico}`,
       html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a2e25">
         <div style="background:#2C4A3B;padding:24px 32px;border-radius:12px 12px 0 0">

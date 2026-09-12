@@ -1,6 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
-import type { Acompanante, Servicio, Disponibilidad } from '@/types/supabase';
+import { getSessionUser } from '@/lib/auth/session';
+import { getAcompananteActivoBySlug } from '@/lib/db/queries/public';
+import { getServiciosPublicos, getDisponibilidadFutura } from '@/lib/db/queries/ficha';
 import { ReservarFormClient } from './ReservarFormClient';
 
 interface PageProps {
@@ -9,54 +10,22 @@ interface PageProps {
 
 export default async function ReservarPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
 
-  // Requerir sesión antes de mostrar el formulario
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) redirect(`/auth/login?redirect=/${slug}/reservar`);
 
-  // Cargar acompañante activo
-  const { data: rawAcompanante } = await supabase
-    .from('acompanantes')
-    .select('*')
-    .eq('slug', slug)
-    .eq('activo', true)
-    .single();
+  const acompanante = await getAcompananteActivoBySlug(slug);
+  if (!acompanante) notFound();
 
-  if (!rawAcompanante) notFound();
-
-  const acompanante = rawAcompanante as unknown as Acompanante;
-
-  // Cargar servicios activos
-  const { data: serviciosData } = await supabase
-    .from('servicios')
-    .select('id, titulo, precio, unidad_precio')
-    .eq('acompanante_id', acompanante.id)
-    .eq('activo', true);
-
-  const serviciosRaw = (serviciosData ?? []) as unknown as Pick<Servicio, 'id' | 'titulo' | 'precio' | 'unidad_precio'>[];
-
-  const servicios = serviciosRaw.map((s) => ({
+  const serviciosFull = await getServiciosPublicos(acompanante.id);
+  const servicios = serviciosFull.map((s) => ({
     id: s.id,
-    titulo: ((s.titulo as { es?: string; en?: string }).es ?? 'Servicio'),
+    titulo: (s.titulo as { es?: string }).es ?? 'Servicio',
     precio: s.precio,
     unidad_precio: s.unidad_precio,
   }));
 
-  // Cargar franjas de disponibilidad abiertas en el futuro
-  const now = new Date().toISOString();
-  const { data: disponibilidadesData } = await supabase
-    .from('disponibilidad')
-    .select('id, fecha_hora, duracion_min, modalidad, zona')
-    .eq('acompanante_id', acompanante.id)
-    .eq('estado', 'abierto')
-    .gt('fecha_hora', now)
-    .order('fecha_hora', { ascending: true });
-
-  const disponibilidades = (disponibilidadesData ?? []) as unknown as Pick<
-    Disponibilidad,
-    'id' | 'fecha_hora' | 'duracion_min' | 'modalidad' | 'zona'
-  >[];
+  const disponibilidades = await getDisponibilidadFutura(acompanante.id);
 
   return (
     <ReservarFormClient

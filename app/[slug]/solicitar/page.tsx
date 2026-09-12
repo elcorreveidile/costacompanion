@@ -1,6 +1,5 @@
-import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
-import type { Acompanante } from '@/types/supabase';
+import { getAcompananteActivoBySlug } from '@/lib/db/queries/public';
 import { SolicitarFormClient } from './SolicitarFormClient';
 
 interface PageProps {
@@ -9,18 +8,9 @@ interface PageProps {
 
 export default async function SolicitarPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
 
-  const { data: rawAcompanante } = await supabase
-    .from('acompanantes')
-    .select('id, nombre_publico')
-    .eq('slug', slug)
-    .eq('activo', true)
-    .single();
-
-  if (!rawAcompanante) notFound();
-
-  const acompanante = rawAcompanante as unknown as Pick<Acompanante, 'id' | 'nombre_publico'>;
+  const acompanante = await getAcompananteActivoBySlug(slug);
+  if (!acompanante) notFound();
 
   return (
     <SolicitarFormClient

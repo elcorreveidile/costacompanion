@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   servicios as tServicios,
@@ -6,15 +6,19 @@ import {
   serviceCategories as tCats,
   resenas as tResenas,
   reservas as tReservas,
+  disponibilidad as tDisp,
+  acompanantes as tAcomp,
   profiles,
 } from "@/lib/db/schema";
 import type {
   Servicio,
   PaqueteClases,
   Resena,
+  Disponibilidad,
   MultilingualText,
   Modalidad,
   UnidadPrecio,
+  EstadoDisponibilidad,
 } from "@/types/supabase";
 
 /** Consultas de la ficha pública del acompañante (app/[slug]). */
@@ -150,4 +154,69 @@ export async function reservaCompletadaSinResena(
     .orderBy(desc(tReservas.createdAt))
     .limit(1);
   return row?.id ?? null;
+}
+
+/** Franjas de disponibilidad abiertas y futuras (para reservar). */
+export async function getDisponibilidadFutura(
+  acompananteId: string
+): Promise<Disponibilidad[]> {
+  const rows = await db
+    .select()
+    .from(tDisp)
+    .where(
+      and(
+        eq(tDisp.acompananteId, acompananteId),
+        eq(tDisp.estado, "abierto"),
+        gt(tDisp.fechaHora, new Date())
+      )
+    )
+    .orderBy(asc(tDisp.fechaHora));
+  return rows.map((r) => ({
+    id: r.id,
+    acompanante_id: r.acompananteId,
+    fecha_hora: r.fechaHora.toISOString(),
+    duracion_min: r.duracionMin,
+    modalidad: r.modalidad as Modalidad,
+    zona: r.zona,
+    estado: r.estado as EstadoDisponibilidad,
+    created_at: r.createdAt.toISOString(),
+  }));
+}
+
+/** Reserva completada del cliente que puede reseñar (con datos del acompañante). */
+export async function getReservaResenable(
+  reservaId: string,
+  clienteId: string
+): Promise<{ acompananteId: string; nombrePublico: string; slug: string } | null> {
+  const [row] = await db
+    .select({
+      acompananteId: tReservas.acompananteId,
+      nombre: tAcomp.nombrePublico,
+      slug: tAcomp.slug,
+    })
+    .from(tReservas)
+    .leftJoin(tAcomp, eq(tAcomp.id, tReservas.acompananteId))
+    .where(
+      and(
+        eq(tReservas.id, reservaId),
+        eq(tReservas.clienteId, clienteId),
+        eq(tReservas.estado, "completada")
+      )
+    )
+    .limit(1);
+  if (!row) return null;
+  return {
+    acompananteId: row.acompananteId,
+    nombrePublico: row.nombre ?? "",
+    slug: row.slug ?? "",
+  };
+}
+
+export async function resenaExisteParaReserva(reservaId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: tResenas.id })
+    .from(tResenas)
+    .where(eq(tResenas.reservaId, reservaId))
+    .limit(1);
+  return !!row;
 }
