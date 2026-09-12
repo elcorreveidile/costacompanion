@@ -1,4 +1,4 @@
-import { signInWithMagicLink } from "@/lib/auth/actions";
+import { signInWithMagicLink, signInWithPin } from "@/lib/auth/actions";
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_email: "Por favor, introduce un email válido.",
@@ -7,6 +7,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   no_user: "No se pudo verificar tu identidad. Inténtalo de nuevo.",
   no_profile: "No se encontró tu perfil. Contacta con soporte.",
   invalid_role: "Rol de usuario no reconocido. Contacta con soporte.",
+  pin: "Número de usuario o PIN incorrectos, o cuenta bloqueada temporalmente.",
 };
 
 export default async function LoginPage({
@@ -99,6 +100,53 @@ export default async function LoginPage({
             <p className="mt-6 text-sm text-(--ink)/70 text-center">
               Te enviaremos un enlace de acceso a tu email. No necesitas contraseña.
             </p>
+          )}
+
+          {/* Acceso con número de usuario + PIN (acompañantes y equipo) */}
+          {!sent && (
+            <div className="mt-8 pt-6 border-t" style={{ borderColor: "var(--line)" }}>
+              <p className="text-sm font-medium text-(--ink) mb-4 text-center">
+                ¿Tienes número de usuario y PIN?
+              </p>
+              <form action={signInWithPin} className="space-y-4">
+                <div>
+                  <label htmlFor="numeroUsuario" className="block text-sm font-medium text-(--ink) mb-2">
+                    Número de usuario
+                  </label>
+                  <input
+                    id="numeroUsuario"
+                    name="numeroUsuario"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="username"
+                    required
+                    placeholder="123456"
+                    className="w-full px-4 py-3 rounded-md border border-(--line) bg-(--bone) text-(--ink) placeholder:text-(--ink)/50 focus:outline-none focus:ring-2 focus:ring-(--terra) focus:border-transparent transition"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="pin" className="block text-sm font-medium text-(--ink) mb-2">
+                    PIN
+                  </label>
+                  <input
+                    id="pin"
+                    name="pin"
+                    type="password"
+                    inputMode="numeric"
+                    autoComplete="current-password"
+                    required
+                    placeholder="••••••"
+                    className="w-full px-4 py-3 rounded-md border border-(--line) bg-(--bone) text-(--ink) placeholder:text-(--ink)/50 focus:outline-none focus:ring-2 focus:ring-(--terra) focus:border-transparent transition"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-(--green) hover:opacity-90 text-(--bone) font-medium py-3 px-4 rounded-md transition-opacity duration-200"
+                >
+                  Entrar con PIN
+                </button>
+              </form>
+            </div>
           )}
         </div>
 
