@@ -5,14 +5,19 @@ import { db } from '@/lib/db';
 import { anunciantes } from '@/lib/db/schema';
 import { getSessionUser } from '@/lib/auth/session';
 import type { MultilingualText } from '@/types/supabase';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
 import { FichaAnuncianteForm } from './FichaAnuncianteForm';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Mi ficha — Local Partner | Costa Companion' };
 
 export default async function AnuncianteFichaPage() {
+  const { locale, dict } = await getI18n();
+  const t = dict.panelAnunciante.ficha;
+
   const user = await getSessionUser();
-  if (!user) redirect('/auth/login');
+  if (!user) redirect(localePath(locale, '/auth/login'));
 
   const [row] = await db
     .select({
@@ -32,7 +37,7 @@ export default async function AnuncianteFichaPage() {
     .where(eq(anunciantes.profileId, user.id))
     .limit(1);
 
-  if (!row) redirect('/anunciante');
+  if (!row) redirect(localePath(locale, '/anunciante'));
 
   const data = {
     ...row,
@@ -42,7 +47,7 @@ export default async function AnuncianteFichaPage() {
   async function actualizarMiFicha(formData: FormData): Promise<{ error?: string }> {
     'use server';
     const u = await getSessionUser();
-    if (!u) return { error: 'No autenticado.' };
+    if (!u) return { error: t.noAutenticado };
 
     const descripcion = {
       es: (formData.get('descripcion_es') as string | null) ?? '',
@@ -64,7 +69,7 @@ export default async function AnuncianteFichaPage() {
         .where(eq(anunciantes.profileId, u.id));
     } catch (e) {
       console.error('actualizarMiFicha (anunciante):', e);
-      return { error: 'No se pudo actualizar la ficha.' };
+      return { error: t.errorActualizar };
     }
 
     revalidatePath('/anunciante/ficha');
@@ -76,15 +81,15 @@ export default async function AnuncianteFichaPage() {
     <div className="min-h-screen bg-(--bone)">
       <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="mb-6 text-sm text-(--ink)/50 space-x-2">
-          <a href="/anunciante" className="hover:text-(--ink) transition-colors">Mi panel</a>
+          <a href={localePath(locale, "/anunciante")} className="hover:text-(--ink) transition-colors">{t.breadcrumbPanel}</a>
           <span>›</span>
-          <span className="text-(--ink)/80">Mi ficha</span>
+          <span className="text-(--ink)/80">{t.breadcrumb}</span>
         </div>
 
-        <h1 className="font-display text-3xl font-semibold text-(--green) mb-8">Mi ficha</h1>
+        <h1 className="font-display text-3xl font-semibold text-(--green) mb-8">{t.h1}</h1>
 
         <div className="rounded-xl border shadow-sm p-8" style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}>
-          <FichaAnuncianteForm anunciante={data} action={actualizarMiFicha} />
+          <FichaAnuncianteForm anunciante={data} action={actualizarMiFicha} t={t} locale={locale} />
         </div>
       </div>
     </div>

@@ -5,20 +5,25 @@ import { RealtimeRefresher } from '@/components/RealtimeRefresher';
 import { getSessionUser } from '@/lib/auth/session';
 import { getReservasDeCliente, getReservaIdsResenadas } from '@/lib/db/queries/cliente';
 import type { EstadoReserva } from '@/types/supabase';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
 
-const ESTADO_BADGE: Record<EstadoReserva, { label: string; bg: string; color: string }> = {
-  pendiente: { label: 'Pendiente', bg: 'var(--terra-soft)', color: 'var(--terra)' },
-  confirmada: { label: 'Confirmada', bg: 'rgba(74,111,80,0.12)', color: 'var(--green)' },
-  rechazada: { label: 'Rechazada', bg: 'rgba(180,60,50,0.1)', color: '#b43c32' },
-  cancelada: { label: 'Cancelada', bg: 'rgba(43,39,36,0.08)', color: 'rgba(43,39,36,0.5)' },
-  completada: { label: 'Completada', bg: 'rgba(34,70,40,0.12)', color: 'var(--green-deep)' },
+const ESTADO_BADGE: Record<EstadoReserva, { bg: string; color: string }> = {
+  pendiente: { bg: 'var(--terra-soft)', color: 'var(--terra)' },
+  confirmada: { bg: 'rgba(74,111,80,0.12)', color: 'var(--green)' },
+  rechazada: { bg: 'rgba(180,60,50,0.1)', color: '#b43c32' },
+  cancelada: { bg: 'rgba(43,39,36,0.08)', color: 'rgba(43,39,36,0.5)' },
+  completada: { bg: 'rgba(34,70,40,0.12)', color: 'var(--green-deep)' },
 };
 
 export const metadata = { title: 'Mis reservas | Costa Companion' };
 
 export default async function ClienteReservasPage() {
+  const { locale, dict } = await getI18n();
+  const t = dict.panelCliente;
+
   const user = await getSessionUser();
-  if (!user) redirect('/auth/login');
+  if (!user) redirect(localePath(locale, '/auth/login'));
 
   const [reservas, reviewedReservaIds] = await Promise.all([
     getReservasDeCliente(user.id),
@@ -33,16 +38,16 @@ export default async function ClienteReservasPage() {
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
             <Link
-              href="/cliente"
+              href={localePath(locale, "/cliente")}
               className="inline-flex items-center gap-1.5 text-sm text-(--ink)/60 hover:opacity-80 transition-opacity mb-3"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-              Volver al panel
+              {t.shared.volverAlPanel}
             </Link>
             <h1 className="font-display text-3xl font-semibold text-(--green)">
-              Mis reservas
+              {t.reservas.h1}
             </h1>
           </div>
         </div>
@@ -52,16 +57,17 @@ export default async function ClienteReservasPage() {
             className="rounded-xl border p-10 text-center"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
-            <p className="text-(--ink)/40 text-lg">No tienes reservas todavía</p>
+            <p className="text-(--ink)/40 text-lg">{t.reservas.vacioTitulo}</p>
             <p className="text-(--ink)/30 text-sm mt-2">
-              Visita el perfil de un acompañante y haz click en &ldquo;Reservar cita&rdquo;.
+              {t.reservas.vacioTexto}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
             {reservas.map((reserva) => {
               const badge = ESTADO_BADGE[reserva.estado] ?? ESTADO_BADGE.pendiente;
-              const fechaStr = new Date(reserva.fecha_hora).toLocaleString('es-ES', {
+              const estadoLabel = t.reservas.estados[reserva.estado] ?? t.reservas.estados.pendiente;
+              const fechaStr = new Date(reserva.fecha_hora).toLocaleString(locale, {
                 weekday: 'short', day: 'numeric', month: 'short',
                 year: 'numeric', hour: '2-digit', minute: '2-digit',
               });
@@ -81,7 +87,7 @@ export default async function ClienteReservasPage() {
                       {/* Acompañante */}
                       {reserva.acompanantes && (
                         <Link
-                          href={`/${reserva.acompanantes.slug}`}
+                          href={localePath(locale, `/${reserva.acompanantes.slug}`)}
                           className="font-display text-lg font-medium text-(--green) hover:opacity-80 transition-opacity"
                         >
                           {reserva.acompanantes.nombre_publico}
@@ -97,7 +103,7 @@ export default async function ClienteReservasPage() {
                       <div className="flex flex-wrap gap-3 mt-2 text-sm text-(--ink)/60">
                         <span>{fechaStr}</span>
                         <span>·</span>
-                        <span className="capitalize">{reserva.modalidad}</span>
+                        <span>{t.shared.modalidades[reserva.modalidad] ?? reserva.modalidad}</span>
                         {reserva.zona && (
                           <>
                             <span>·</span>
@@ -112,7 +118,7 @@ export default async function ClienteReservasPage() {
                       className="text-xs font-medium px-3 py-1 rounded-full shrink-0"
                       style={{ background: badge.bg, color: badge.color }}
                     >
-                      {badge.label}
+                      {estadoLabel}
                     </span>
                   </div>
 
@@ -121,14 +127,14 @@ export default async function ClienteReservasPage() {
                     <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
                       <div className="flex flex-wrap gap-2">
                         <Link
-                          href="/cliente/mensajes"
+                          href={localePath(locale, "/cliente/mensajes")}
                           className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
                           style={{ background: 'var(--green)', color: 'var(--bone)' }}
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                           </svg>
-                          Ir al chat
+                          {t.shared.irAlChat}
                         </Link>
                         {reserva.estado === 'confirmada' && reserva.acompanantes.whatsapp && (
                           <a
@@ -138,7 +144,7 @@ export default async function ClienteReservasPage() {
                             className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg border transition-opacity hover:opacity-80"
                             style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}
                           >
-                            WhatsApp
+                            {t.shared.whatsapp}
                           </a>
                         )}
                         {reserva.estado === 'confirmada' && reserva.acompanantes.email_contacto && (
@@ -147,7 +153,7 @@ export default async function ClienteReservasPage() {
                             className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg border transition-opacity hover:opacity-80"
                             style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}
                           >
-                            Email
+                            {t.shared.email}
                           </a>
                         )}
                       </div>
@@ -164,7 +170,7 @@ export default async function ClienteReservasPage() {
                           className="text-sm font-medium px-4 py-2 rounded-lg border transition-opacity hover:opacity-70"
                           style={{ borderColor: 'var(--line)', color: 'rgba(43,39,36,0.6)', background: 'transparent' }}
                         >
-                          Cancelar reserva
+                          {t.reservas.cancelar}
                         </button>
                       </form>
                     </div>
@@ -174,11 +180,11 @@ export default async function ClienteReservasPage() {
                   {reserva.estado === 'completada' && !reviewedReservaIds.has(reserva.id) && reserva.acompanantes && (
                     <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
                       <a
-                        href={`/${reserva.acompanantes.slug}/resena?reserva_id=${reserva.id}`}
+                        href={localePath(locale, `/${reserva.acompanantes.slug}/resena?reserva_id=${reserva.id}`)}
                         className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
                         style={{ background: 'var(--terra)', color: 'var(--bone)' }}
                       >
-                        Dejar reseña
+                        {t.reservas.dejarResena}
                       </a>
                     </div>
                   )}

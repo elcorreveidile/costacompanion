@@ -4,10 +4,15 @@ import { db } from "@/lib/db";
 import { profiles } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
+import { getI18n } from "@/lib/i18n/server";
+import { localePath } from "@/lib/i18n/config";
 
 export default async function ClienteDashboard() {
   const user = await getSessionUser();
   if (!user) return null;
+
+  const { locale, dict } = await getI18n();
+  const t = dict.panelCliente;
 
   const [profile] = await db
     .select({ nombre: profiles.nombre })
@@ -15,7 +20,7 @@ export default async function ClienteDashboard() {
     .where(eq(profiles.id, user.id))
     .limit(1);
 
-  const nombre = profile?.nombre || user.email;
+  const nombre = profile?.nombre || user.email || '';
 
   return (
     <div className="min-h-screen bg-(--bone)">
@@ -23,17 +28,17 @@ export default async function ClienteDashboard() {
         {/* Encabezado */}
         <div className="mb-8">
           <h1 className="font-display text-3xl font-semibold text-(--green) mb-2">
-            Bienvenido, {nombre}
+            {t.dashboard.bienvenido.replace('{nombre}', String(nombre ?? ''))}
           </h1>
           <p className="text-lg text-(--ink)/70">
-            Tu área de cliente
+            {t.dashboard.areaCliente}
           </p>
         </div>
 
         {/* Cards de navegación */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           <Link
-            href="/cliente/reservas"
+            href={localePath(locale, "/cliente/reservas")}
             className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
@@ -46,15 +51,15 @@ export default async function ClienteDashboard() {
               </svg>
             </div>
             <h3 className="font-display text-lg font-medium text-(--green) mb-1">
-              Mis reservas
+              {t.dashboard.cardReservasTitulo}
             </h3>
             <p className="text-sm text-(--ink)/60">
-              Consulta y gestiona tus citas con acompañantes.
+              {t.dashboard.cardReservasDesc}
             </p>
           </Link>
 
           <Link
-            href="/cliente/solicitudes"
+            href={localePath(locale, "/cliente/solicitudes")}
             className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
@@ -67,15 +72,15 @@ export default async function ClienteDashboard() {
               </svg>
             </div>
             <h3 className="font-display text-lg font-medium text-(--green) mb-1">
-              Mis solicitudes
+              {t.dashboard.cardSolicitudesTitulo}
             </h3>
             <p className="text-sm text-(--ink)/60">
-              Revisa las solicitudes a medida y las respuestas de los acompañantes.
+              {t.dashboard.cardSolicitudesDesc}
             </p>
           </Link>
 
           <Link
-            href="/cliente/mensajes"
+            href={localePath(locale, "/cliente/mensajes")}
             className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
@@ -88,15 +93,15 @@ export default async function ClienteDashboard() {
               </svg>
             </div>
             <h3 className="font-display text-lg font-medium text-(--green) mb-1">
-              Mis mensajes
+              {t.dashboard.cardMensajesTitulo}
             </h3>
             <p className="text-sm text-(--ink)/60">
-              Chat directo con tus acompañantes.
+              {t.dashboard.cardMensajesDesc}
             </p>
           </Link>
 
           <Link
-            href="/directorio"
+            href={localePath(locale, "/directorio")}
             className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
@@ -109,32 +114,32 @@ export default async function ClienteDashboard() {
               </svg>
             </div>
             <h3 className="font-display text-lg font-medium text-(--green) mb-1">
-              Directorio
+              {t.dashboard.cardDirectorioTitulo}
             </h3>
             <p className="text-sm text-(--ink)/60">
-              Explora todos los acompañantes disponibles y encuentra el que mejor se ajusta a tus necesidades.
+              {t.dashboard.cardDirectorioDesc}
             </p>
           </Link>
         </div>
 
         {/* Información de cuenta */}
         <div className="bg-(--bone-2) rounded-lg p-6 shadow-sm border border-(--line) mb-4">
-          <h3 className="font-medium text-(--green) mb-2">Información de tu cuenta</h3>
+          <h3 className="font-medium text-(--green) mb-2">{t.dashboard.cuentaTitulo}</h3>
           <div className="text-sm text-(--ink)/70 space-y-1">
-            <p>Email: {user.email}</p>{/* sesión Auth.js */}
-            <p>Rol: Cliente</p>
-            {profile?.nombre && <p>Nombre: {profile.nombre}</p>}
+            <p>{t.shared.email}: {user.email}</p>{/* sesión Auth.js */}
+            <p>{t.shared.rol}: {t.shared.cliente}</p>
+            {profile?.nombre && <p>{t.shared.nombre}: {profile.nombre}</p>}
           </div>
         </div>
 
         {/* Acciones */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
-            href="/profile"
+            href={localePath(locale, "/profile")}
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg font-medium text-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--terra)', color: 'var(--bone)' }}
           >
-            Ver mi perfil
+            {t.shared.verPerfil}
           </Link>
           <form action={signOut}>
             <button
@@ -142,7 +147,7 @@ export default async function ClienteDashboard() {
               className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border font-medium text-sm transition-opacity hover:opacity-70"
               style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}
             >
-              Cerrar sesión
+              {t.shared.cerrarSesion}
             </button>
           </form>
         </div>

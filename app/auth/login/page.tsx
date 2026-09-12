@@ -1,16 +1,7 @@
 import { redirect } from "next/navigation";
 import { signInWithMagicLink, signInWithPin } from "@/lib/auth/actions";
 import { getSessionUser } from "@/lib/auth/session";
-
-const ERROR_MESSAGES: Record<string, string> = {
-  invalid_email: "Por favor, introduce un email válido.",
-  send_failed: "No se pudo enviar el enlace. Inténtalo de nuevo.",
-  invalid_token: "El enlace ha expirado o no es válido. Solicita uno nuevo.",
-  no_user: "No se pudo verificar tu identidad. Inténtalo de nuevo.",
-  no_profile: "No se encontró tu perfil. Contacta con soporte.",
-  invalid_role: "Rol de usuario no reconocido. Contacta con soporte.",
-  pin: "Número de usuario o PIN incorrectos, o cuenta bloqueada temporalmente.",
-};
+import { getI18n } from "@/lib/i18n/server";
 
 export default async function LoginPage({
   searchParams,
@@ -22,9 +13,13 @@ export default async function LoginPage({
   const sessionUser = await getSessionUser();
   if (sessionUser) redirect("/post-login");
 
+  const { dict } = await getI18n();
+  const t = dict.login;
+  const errores = t.errores as Record<string, string>;
+
   const params = await searchParams;
   const sent = params.sent === "1";
-  const errorMsg = params.error ? ERROR_MESSAGES[params.error] ?? "Ha ocurrido un error. Inténtalo de nuevo." : null;
+  const errorMsg = params.error ? errores[params.error] ?? errores.generico : null;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -35,7 +30,7 @@ export default async function LoginPage({
             Costa Companion
           </h1>
           <p className="text-lg text-(--ink)">
-            Accede sin contraseña
+            {t.subtitle}
           </p>
         </div>
 
@@ -45,8 +40,8 @@ export default async function LoginPage({
             className="mb-6 rounded-lg p-4 text-sm"
             style={{ background: "rgba(44,74,59,.1)", border: "1px solid rgba(44,74,59,.25)", color: "var(--green)" }}
           >
-            <p className="font-medium mb-1">¡Enlace enviado!</p>
-            <p>Revisa tu bandeja de entrada y haz clic en el enlace para acceder. Puede tardar unos segundos.</p>
+            <p className="font-medium mb-1">{t.sentTitle}</p>
+            <p>{t.sentBody}</p>
           </div>
         )}
 
@@ -65,13 +60,13 @@ export default async function LoginPage({
           {sent ? (
             <div className="text-center space-y-4">
               <p className="text-(--ink)">
-                ¿No ha llegado el email?
+                {t.noLlego}
               </p>
               <a
                 href="/auth/login"
                 className="inline-block w-full text-center bg-(--bone) hover:bg-(--bone-2) text-(--ink) font-medium py-3 px-4 rounded-md border border-(--line) transition-colors duration-200"
               >
-                Volver a intentarlo
+                {t.volver}
               </a>
             </div>
           ) : (
@@ -81,7 +76,7 @@ export default async function LoginPage({
               )}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-(--ink) mb-2">
-                  Email
+                  {t.emailLabel}
                 </label>
                 <input
                   id="email"
@@ -98,14 +93,14 @@ export default async function LoginPage({
                 type="submit"
                 className="w-full bg-(--terra) hover:bg-(--terra-soft) text-(--bone) font-medium py-3 px-4 rounded-md transition-colors duration-200"
               >
-                Enviar enlace mágico
+                {t.enviar}
               </button>
             </form>
           )}
 
           {!sent && (
             <p className="mt-6 text-sm text-(--ink)/70 text-center">
-              Te enviaremos un enlace de acceso a tu email. No necesitas contraseña.
+              {t.emailHelp}
             </p>
           )}
 
@@ -113,12 +108,12 @@ export default async function LoginPage({
           {!sent && (
             <div className="mt-8 pt-6 border-t" style={{ borderColor: "var(--line)" }}>
               <p className="text-sm font-medium text-(--ink) mb-4 text-center">
-                ¿Tienes número de usuario y PIN?
+                {t.pinTitulo}
               </p>
               <form action={signInWithPin} className="space-y-4">
                 <div>
                   <label htmlFor="numeroUsuario" className="block text-sm font-medium text-(--ink) mb-2">
-                    Número de usuario
+                    {t.numeroLabel}
                   </label>
                   <input
                     id="numeroUsuario"
@@ -133,7 +128,7 @@ export default async function LoginPage({
                 </div>
                 <div>
                   <label htmlFor="pin" className="block text-sm font-medium text-(--ink) mb-2">
-                    PIN
+                    {t.pinLabel}
                   </label>
                   <input
                     id="pin"
@@ -150,7 +145,7 @@ export default async function LoginPage({
                   type="submit"
                   className="w-full bg-(--green) hover:opacity-90 text-(--bone) font-medium py-3 px-4 rounded-md transition-opacity duration-200"
                 >
-                  Entrar con PIN
+                  {t.entrarPin}
                 </button>
               </form>
             </div>
@@ -160,7 +155,7 @@ export default async function LoginPage({
         {!sent && (
           <div className="mt-6 text-center text-sm text-(--ink)/70">
             <p>
-              Si es tu primera vez, crearemos automáticamente tu cuenta como cliente.
+              {t.primeraVez}
             </p>
           </div>
         )}

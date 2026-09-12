@@ -3,11 +3,15 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { crearResena } from '@/lib/resenas/actions';
+import { localePath, type Locale } from '@/lib/i18n/config';
+import type { Dictionary } from '@/lib/i18n/dictionaries/es';
 
 interface ResenaFormProps {
   reservaId: string;
   acompananteId: string;
   slug: string;
+  locale: Locale;
+  t: Dictionary['flujos'];
   acompananteNombre: string;
 }
 
@@ -41,9 +45,9 @@ function Estrella({ filled, hovered, onClick, onEnter, onLeave }: {
   );
 }
 
-const LABELS = ['', 'Malo', 'Regular', 'Bueno', 'Muy bueno', 'Excelente'];
-
-export default function ResenaForm({ reservaId, acompananteId: _acompananteId, slug, acompananteNombre }: ResenaFormProps) {
+export default function ResenaForm({ reservaId, acompananteId: _acompananteId, slug, locale, t, acompananteNombre }: ResenaFormProps) {
+  const tr = t.resena;
+  const LABELS = tr.labels;
   const [puntuacion, setPuntuacion] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -52,7 +56,7 @@ export default function ResenaForm({ reservaId, acompananteId: _acompananteId, s
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (puntuacion === 0) { setError('Selecciona una puntuación.'); return; }
+    if (puntuacion === 0) { setError(tr.seleccionaPuntuacion); return; }
 
     setError(null);
     setLoading(true);
@@ -75,20 +79,20 @@ export default function ResenaForm({ reservaId, acompananteId: _acompananteId, s
     <div className="min-h-screen bg-(--bone)">
       <div className="max-w-xl mx-auto px-4 py-12">
         <div className="mb-6 text-sm text-(--ink)/50 space-x-2">
-          <Link href={`/${slug}`} className="hover:text-(--ink) transition-colors">
-            {acompananteNombre || 'Perfil'}
+          <Link href={localePath(locale, `/${slug}`)} className="hover:text-(--ink) transition-colors">
+            {acompananteNombre || tr.perfil}
           </Link>
           <span>›</span>
-          <span className="text-(--ink)/80">Dejar reseña</span>
+          <span className="text-(--ink)/80">{tr.breadcrumb}</span>
         </div>
 
         <h1 className="font-display text-3xl font-semibold text-(--green) mb-2">
-          Tu opinión
+          {tr.h1}
         </h1>
         <p className="text-(--ink)/60 mb-8">
           {acompananteNombre
-            ? `Cuéntanos cómo fue tu experiencia con ${acompananteNombre}.`
-            : 'Cuéntanos cómo fue tu experiencia.'}
+            ? tr.subtituloCon.replace('{nombre}', acompananteNombre)
+            : tr.subtituloSin}
         </p>
 
         <div
@@ -106,17 +110,17 @@ export default function ResenaForm({ reservaId, acompananteId: _acompananteId, s
                 </svg>
               </div>
               <h2 className="font-display text-xl font-medium text-(--green) mb-2">
-                ¡Gracias por tu reseña!
+                {tr.okTitulo}
               </h2>
               <p className="text-(--ink)/60 mb-6">
-                Tu opinión ayudará a otros usuarios a elegir mejor.
+                {tr.okTexto}
               </p>
               <Link
-                href={`/${slug}`}
+                href={localePath(locale, `/${slug}`)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
                 style={{ background: 'var(--green)', color: 'var(--bone)' }}
               >
-                Volver al perfil
+                {t.volverAlPerfil}
               </Link>
             </div>
           ) : (
@@ -124,7 +128,7 @@ export default function ResenaForm({ reservaId, acompananteId: _acompananteId, s
               {/* Estrellas */}
               <div>
                 <label className="block text-sm font-medium mb-3 text-(--ink)">
-                  Puntuación <span style={{ color: 'var(--terra)' }}>*</span>
+                  {tr.puntuacion} <span style={{ color: 'var(--terra)' }}>*</span>
                 </label>
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -148,12 +152,12 @@ export default function ResenaForm({ reservaId, acompananteId: _acompananteId, s
               {/* Comentario */}
               <div>
                 <label className="block text-sm font-medium mb-1.5 text-(--ink)">
-                  Comentario <span className="font-normal text-(--ink)/40">(opcional)</span>
+                  {tr.comentario} <span className="font-normal text-(--ink)/40">{t.opcional}</span>
                 </label>
                 <textarea
                   name="comentario"
                   rows={4}
-                  placeholder="Describe tu experiencia..."
+                  placeholder={tr.comentarioPlaceholder}
                   className="w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-2 resize-y"
                   style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
                 />
@@ -170,11 +174,11 @@ export default function ResenaForm({ reservaId, acompananteId: _acompananteId, s
 
               <div className="flex gap-3 pt-1">
                 <Link
-                  href={`/${slug}`}
+                  href={localePath(locale, `/${slug}`)}
                   className="flex-1 py-3 rounded-lg text-sm font-medium border text-center transition-opacity hover:opacity-70"
                   style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
                 >
-                  Cancelar
+                  {tr.cancelar}
                 </Link>
                 <button
                   type="submit"
@@ -182,7 +186,7 @@ export default function ResenaForm({ reservaId, acompananteId: _acompananteId, s
                   className="flex-1 py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
                   style={{ background: 'var(--green)', color: 'var(--bone)' }}
                 >
-                  {loading ? 'Enviando…' : 'Publicar reseña'}
+                  {loading ? tr.enviando : tr.publicar}
                 </button>
               </div>
             </form>

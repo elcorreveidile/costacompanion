@@ -1,10 +1,14 @@
 import Link from 'next/link';
 import { LogoSymbol } from '@/components/icons/LogoSymbol';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
 
 const waNum = process.env.NEXT_PUBLIC_WHATSAPP ?? '';
 const waHref = waNum ? `https://wa.me/${waNum.replace(/\D/g, '')}` : '#';
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const { locale, dict } = await getI18n();
+  const lp = (href: string) => localePath(locale, href);
   return (
     <footer style={{ background: 'var(--green)' }} className="mt-auto">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
@@ -19,25 +23,25 @@ export function SiteFooter() {
               </span>
             </div>
             <p className="text-sm leading-relaxed" style={{ color: 'rgba(247,244,239,0.65)' }}>
-              A tu lado, en tu idioma.
+              {dict.footer.tagline}
             </p>
             <p className="text-xs" style={{ color: 'rgba(247,244,239,0.45)' }}>
-              Estepona · Costa del Sol
+              {dict.footer.location}
             </p>
           </div>
 
           {/* Col 2 — Navegación */}
           <div>
             <p className="text-xs font-medium tracking-widest uppercase mb-4" style={{ color: 'rgba(247,244,239,0.45)' }}>
-              Navegar
+              {dict.footer.navigate}
             </p>
             <nav className="flex flex-col gap-2.5">
               {[
-                { label: 'Cómo funciona', href: '/#como-funciona' },
-                { label: 'Servicios',     href: '/servicios' },
-                { label: 'Para acompañantes', href: '/para-acompanantes' },
-                { label: 'Para negocios', href: '/para-negocios' },
-                { label: 'Directorio',    href: '/directorio' },
+                { label: dict.nav.comoFunciona, href: lp('/#como-funciona') },
+                { label: dict.nav.servicios,     href: lp('/servicios') },
+                { label: dict.nav.paraAcompanantes, href: lp('/para-acompanantes') },
+                { label: dict.nav.paraNegocios, href: lp('/para-negocios') },
+                { label: dict.nav.directorio,    href: lp('/directorio') },
               ].map((item) => (
                 <Link
                   key={item.href}
@@ -54,7 +58,7 @@ export function SiteFooter() {
           {/* Col 3 — Contacto */}
           <div>
             <p className="text-xs font-medium tracking-widest uppercase mb-4" style={{ color: 'rgba(247,244,239,0.45)' }}>
-              Contacto
+              {dict.footer.contact}
             </p>
             <div className="flex flex-col gap-3">
               {waNum && (
@@ -73,7 +77,7 @@ export function SiteFooter() {
                 </a>
               )}
               <span className="text-sm" style={{ color: 'rgba(247,244,239,0.4)' }}>
-                Email: [pendiente]
+                {dict.footer.emailLabel} info@costacompanion.com
               </span>
             </div>
           </div>
@@ -81,14 +85,14 @@ export function SiteFooter() {
           {/* Col 4 — Legal */}
           <div>
             <p className="text-xs font-medium tracking-widest uppercase mb-4" style={{ color: 'rgba(247,244,239,0.45)' }}>
-              Legal
+              {dict.footer.legal}
             </p>
             <nav className="flex flex-col gap-2.5">
               {[
-                { label: 'Términos y condiciones', href: '/legal/terminos' },
-                { label: 'Política de privacidad', href: '/legal/privacidad' },
-                { label: 'Política de cookies',    href: '/legal/cookies' },
-                { label: 'Aviso de intermediación', href: '/legal/intermediacion' },
+                { label: dict.footer.terminos, href: lp('/legal/terminos') },
+                { label: dict.footer.privacidad, href: lp('/legal/privacidad') },
+                { label: dict.footer.cookies,    href: lp('/legal/cookies') },
+                { label: dict.footer.avisoIntermediacion, href: lp('/legal/intermediacion') },
               ].map((item) => (
                 <Link
                   key={item.href}
@@ -108,9 +112,9 @@ export function SiteFooter() {
           className="mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
           style={{ borderTop: '1px solid rgba(247,244,239,0.12)', color: 'rgba(247,244,239,0.35)' }}
         >
-          <span>© 2026 Costa Companion · Estepona, Costa del Sol</span>
-          <Link href="/legal/intermediacion" className="hover:opacity-70 transition-opacity">
-            Aviso de intermediación
+          <span>{dict.footer.rights}</span>
+          <Link href={lp('/legal/intermediacion')} className="hover:opacity-70 transition-opacity">
+            {dict.footer.avisoIntermediacion}
           </Link>
         </div>
       </div>

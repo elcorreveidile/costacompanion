@@ -9,6 +9,9 @@ import {
   clienteTieneResenaDe,
   reservaCompletadaSinResena,
 } from '@/lib/db/queries/ficha';
+import { getI18n, getLocale } from '@/lib/i18n/server';
+import { localePath, languageName } from '@/lib/i18n/config';
+import { pickLang } from '@/lib/i18n/pick';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -27,13 +30,15 @@ interface PageProps {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const IDIOMAS_MAP: Record<string, string> = {
-  es: 'Español', en: 'Inglés', fr: 'Francés', de: 'Alemán',
-  nl: 'Neerlandés', ru: 'Ruso', zh: 'Chino', ar: 'Árabe',
-  pt: 'Portugués', it: 'Italiano',
-};
-
-function Estrellas({ valor, total }: { valor: number | null; total: number }) {
+function Estrellas({
+  valor,
+  total,
+  resenaLabel,
+}: {
+  valor: number | null;
+  total: number;
+  resenaLabel: string;
+}) {
   const rounded = Math.round((valor ?? 0) * 2) / 2;
   return (
     <div className="flex items-center gap-1">
@@ -51,7 +56,7 @@ function Estrellas({ valor, total }: { valor: number | null; total: number }) {
       ))}
       {total > 0 && (
         <span className="text-sm ml-1.5" style={{ color: 'var(--bone)' }}>
-          {(valor ?? 0).toFixed(1)} ({total} reseña{total !== 1 ? 's' : ''})
+          {(valor ?? 0).toFixed(1)} ({total} {resenaLabel})
         </span>
       )}
     </div>
@@ -68,10 +73,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: 'Acompañante no encontrado | Costa Companion' };
   }
 
-  const bio = (data.bio ?? {}) as { es?: string };
-  const description = bio.es
-    ? bio.es.slice(0, 155)
-    : `Perfil de ${data.nombre_publico} en Costa Companion.`;
+  const locale = await getLocale();
+  const bioText = pickLang(data.bio, locale);
+  const description = bioText
+    ? bioText.slice(0, 155)
+    : `${data.nombre_publico} · Costa Companion.`;
 
   return {
     title: `${data.nombre_publico} | Costa Companion`,
@@ -83,6 +89,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function AcompananteSlugPage({ params }: PageProps) {
   const { slug } = await params;
+  const { locale, dict } = await getI18n();
+  const t = dict.ficha;
+  const lp = (href: string) => localePath(locale, href);
+  const modalidadLabel = (m: string) =>
+    (dict.common.modalidades as Record<string, string>)[m] ?? m;
 
   const acompanante = await getAcompananteActivoBySlug(slug);
   if (!acompanante) notFound();
@@ -104,7 +115,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
   // Servicios activos (con paquetes y categoría) y reseñas aprobadas
   const servicios = (await getServiciosPublicos(acompanante.id)) as ServicioConExtras[];
 
-  const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
+  const bioText = pickLang(acompanante.bio, locale);
 
   const resenas = (await getResenasAprobadas(acompanante.id)) as ResenaConProfile[];
   const serviciosPorCategoria: Record<string, ServicioConExtras[]> = {};
@@ -152,7 +163,11 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
             {/* Valoración */}
             {acompanante.num_resenas > 0 && (
               <div className="mb-4">
-                <Estrellas valor={acompanante.valoracion_media} total={acompanante.num_resenas} />
+                <Estrellas
+                  valor={acompanante.valoracion_media}
+                  total={acompanante.num_resenas}
+                  resenaLabel={acompanante.num_resenas !== 1 ? t.resenaVarios : t.resenaUno}
+                />
               </div>
             )}
 
@@ -163,7 +178,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                   className="text-xs px-3 py-1 rounded-full font-medium"
                   style={{ background: 'var(--terra)', color: 'var(--bone)' }}
                 >
-                  Destacado
+                  {dict.common.badges.destacado}
                 </span>
               )}
               {acompanante.interprete_jurado && (
@@ -171,7 +186,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                   className="text-xs px-3 py-1 rounded-full font-medium"
                   style={{ background: 'rgba(247,242,233,0.2)', color: 'var(--bone)', border: '1px solid rgba(247,242,233,0.4)' }}
                 >
-                  Intérprete jurado
+                  {dict.common.badges.interpreteJurado}
                 </span>
               )}
               {acompanante.imparte_clases && (
@@ -179,15 +194,15 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                   className="text-xs px-3 py-1 rounded-full font-medium"
                   style={{ background: 'rgba(247,242,233,0.2)', color: 'var(--bone)', border: '1px solid rgba(247,242,233,0.4)' }}
                 >
-                  Imparte clases
+                  {dict.common.badges.imparteClases}
                 </span>
               )}
             </div>
 
             {/* Bio */}
-            {bio.es && (
+            {bioText && (
               <p className="text-base leading-relaxed max-w-lg" style={{ color: 'rgba(247,242,233,0.85)' }}>
-                {bio.es}
+                {bioText}
               </p>
             )}
 
@@ -200,7 +215,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                     className="text-xs px-2.5 py-1 rounded-full"
                     style={{ background: 'rgba(247,242,233,0.15)', color: 'var(--bone)', border: '1px solid rgba(247,242,233,0.3)' }}
                   >
-                    {IDIOMAS_MAP[id] ?? id}
+                    {languageName(id, locale)}
                   </span>
                 ))}
               </div>
@@ -212,10 +227,10 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                 <span>📍 {acompanante.zonas.join(', ')}</span>
               )}
               {acompanante.modalidades.length > 0 && (
-                <span>🔄 {acompanante.modalidades.join(', ')}</span>
+                <span>🔄 {acompanante.modalidades.map(modalidadLabel).join(', ')}</span>
               )}
               {acompanante.anios_experiencia && (
-                <span>🎓 {acompanante.anios_experiencia} años de experiencia</span>
+                <span>🎓 {acompanante.anios_experiencia} {t.aniosExperiencia}</span>
               )}
             </div>
           </div>
@@ -226,25 +241,25 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
         {/* ── CTA de contacto ── */}
         <section id="contacto" className="rounded-xl border p-8 text-center shadow-sm" style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}>
           <h2 className="font-display text-2xl font-medium text-(--green) mb-3">
-            ¿Listo para empezar?
+            {t.cta.h2}
           </h2>
           <p className="text-(--ink)/70 mb-3 max-w-lg mx-auto">
-            Reservar cita: elige un servicio y una franja horaria. Solicitud a medida: describe lo que necesitas y el acompañante te propone condiciones.
+            {t.cta.subtitle}
           </p>
           <div className="flex flex-wrap justify-center gap-3 mb-6">
             <a
-              href={`/${slug}/reservar`}
+              href={lp(`/${slug}/reservar`)}
               className="px-6 py-3 rounded-lg font-medium text-sm transition-opacity hover:opacity-80"
               style={{ background: 'var(--green)', color: 'var(--bone)' }}
             >
-              Reservar cita
+              {t.cta.reservar}
             </a>
             <a
-              href={`/${slug}/solicitar`}
+              href={lp(`/${slug}/solicitar`)}
               className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
               style={{ borderColor: 'var(--green)', color: 'var(--green)' }}
             >
-              Solicitud a medida
+              {t.cta.solicitud}
             </a>
             {esClienteAutenticado ? (
               <form
@@ -262,16 +277,16 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                   className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
                   style={{ borderColor: 'var(--terra)', color: 'var(--terra)' }}
                 >
-                  💬 Chat directo
+                  {t.cta.chat}
                 </button>
               </form>
             ) : acompanante.email_contacto ? (
               <a
-                href={`/${slug}/contactar`}
+                href={lp(`/${slug}/contactar`)}
                 className="px-6 py-3 rounded-lg font-medium text-sm border transition-opacity hover:opacity-80"
                 style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
               >
-                Enviar mensaje
+                {t.cta.enviarMensaje}
               </a>
             ) : null}
             {acompanante.whatsapp && (
@@ -292,20 +307,20 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
         {servicios.length > 0 && (
           <section>
             <h2 className="font-display text-2xl font-medium text-(--green) mb-6">
-              Servicios
+              {t.serviciosH2}
             </h2>
             <div className="space-y-8">
               {Object.entries(serviciosPorCategoria).map(([catKey, items]) => (
                 <div key={catKey}>
                   <h3 className="text-sm font-medium text-(--ink)/50 uppercase tracking-wide mb-3">
                     {items[0].service_categories
-                      ? ((items[0].service_categories.nombre as { es?: string }).es ?? catKey)
+                      ? (pickLang(items[0].service_categories.nombre, locale) || catKey)
                       : catKey}
                   </h3>
                   <div className="space-y-4">
                     {items.map((servicio) => {
-                      const titulo = (servicio.titulo as { es?: string; en?: string }).es ?? 'Servicio';
-                      const descripcion = (servicio.descripcion as { es?: string } | null)?.es;
+                      const titulo = pickLang(servicio.titulo as Record<string, unknown>, locale) || t.serviciosH2;
+                      const descripcion = pickLang(servicio.descripcion as Record<string, unknown> | null, locale);
 
                       return (
                         <div
@@ -320,7 +335,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                                 <p className="text-sm text-(--ink)/70 mt-1 leading-relaxed">{descripcion}</p>
                               )}
                               <div className="flex flex-wrap gap-3 mt-3 text-sm text-(--ink)/60">
-                                <span>{servicio.modalidad}</span>
+                                <span>{modalidadLabel(servicio.modalidad)}</span>
                               </div>
                             </div>
                             <div className="text-right shrink-0">
@@ -334,7 +349,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                           {/* Paquetes */}
                           {servicio.es_clase && servicio.paquetes_clases.length > 0 && (
                             <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
-                              <p className="text-xs font-medium text-(--ink)/50 mb-2">Paquetes de sesiones</p>
+                              <p className="text-xs font-medium text-(--ink)/50 mb-2">{t.paquetesTitulo}</p>
                               <div className="flex flex-wrap gap-2">
                                 {servicio.paquetes_clases.filter((p) => p.activo).map((paq) => (
                                   <div
@@ -342,7 +357,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                                     className="px-3 py-2 rounded-lg text-sm"
                                     style={{ background: 'var(--bone)', border: '1px solid var(--line)', color: 'var(--ink)' }}
                                   >
-                                    <span className="font-medium">{paq.num_sesiones} sesiones</span>
+                                    <span className="font-medium">{paq.num_sesiones} {t.sesiones}</span>
                                     <span className="text-(--ink)/50"> — </span>
                                     <span className="text-(--green) font-medium">{paq.precio_total}€</span>
                                   </div>
@@ -364,22 +379,22 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
         <section>
           <div className="flex items-center justify-between gap-4 mb-6">
             <h2 className="font-display text-2xl font-medium text-(--green)">
-              Reseñas
+              {t.resenasH2}
             </h2>
             {puedeResena && reservaCompletada && !resenaExistente && (
               <a
-                href={`/${slug}/resena?reserva_id=${reservaCompletada.id}`}
+                href={lp(`/${slug}/resena?reserva_id=${reservaCompletada.id}`)}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-opacity hover:opacity-80"
                 style={{ borderColor: 'var(--terra)', color: 'var(--terra)' }}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                 </svg>
-                Dejar reseña
+                {t.dejarResena}
               </a>
             )}
             {puedeResena && resenaExistente && (
-              <span className="text-sm text-(--ink)/40">Ya dejaste tu reseña</span>
+              <span className="text-sm text-(--ink)/40">{t.yaResena}</span>
             )}
           </div>
 
@@ -388,9 +403,9 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
               className="rounded-xl border p-10 text-center"
               style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
             >
-              <p className="text-(--ink)/40 text-lg">Sé el primero en dejar una reseña</p>
+              <p className="text-(--ink)/40 text-lg">{t.ningunaTitulo}</p>
               <p className="text-(--ink)/30 text-sm mt-2">
-                Las reseñas de clientes verificados aparecerán aquí.
+                {t.ningunaSub}
               </p>
             </div>
           ) : (
@@ -404,10 +419,10 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
                       <p className="font-medium text-(--ink)">
-                        {resena.profiles?.nombre ?? 'Cliente verificado'}
+                        {resena.profiles?.nombre ?? t.clienteVerificado}
                       </p>
                       <p className="text-xs text-(--ink)/40">
-                        {new Date(resena.created_at).toLocaleDateString('es-ES', {
+                        {new Date(resena.created_at).toLocaleDateString(locale, {
                           year: 'numeric', month: 'long', day: 'numeric',
                         })}
                       </p>
@@ -439,9 +454,7 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
         {/* ── Aviso legal ── */}
         <footer className="border-t pt-8" style={{ borderColor: 'var(--line)' }}>
           <p className="text-xs text-(--ink)/30 leading-relaxed max-w-2xl">
-            Costa Companion actúa exclusivamente como plataforma de intermediación entre clientes y acompañantes lingüísticos independientes.
-            Los servicios son prestados directamente por los acompañantes, quienes son profesionales autónomos.
-            Costa Companion no es parte de ningún contrato de prestación de servicios entre el cliente y el acompañante.
+            {t.avisoLegal}
           </p>
         </footer>
       </div>

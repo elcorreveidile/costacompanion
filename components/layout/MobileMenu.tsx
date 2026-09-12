@@ -4,18 +4,12 @@ import Link from 'next/link';
 import { LogoSymbol } from '@/components/icons/LogoSymbol';
 
 interface MobileMenuProps {
-  isLoggedIn: boolean;
   accountHref: string;
+  accountLabel: string;
+  navItems: { label: string; href: string }[];
 }
 
-const NAV = [
-  { label: 'Cómo funciona', href: '/#como-funciona' },
-  { label: 'Servicios',      href: '/servicios' },
-  { label: 'Acompañantes',   href: '/para-acompanantes' },
-  { label: 'Para negocios',  href: '/para-negocios' },
-];
-
-export function MobileMenu({ isLoggedIn, accountHref }: MobileMenuProps) {
+export function MobileMenu({ accountHref, accountLabel, navItems }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -25,7 +19,7 @@ export function MobileMenu({ isLoggedIn, accountHref }: MobileMenuProps) {
         aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex flex-col gap-1.5 p-2 sm:hidden"
+        className="flex flex-col gap-1.5 p-2 lg:hidden"
       >
         <span
           className="block w-5 h-px transition-all duration-300"
@@ -53,7 +47,7 @@ export function MobileMenu({ isLoggedIn, accountHref }: MobileMenuProps) {
       {/* Drawer overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-40 sm:hidden"
+          className="fixed inset-0 z-40 lg:hidden"
           onClick={() => setOpen(false)}
           style={{ background: 'rgba(43,39,36,0.4)' }}
         />
@@ -61,7 +55,7 @@ export function MobileMenu({ isLoggedIn, accountHref }: MobileMenuProps) {
 
       {/* Drawer panel */}
       <div
-        className="fixed top-0 right-0 bottom-0 z-50 w-72 flex flex-col sm:hidden transition-transform duration-300"
+        className="fixed top-0 right-0 bottom-0 z-50 w-72 flex flex-col lg:hidden transition-transform duration-300"
         style={{
           background: 'var(--green)',
           transform: open ? 'translateX(0)' : 'translateX(100%)',
@@ -80,7 +74,7 @@ export function MobileMenu({ isLoggedIn, accountHref }: MobileMenuProps) {
         </div>
 
         <nav className="flex flex-col px-6 py-8 gap-1">
-          {NAV.map((item) => (
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -100,7 +94,7 @@ export function MobileMenu({ isLoggedIn, accountHref }: MobileMenuProps) {
             className="block w-full text-center py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
             style={{ background: 'var(--terra)', color: 'var(--bone)' }}
           >
-            {isLoggedIn ? 'Mi cuenta' : 'Entrar'}
+            {accountLabel}
           </Link>
         </div>
       </div>

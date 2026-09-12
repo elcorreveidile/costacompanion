@@ -6,7 +6,12 @@ import {
   filtrarAcompananteIdsPorCategoria,
 } from '@/lib/db/queries/public';
 import { LocalPartnersDestacados } from '@/components/LocalPartnersDestacados';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath, languageName, type Locale } from '@/lib/i18n/config';
+import { pickLang } from '@/lib/i18n/pick';
+import type { Dictionary } from '@/lib/i18n';
 
+export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Nuestros acompañantes | Costa Companion',
   description: 'Encuentra tu acompañante lingüístico ideal en la Costa del Sol.',
@@ -23,18 +28,7 @@ interface PageProps {
   searchParams: Promise<SearchParams>;
 }
 
-const IDIOMAS_OPTIONS = [
-  { label: 'Español', value: 'es' },
-  { label: 'Inglés', value: 'en' },
-  { label: 'Francés', value: 'fr' },
-  { label: 'Alemán', value: 'de' },
-  { label: 'Neerlandés', value: 'nl' },
-  { label: 'Ruso', value: 'ru' },
-  { label: 'Chino', value: 'zh' },
-  { label: 'Árabe', value: 'ar' },
-  { label: 'Portugués', value: 'pt' },
-  { label: 'Italiano', value: 'it' },
-];
+const IDIOMA_CODES = ['es', 'en', 'fr', 'de', 'nl', 'ru', 'zh', 'ar', 'pt', 'it'];
 
 const ZONAS_OPTIONS = [
   'Estepona',
@@ -48,12 +42,6 @@ const ZONAS_OPTIONS = [
   'Torremolinos',
   'Málaga',
   'Toda la Costa del Sol',
-];
-
-const MODALIDADES_OPTIONS = [
-  { label: 'Presencial', value: 'presencial' },
-  { label: 'Remoto', value: 'remoto' },
-  { label: 'Ambos', value: 'ambos' },
 ];
 
 function Estrellas({ valor, total }: { valor: number | null; total: number }) {
@@ -79,14 +67,21 @@ function Estrellas({ valor, total }: { valor: number | null; total: number }) {
   );
 }
 
-function AcompananteCard({ acompanante }: { acompanante: Acompanante }) {
-  const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
-  const bioEs = bio.es ?? '';
-  const bioTruncated = bioEs.length > 100 ? bioEs.slice(0, 100) + '...' : bioEs;
+function AcompananteCard({
+  acompanante,
+  locale,
+  dict,
+}: {
+  acompanante: Acompanante;
+  locale: Locale;
+  dict: Dictionary;
+}) {
+  const bioFull = pickLang(acompanante.bio, locale);
+  const bioTruncated = bioFull.length > 100 ? bioFull.slice(0, 100) + '...' : bioFull;
 
   return (
     <Link
-      href={`/${acompanante.slug}`}
+      href={localePath(locale, `/${acompanante.slug}`)}
       className="group flex flex-col rounded-xl border shadow-sm overflow-hidden transition-opacity hover:opacity-90"
       style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
     >
@@ -117,7 +112,7 @@ function AcompananteCard({ acompanante }: { acompanante: Acompanante }) {
               className="text-xs px-2 py-0.5 rounded-full font-medium"
               style={{ background: 'var(--terra)', color: 'var(--bone)' }}
             >
-              Destacado
+              {dict.common.badges.destacado}
             </span>
           )}
           {acompanante.interprete_jurado && (
@@ -125,7 +120,7 @@ function AcompananteCard({ acompanante }: { acompanante: Acompanante }) {
               className="text-xs px-2 py-0.5 rounded-full font-medium"
               style={{ background: 'var(--green)', color: 'var(--bone)' }}
             >
-              Intérprete jurado
+              {dict.common.badges.interpreteJurado}
             </span>
           )}
         </div>
@@ -152,7 +147,7 @@ function AcompananteCard({ acompanante }: { acompanante: Acompanante }) {
                 className="text-xs px-2 py-0.5 rounded-full"
                 style={{ background: 'var(--bone)', color: 'var(--ink)', border: '1px solid var(--line)' }}
               >
-                {IDIOMAS_OPTIONS.find((o) => o.value === id)?.label ?? id}
+                {languageName(id, locale)}
               </span>
             ))}
             {acompanante.idiomas.length > 4 && (
@@ -175,6 +170,14 @@ function AcompananteCard({ acompanante }: { acompanante: Acompanante }) {
 
 export default async function DirectorioPage({ searchParams }: PageProps) {
   const params = await searchParams;
+  const { locale, dict } = await getI18n();
+  const t = dict.directorio;
+  const lp = (href: string) => localePath(locale, href);
+  const MODALIDADES_OPTIONS = [
+    { label: dict.common.modalidades.presencial, value: 'presencial' },
+    { label: dict.common.modalidades.remoto, value: 'remoto' },
+    { label: dict.common.modalidades.ambos, value: 'ambos' },
+  ];
 
   // Cargar categorías para el filtro
   const categorias = await listServiceCategories();
@@ -205,10 +208,10 @@ export default async function DirectorioPage({ searchParams }: PageProps) {
         style={{ background: 'var(--green)' }}
       >
         <h1 className="font-display text-4xl md:text-5xl font-semibold mb-4" style={{ color: 'var(--bone)' }}>
-          Nuestros acompañantes
+          {t.hero.h1}
         </h1>
         <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(247,242,233,0.8)' }}>
-          Profesionales lingüísticos a tu lado en la Costa del Sol. Trámites, salud, hogar y más.
+          {t.hero.subtitle}
         </p>
       </section>
 
@@ -216,39 +219,39 @@ export default async function DirectorioPage({ searchParams }: PageProps) {
         {/* Filtros */}
         <form
           method="GET"
-          action="/directorio"
+          action={lp('/directorio')}
           className="rounded-xl border p-5 mb-8 shadow-sm"
           style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Idioma */}
             <div>
-              <label className="block text-xs font-medium mb-1 text-(--ink)/60">Idioma</label>
+              <label className="block text-xs font-medium mb-1 text-(--ink)/60">{t.filtros.idioma}</label>
               <select
                 name="idioma"
                 defaultValue={params.idioma ?? ''}
                 className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
                 style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
               >
-                <option value="">Todos</option>
-                {IDIOMAS_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                <option value="">{t.filtros.todos}</option>
+                {IDIOMA_CODES.map((code) => (
+                  <option key={code} value={code}>{languageName(code, locale)}</option>
                 ))}
               </select>
             </div>
 
             {/* Categoría */}
             <div>
-              <label className="block text-xs font-medium mb-1 text-(--ink)/60">Categoría</label>
+              <label className="block text-xs font-medium mb-1 text-(--ink)/60">{t.filtros.categoria}</label>
               <select
                 name="categoria"
                 defaultValue={params.categoria ?? ''}
                 className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
                 style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
               >
-                <option value="">Todas</option>
+                <option value="">{t.filtros.todas}</option>
                 {categorias.map((cat) => {
-                  const nombre = (cat.nombre as { es?: string }).es ?? cat.key;
+                  const nombre = pickLang(cat.nombre as Record<string, unknown>, locale) || cat.key;
                   return <option key={cat.id} value={cat.id}>{nombre}</option>;
                 })}
               </select>
@@ -256,14 +259,14 @@ export default async function DirectorioPage({ searchParams }: PageProps) {
 
             {/* Zona */}
             <div>
-              <label className="block text-xs font-medium mb-1 text-(--ink)/60">Zona</label>
+              <label className="block text-xs font-medium mb-1 text-(--ink)/60">{t.filtros.zona}</label>
               <select
                 name="zona"
                 defaultValue={params.zona ?? ''}
                 className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
                 style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
               >
-                <option value="">Todas</option>
+                <option value="">{t.filtros.todas}</option>
                 {ZONAS_OPTIONS.map((z) => (
                   <option key={z} value={z}>{z}</option>
                 ))}
@@ -272,14 +275,14 @@ export default async function DirectorioPage({ searchParams }: PageProps) {
 
             {/* Modalidad */}
             <div>
-              <label className="block text-xs font-medium mb-1 text-(--ink)/60">Modalidad</label>
+              <label className="block text-xs font-medium mb-1 text-(--ink)/60">{t.filtros.modalidad}</label>
               <select
                 name="modalidad"
                 defaultValue={params.modalidad ?? ''}
                 className="w-full px-3 py-2 rounded-lg border text-sm outline-none"
                 style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
               >
-                <option value="">Todas</option>
+                <option value="">{t.filtros.todas}</option>
                 {MODALIDADES_OPTIONS.map((m) => (
                   <option key={m.value} value={m.value}>{m.label}</option>
                 ))}
@@ -293,15 +296,15 @@ export default async function DirectorioPage({ searchParams }: PageProps) {
               className="px-5 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
               style={{ background: 'var(--green)', color: 'var(--bone)' }}
             >
-              Filtrar
+              {t.filtros.filtrar}
             </button>
             {hayFiltros && (
               <Link
-                href="/directorio"
+                href={lp('/directorio')}
                 className="px-5 py-2.5 rounded-lg text-sm font-medium border transition-opacity hover:opacity-70"
                 style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
               >
-                Limpiar filtros
+                {t.filtros.limpiar}
               </Link>
             )}
           </div>
@@ -311,29 +314,29 @@ export default async function DirectorioPage({ searchParams }: PageProps) {
         {acompanantes.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-xl text-(--ink)/40 mb-4">
-              No encontramos acompañantes con esos filtros.
+              {t.resultados.ningunoTitulo}
             </p>
             <p className="text-(--ink)/30 mb-6">
-              Prueba a ampliar tu búsqueda o eliminar algún filtro.
+              {t.resultados.ningunoSub}
             </p>
             {hayFiltros && (
               <Link
-                href="/directorio"
+                href={lp('/directorio')}
                 className="inline-flex px-6 py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
                 style={{ background: 'var(--green)', color: 'var(--bone)' }}
               >
-                Ver todos los acompañantes
+                {t.resultados.verTodos}
               </Link>
             )}
           </div>
         ) : (
           <>
             <p className="text-sm text-(--ink)/50 mb-6">
-              {acompanantes.length} acompañante{acompanantes.length !== 1 ? 's' : ''} encontrado{acompanantes.length !== 1 ? 's' : ''}
+              {acompanantes.length} {acompanantes.length !== 1 ? t.resultados.varios : t.resultados.uno}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {acompanantes.map((ac) => (
-                <AcompananteCard key={ac.id} acompanante={ac} />
+                <AcompananteCard key={ac.id} acompanante={ac} locale={locale} dict={dict} />
               ))}
             </div>
           </>

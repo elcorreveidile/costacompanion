@@ -109,7 +109,7 @@ export const profiles = pgTable(
   (t) => [
     check(
       "idioma_preferido_valido",
-      sql`${t.idiomaPreferido} IS NULL OR ${t.idiomaPreferido} IN ('es','en','fr','de','nl')`
+      sql`${t.idiomaPreferido} IS NULL OR ${t.idiomaPreferido} IN ('es','en','fr','de','nl','ru','uk')`
     ),
   ]
 );

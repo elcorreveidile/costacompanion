@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { getMiAcompananteId } from "@/lib/db/queries/acompanante";
+import { iniciarCobroAcompanante } from "@/lib/acompanante/altaCobro";
 import {
   emailNuevaReserva,
   emailReservaConfirmada,
@@ -32,13 +33,21 @@ function formatFecha(iso: string | Date) {
 
 async function getClienteContacto(
   userId: string
-): Promise<{ email: string | null; nombre: string | null }> {
+): Promise<{ email: string | null; nombre: string | null; idioma: string | null }> {
   const [p] = await db
-    .select({ email: profiles.email, nombre: profiles.nombre })
+    .select({
+      email: profiles.email,
+      nombre: profiles.nombre,
+      idioma: profiles.idiomaPreferido,
+    })
     .from(profiles)
     .where(eq(profiles.id, userId))
     .limit(1);
-  return { email: p?.email ?? null, nombre: p?.nombre ?? null };
+  return {
+    email: p?.email ?? null,
+    nombre: p?.nombre ?? null,
+    idioma: p?.idioma ?? null,
+  };
 }
 
 type Modalidad = "presencial" | "remoto" | "ambos";
@@ -73,8 +82,10 @@ export async function crearReserva(formData: FormData): Promise<void> {
       nombrePublico: acompanantes.nombrePublico,
       emailContacto: acompanantes.emailContacto,
       slug: acompanantes.slug,
+      idioma: profiles.idiomaPreferido,
     })
     .from(acompanantes)
+    .leftJoin(profiles, eq(profiles.id, acompanantes.profileId))
     .where(eq(acompanantes.id, acompananteId))
     .limit(1);
 
@@ -95,6 +106,7 @@ export async function crearReserva(formData: FormData): Promise<void> {
       acompananteNombre: acomp.nombrePublico,
       fechaStr: formatFecha(fechaHora),
       servicioNombre,
+      idioma: acomp.idioma ?? undefined,
     });
   }
 
@@ -145,7 +157,11 @@ export async function confirmarReserva(formData: FormData): Promise<void> {
   }
 
   const [acomp] = await db
-    .select({ nombrePublico: acompanantes.nombrePublico, slug: acompanantes.slug })
+    .select({
+      nombrePublico: acompanantes.nombrePublico,
+      slug: acompanantes.slug,
+      stripeCustomerId: acompanantes.stripeCustomerId,
+    })
     .from(acompanantes)
     .where(eq(acompanantes.id, acompananteId))
     .limit(1);
@@ -172,6 +188,14 @@ export async function confirmarReserva(formData: FormData): Promise<void> {
       .where(eq(disponibilidad.id, reserva.disponibilidadId));
   }
 
+  // 1ª reserva confirmada → arranca el cobro (49 € alta + 19 €/mes). Idempotente
+  // por stripe_customer_id; no bloquea la confirmación si el cobro falla.
+  if (reserva && !acomp?.stripeCustomerId) {
+    iniciarCobroAcompanante(acompananteId).catch((e) =>
+      console.error("iniciarCobroAcompanante (confirmarReserva):", e)
+    );
+  }
+
   if (reserva && acomp) {
     const cliente = await getClienteContacto(reserva.clienteId);
     if (cliente.email) {
@@ -181,6 +205,7 @@ export async function confirmarReserva(formData: FormData): Promise<void> {
         acompananteNombre: acomp.nombrePublico,
         acompananteSlug: acomp.slug,
         fechaStr: formatFecha(reserva.fechaHora),
+        idioma: cliente.idioma ?? undefined,
       });
     }
   }
@@ -225,6 +250,7 @@ export async function rechazarReserva(formData: FormData): Promise<void> {
         acompananteNombre: acomp.nombrePublico,
         acompananteSlug: acomp.slug,
         fechaStr: formatFecha(reserva.fechaHora),
+        idioma: cliente.idioma ?? undefined,
       });
     }
   }

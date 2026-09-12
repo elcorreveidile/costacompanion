@@ -1,19 +1,11 @@
 'use client';
 import { useState, useRef } from 'react';
 import { registrarNegocio } from '@/lib/actions/registroNegocio';
+import type { Dictionary } from '@/lib/i18n/dictionaries/es';
 
-const CATEGORIAS = [
-  { value: 'inmobiliaria', label: 'Inmobiliaria' },
-  { value: 'salud',        label: 'Salud' },
-  { value: 'legal',        label: 'Legal / Gestoría' },
-  { value: 'restauracion', label: 'Restauración' },
-  { value: 'comercio',     label: 'Comercio' },
-  { value: 'otros',        label: 'Otros' },
-];
-
-const ZONAS = [
+const ZONA_VALUES = [
   'Estepona', 'Manilva', 'Casares', 'San Pedro de Alcántara', 'Puerto Banús', 'Benahavís',
-  'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Toda la Costa del Sol',
+  'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga',
 ];
 
 interface Props {
@@ -22,9 +14,18 @@ interface Props {
   precioBasicoAnual: string;
   precioDestacadoAnual: string;
   waHref: string;
+  t: Dictionary['paraNegocios']['form'];
 }
 
-export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, precioDestacadoAnual, waHref }: Props) {
+export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, precioDestacadoAnual, waHref, t }: Props) {
+  const CATEGORIAS = [
+    { value: 'inmobiliaria', label: t.catInmobiliaria },
+    { value: 'salud',        label: t.catSalud },
+    { value: 'legal',        label: t.catLegal },
+    { value: 'restauracion', label: t.catRestauracion },
+    { value: 'comercio',     label: t.catComercio },
+    { value: 'otros',        label: t.catOtros },
+  ];
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,17 +36,17 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
   const planes = [
     {
       value: 'basico' as const,
-      label: 'Básico',
+      label: t.basicoLabel,
       precioMensual: precioBasico,
       precioAnual: precioBasicoAnual,
-      desc: 'Ficha en el directorio Local Partners: logo, descripción y datos de contacto.',
+      desc: t.basicoDesc,
     },
     {
       value: 'destacado' as const,
-      label: 'Destacado',
+      label: t.destacadoLabel,
       precioMensual: precioDestacado,
       precioAnual: precioDestacadoAnual,
-      desc: 'Todo lo anterior más posición preferente y presencia destacada en la plataforma.',
+      desc: t.destacadoDesc,
     },
   ];
 
@@ -79,10 +80,10 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
           </svg>
         </div>
         <h3 className="font-display text-xl font-semibold mb-2" style={{ color: 'var(--green)' }}>
-          Solicitud recibida
+          {t.okTitulo}
         </h3>
         <p className="text-sm" style={{ color: 'var(--ink)', opacity: 0.7 }}>
-          Revisaremos tu ficha y te contactaremos para confirmar el alta. Tu negocio estará visible una vez aprobado.
+          {t.okTexto}
         </p>
       </div>
     );
@@ -98,7 +99,7 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
       {/* Toggle facturación */}
       <div>
         <p className="text-xs font-medium mb-3" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-          Facturación
+          {t.facturacion}
         </p>
         <div
           className="inline-flex rounded-lg p-1 gap-1"
@@ -115,7 +116,7 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
                 color: facturacion === f ? 'var(--bone)' : 'var(--ink)',
               }}
             >
-              {f === 'mensual' ? 'Mensual' : 'Anual'}
+              {f === 'mensual' ? t.mensual : t.anual}
               {f === 'anual' && (
                 <span
                   className="ml-2 text-xs px-1.5 py-0.5 rounded-full font-semibold"
@@ -124,7 +125,7 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
                     color: facturacion === 'anual' ? 'var(--bone)' : 'var(--bone)',
                   }}
                 >
-                  −2 meses
+                  {t.dosMenos}
                 </span>
               )}
             </button>
@@ -132,7 +133,7 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
         </div>
         {facturacion === 'anual' && (
           <p className="text-xs mt-2" style={{ color: 'var(--terra)' }}>
-            Pagas 10 meses y disfrutas 12. Ahorra hasta 158 € al año.
+            {t.ahorro}
           </p>
         )}
       </div>
@@ -140,12 +141,12 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
       {/* Plan selector */}
       <div>
         <p className="text-xs font-medium mb-3" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-          Plan *
+          {t.plan} *
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {planes.map((p) => {
             const precio = facturacion === 'anual' ? p.precioAnual : p.precioMensual;
-            const sufijo = facturacion === 'anual' ? '/año' : '/mes';
+            const sufijo = facturacion === 'anual' ? t.ano : t.mes;
             return (
               <label
                 key={p.value}
@@ -172,7 +173,7 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
                     <span className="text-xs" style={{ color: 'var(--ink)', opacity: 0.5 }}>{sufijo}</span>
                     {facturacion === 'anual' && (
                       <p className="text-xs" style={{ color: 'var(--ink)', opacity: 0.45 }}>
-                        ≈ {p.value === 'basico' ? '24' : '66'} €/mes
+                        {t.aproxMes.replace('{precio}', p.value === 'basico' ? '24' : '66')}
                       </p>
                     )}
                   </div>
@@ -189,13 +190,13 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
           <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-            Nombre del negocio *
+            {t.nombreNegocio} *
           </label>
           <input
             name="nombre_negocio"
             required
             type="text"
-            placeholder="Tu negocio S.L."
+            placeholder={t.nombreNegocioPlaceholder}
             className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-1"
             style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
           />
@@ -203,7 +204,7 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
 
         <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-            Categoría *
+            {t.categoria} *
           </label>
           <select
             name="categoria"
@@ -211,34 +212,35 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
             className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none"
             style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
           >
-            <option value="">Selecciona</option>
+            <option value="">{t.categoriaPlaceholder}</option>
             {CATEGORIAS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </div>
 
         <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-            Zona
+            {t.zona}
           </label>
           <select
             name="zona"
             className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none"
             style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
           >
-            <option value="">Selecciona una zona</option>
-            {ZONAS.map((z) => <option key={z} value={z}>{z}</option>)}
+            <option value="">{t.zonaPlaceholder}</option>
+            {ZONA_VALUES.map((z) => <option key={z} value={z}>{z}</option>)}
+            <option value="Toda la Costa del Sol">{t.todaCostaDelSol}</option>
           </select>
         </div>
 
         <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-            Email de contacto *
+            {t.emailContacto} *
           </label>
           <input
             name="email"
             required
             type="email"
-            placeholder="hola@tunegocio.com"
+            placeholder={t.emailPlaceholder}
             className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-1"
             style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
           />
@@ -246,12 +248,12 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
 
         <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-            Teléfono
+            {t.telefono}
           </label>
           <input
             name="telefono"
             type="tel"
-            placeholder="+34 600 000 000"
+            placeholder={t.telefonoPlaceholder}
             className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-1"
             style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
           />
@@ -259,12 +261,12 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
 
         <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-            WhatsApp
+            {t.whatsapp}
           </label>
           <input
             name="whatsapp"
             type="tel"
-            placeholder="+34 600 000 000"
+            placeholder={t.whatsappPlaceholder}
             className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-1"
             style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
           />
@@ -272,12 +274,12 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
 
         <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-            Web
+            {t.web}
           </label>
           <input
             name="web"
             type="url"
-            placeholder="https://tunegocio.com"
+            placeholder={t.webPlaceholder}
             className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none focus:ring-1"
             style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
           />
@@ -285,12 +287,12 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
 
         <div className="sm:col-span-2">
           <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--ink)', opacity: 0.6 }}>
-            Descripción breve de tu negocio
+            {t.descripcion}
           </label>
           <textarea
             name="descripcion_es"
             rows={3}
-            placeholder="Qué haces, a quién atiendes, qué te diferencia..."
+            placeholder={t.descripcionPlaceholder}
             className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none resize-none"
             style={{ background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' }}
           />
@@ -308,7 +310,7 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
           className="px-7 py-3.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
           style={{ background: 'var(--green)', color: 'var(--bone)' }}
         >
-          {pending ? 'Enviando…' : 'Dar de alta mi negocio'}
+          {pending ? t.enviando : t.enviar}
         </button>
         {waHref !== '#' && (
           <a
@@ -318,7 +320,7 @@ export function FormNegocio({ precioBasico, precioDestacado, precioBasicoAnual, 
             className="text-sm transition-opacity hover:opacity-70"
             style={{ color: 'var(--terra)' }}
           >
-            ¿Dudas? Escríbenos por WhatsApp →
+            {t.whatsappDudas}
           </a>
         )}
       </div>

@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { db } from '@/lib/db';
 import { resenas as resenasTable, acompanantes, profiles } from '@/lib/db/schema';
 import { toggleAprobada } from '@/lib/admin/resenas';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
 
 interface ResenaConJoins {
   id: string;
@@ -18,6 +20,9 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Reseñas | Admin Costa Companion' };
 
 export default async function AdminResenasPage() {
+  const { locale, dict } = await getI18n();
+  const t = dict.panelAdmin;
+
   const rows = await db
     .select({
       id: resenasTable.id,
@@ -50,21 +55,21 @@ export default async function AdminResenasPage() {
         {/* Encabezado */}
         <div className="mb-8 flex items-center gap-4">
           <Link
-            href="/admin"
+            href={localePath(locale, "/admin")}
             className="inline-flex items-center gap-1.5 text-sm text-(--ink)/60 hover:opacity-80 transition-opacity"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Volver al panel
+            {t.shared.volverAlPanelCorto}
           </Link>
         </div>
 
         <h1 className="font-display text-3xl font-semibold text-(--green) mb-2">
-          Reseñas
+          {t.resenas.h1}
         </h1>
         <p className="text-(--ink)/60 mb-8">
-          {resenas.length} reseña{resenas.length !== 1 ? 's' : ''} en total
+          {(resenas.length === 1 ? t.resenas.totalUno : t.resenas.totalVarios).replace('{n}', String(resenas.length))}
         </p>
 
         {resenas.length === 0 ? (
@@ -72,7 +77,7 @@ export default async function AdminResenasPage() {
             className="rounded-xl border p-10 text-center"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
-            <p className="text-(--ink)/40 text-lg">No hay reseñas todavía</p>
+            <p className="text-(--ink)/40 text-lg">{t.resenas.vacio}</p>
           </div>
         ) : (
           <div
@@ -82,12 +87,12 @@ export default async function AdminResenasPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: 'var(--bone-2)', borderBottom: '1px solid var(--line)' }}>
-                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">Acompañante</th>
-                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">Cliente</th>
-                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">Puntuación</th>
-                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">Comentario</th>
-                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">Fecha</th>
-                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">Estado</th>
+                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">{t.resenas.thAcompanante}</th>
+                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">{t.resenas.thCliente}</th>
+                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">{t.resenas.thPuntuacion}</th>
+                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">{t.resenas.thComentario}</th>
+                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">{t.resenas.thFecha}</th>
+                  <th className="text-left px-4 py-3 font-medium text-(--ink)/60">{t.resenas.thEstado}</th>
                 </tr>
               </thead>
               <tbody>
@@ -103,7 +108,7 @@ export default async function AdminResenasPage() {
                     <td className="px-4 py-3">
                       {resena.acompanantes ? (
                         <Link
-                          href={`/${resena.acompanantes.slug}`}
+                          href={localePath(locale, `/${resena.acompanantes.slug}`)}
                           className="font-medium text-(--green) hover:opacity-70 transition-opacity"
                         >
                           {resena.acompanantes.nombre_publico}
@@ -115,7 +120,7 @@ export default async function AdminResenasPage() {
 
                     {/* Cliente */}
                     <td className="px-4 py-3 text-(--ink)/70">
-                      {resena.profiles?.nombre ?? <span className="text-(--ink)/30">Anónimo</span>}
+                      {resena.profiles?.nombre ?? <span className="text-(--ink)/30">{t.resenas.anonimo}</span>}
                     </td>
 
                     {/* Puntuación */}
@@ -146,13 +151,13 @@ export default async function AdminResenasPage() {
                             : resena.comentario}
                         </span>
                       ) : (
-                        <span className="text-(--ink)/30">Sin comentario</span>
+                        <span className="text-(--ink)/30">{t.resenas.sinComentario}</span>
                       )}
                     </td>
 
                     {/* Fecha */}
                     <td className="px-4 py-3 text-(--ink)/50 whitespace-nowrap">
-                      {new Date(resena.created_at).toLocaleDateString('es-ES', {
+                      {new Date(resena.created_at).toLocaleDateString(locale, {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',
@@ -176,7 +181,7 @@ export default async function AdminResenasPage() {
                               : { background: 'rgba(201,123,74,0.12)', color: 'var(--terra)' }
                           }
                         >
-                          {resena.aprobada ? 'Aprobada ✓' : 'Despublicada'}
+                          {resena.aprobada ? t.resenas.aprobada : t.resenas.despublicada}
                         </button>
                       </form>
                     </td>

@@ -2,21 +2,14 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
-import type { CategoriaAnunciante } from '@/types/supabase';
 import { getAnuncianteActivoBySlug } from '@/lib/db/queries/public';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
+import { pickLang } from '@/lib/i18n/pick';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
-
-const CAT_LABEL: Record<CategoriaAnunciante, string> = {
-  inmobiliaria: 'Inmobiliaria',
-  salud:        'Salud',
-  legal:        'Legal',
-  restauracion: 'Restauración',
-  comercio:     'Comercio',
-  otros:        'Otros',
-};
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -29,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${data.nombre_negocio} | Local Partners Costa Companion`,
-    description: desc.es ?? `${CAT_LABEL[data.categoria]}${zonaStr} — Local Partner en Costa del Sol`,
+    description: desc.es ?? `Local Partner${zonaStr} — Costa del Sol`,
   };
 }
 
@@ -39,7 +32,12 @@ export default async function LocalPartnerPage({ params }: PageProps) {
   const an = await getAnuncianteActivoBySlug(slug);
 
   if (!an) notFound();
-  const desc = (an.descripcion ?? {}) as { es?: string; en?: string };
+
+  const { locale, dict } = await getI18n();
+  const t = dict.localPartners;
+  const catLabel = (c: string) =>
+    (dict.common.categoriasAnunciante as Record<string, string>)[c] ?? c;
+  const descText = pickLang(an.descripcion as Record<string, unknown> | null, locale);
   const whatsappNum = an.whatsapp?.replace(/\D/g, '');
   const mapsHref = an.direccion
     ? `https://maps.google.com/?q=${encodeURIComponent(an.direccion)}`
@@ -51,7 +49,7 @@ export default async function LocalPartnerPage({ params }: PageProps) {
       <section className="py-12 px-4" style={{ background: 'var(--green)' }}>
         <div className="max-w-3xl mx-auto">
           <Link
-            href="/local-partners"
+            href={localePath(locale, '/local-partners')}
             className="inline-flex items-center gap-1.5 text-sm mb-6 transition-opacity hover:opacity-70"
             style={{ color: 'rgba(247,242,233,0.6)' }}
           >
@@ -91,7 +89,7 @@ export default async function LocalPartnerPage({ params }: PageProps) {
                   className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-2"
                   style={{ background: 'rgba(201,123,74,0.25)', color: 'var(--terra)' }}
                 >
-                  ★ Destacado
+                  {t.destacadoBadge}
                 </span>
               )}
               <h1
@@ -105,7 +103,7 @@ export default async function LocalPartnerPage({ params }: PageProps) {
                   className="text-sm px-2.5 py-0.5 rounded-full"
                   style={{ background: 'rgba(247,242,233,0.12)', color: 'rgba(247,242,233,0.8)' }}
                 >
-                  {CAT_LABEL[an.categoria]}
+                  {catLabel(an.categoria)}
                 </span>
                 {an.zona && (
                   <span className="text-sm" style={{ color: 'rgba(247,242,233,0.6)' }}>
@@ -121,17 +119,13 @@ export default async function LocalPartnerPage({ params }: PageProps) {
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
         {/* Descripción */}
-        {(desc.es || desc.en) && (
+        {descText && (
           <div
             className="rounded-xl border p-6"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
-            <h2 className="font-display text-lg font-semibold text-(--green) mb-3">Sobre nosotros</h2>
-            {desc.es && <p className="text-(--ink)/80 leading-relaxed">{desc.es}</p>}
-            {desc.en && desc.es && <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--line)' }} />}
-            {desc.en && (
-              <p className="text-(--ink)/70 leading-relaxed italic text-sm">{desc.en}</p>
-            )}
+            <h2 className="font-display text-lg font-semibold text-(--green) mb-3">{t.sobreNosotros}</h2>
+            <p className="text-(--ink)/80 leading-relaxed">{descText}</p>
           </div>
         )}
 
@@ -140,7 +134,7 @@ export default async function LocalPartnerPage({ params }: PageProps) {
           className="rounded-xl border p-6"
           style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
         >
-          <h2 className="font-display text-lg font-semibold text-(--green) mb-4">Contacto</h2>
+          <h2 className="font-display text-lg font-semibold text-(--green) mb-4">{t.contacto}</h2>
 
           <div className="space-y-3 mb-5">
             {an.direccion && (
@@ -217,7 +211,7 @@ export default async function LocalPartnerPage({ params }: PageProps) {
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
                 style={{ background: 'var(--bone)', color: 'var(--ink)', border: '1px solid var(--line)' }}
               >
-                Llamar
+                {t.llamar}
               </a>
             )}
             {an.email && (
@@ -226,7 +220,7 @@ export default async function LocalPartnerPage({ params }: PageProps) {
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
                 style={{ background: 'var(--bone)', color: 'var(--ink)', border: '1px solid var(--line)' }}
               >
-                Email
+                {t.email}
               </a>
             )}
             {mapsHref && (
@@ -237,7 +231,7 @@ export default async function LocalPartnerPage({ params }: PageProps) {
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
                 style={{ background: 'rgba(66,133,244,0.1)', color: '#2563eb', border: '1px solid rgba(66,133,244,0.15)' }}
               >
-                Ver en mapa
+                {t.verEnMapa}
               </a>
             )}
             {an.web && (
@@ -251,7 +245,7 @@ export default async function LocalPartnerPage({ params }: PageProps) {
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
-                Sitio web
+                {t.sitioWeb}
               </a>
             )}
           </div>
@@ -260,10 +254,10 @@ export default async function LocalPartnerPage({ params }: PageProps) {
         {/* CTA volver */}
         <div className="text-center pt-4">
           <Link
-            href="/local-partners"
+            href={localePath(locale, '/local-partners')}
             className="text-sm text-(--ink)/50 hover:text-(--ink) transition-colors"
           >
-            ← Ver todos los Local Partners
+            {t.volver}
           </Link>
         </div>
       </div>

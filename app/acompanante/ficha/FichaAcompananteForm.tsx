@@ -4,19 +4,13 @@ import { useState } from 'react';
 import { actualizarFicha } from '@/lib/acompanante/actions';
 import { FotoUpload } from './FotoUpload';
 import type { Acompanante } from '@/types/supabase';
+import type { Dictionary } from '@/lib/i18n/dictionaries/es';
+import { languageName, type Locale } from '@/lib/i18n/config';
 
-const IDIOMAS = [
-  { label: 'Español', value: 'es' },
-  { label: 'Inglés', value: 'en' },
-  { label: 'Francés', value: 'fr' },
-  { label: 'Alemán', value: 'de' },
-  { label: 'Neerlandés', value: 'nl' },
-  { label: 'Ruso', value: 'ru' },
-  { label: 'Chino', value: 'zh' },
-  { label: 'Árabe', value: 'ar' },
-  { label: 'Portugués', value: 'pt' },
-  { label: 'Italiano', value: 'it' },
-];
+type FichaDict = Dictionary['panelAcompanante']['ficha'];
+type Modalidades = Dictionary['common']['modalidades'];
+
+const IDIOMA_CODES = ['es', 'en', 'fr', 'de', 'nl', 'ru', 'zh', 'ar', 'pt', 'it'];
 
 const ZONAS = [
   'Estepona',
@@ -27,11 +21,7 @@ const ZONAS = [
   'Toda la Costa del Sol',
 ];
 
-const MODALIDADES = [
-  { label: 'Presencial', value: 'presencial' },
-  { label: 'Remoto', value: 'remoto' },
-  { label: 'Ambos', value: 'ambos' },
-];
+const MODALIDAD_VALUES: ('presencial' | 'remoto' | 'ambos')[] = ['presencial', 'remoto', 'ambos'];
 
 function inputClass() {
   return 'w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-2';
@@ -43,12 +33,21 @@ function labelClass() {
   return 'block text-sm font-medium mb-1.5 text-(--ink)';
 }
 
-export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante }) {
+interface Props {
+  acompanante: Acompanante;
+  t: FichaDict;
+  modalidades: Modalidades;
+  locale: Locale;
+}
+
+export function FichaAcompananteForm({ acompanante, t, modalidades, locale }: Props) {
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [fotoUrl, setFotoUrl] = useState<string>(acompanante.foto_url ?? '');
 
   const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
+
+  const zonasNombres = t.zonasNombres as Record<string, string>;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,7 +62,7 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
     if (result.error) {
       setStatus({ type: 'error', msg: result.error });
     } else {
-      setStatus({ type: 'success', msg: 'Ficha actualizada correctamente.' });
+      setStatus({ type: 'success', msg: t.guardado });
       setTimeout(() => setStatus(null), 4000);
     }
   }
@@ -72,7 +71,7 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Nombre */}
       <div>
-        <label className={labelClass()}>Nombre público *</label>
+        <label className={labelClass()}>{t.nombrePublico}</label>
         <input
           name="nombre_publico"
           type="text"
@@ -85,10 +84,11 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
 
       {/* Foto */}
       <div>
-        <label className={labelClass()}>Foto de perfil</label>
+        <label className={labelClass()}>{t.fotoPerfil}</label>
         <FotoUpload
           initialUrl={acompanante.foto_url}
           onUrlChange={setFotoUrl}
+          t={t.foto}
         />
         {/* Hidden input so the main form always sends the current foto_url */}
         <input type="hidden" name="foto_url" value={fotoUrl} readOnly />
@@ -97,23 +97,23 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
       {/* Bio */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className={labelClass()}>Presentación (Español)</label>
+          <label className={labelClass()}>{t.presentacionEs}</label>
           <textarea
             name="bio_es"
             rows={5}
             defaultValue={bio.es ?? ''}
-            placeholder="Cuéntanos sobre ti..."
+            placeholder={t.presentacionEsPlaceholder}
             className={`${inputClass()} resize-y`}
             style={inputStyle}
           />
         </div>
         <div>
-          <label className={labelClass()}>About me (English)</label>
+          <label className={labelClass()}>{t.presentacionEn}</label>
           <textarea
             name="bio_en"
             rows={5}
             defaultValue={bio.en ?? ''}
-            placeholder="Tell us about yourself..."
+            placeholder={t.presentacionEnPlaceholder}
             className={`${inputClass()} resize-y`}
             style={inputStyle}
           />
@@ -122,18 +122,18 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
 
       {/* Idiomas */}
       <div>
-        <label className={labelClass()}>Idiomas que dominas</label>
+        <label className={labelClass()}>{t.idiomas}</label>
         <div className="flex flex-wrap gap-3">
-          {IDIOMAS.map((idioma) => (
-            <label key={idioma.value} className="flex items-center gap-2 cursor-pointer">
+          {IDIOMA_CODES.map((code) => (
+            <label key={code} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 name="idiomas"
-                value={idioma.value}
-                defaultChecked={acompanante.idiomas.includes(idioma.value)}
+                value={code}
+                defaultChecked={acompanante.idiomas.includes(code)}
                 style={{ accentColor: 'var(--green)' }}
               />
-              <span className="text-sm text-(--ink)">{idioma.label}</span>
+              <span className="text-sm text-(--ink)">{languageName(code, locale)}</span>
             </label>
           ))}
         </div>
@@ -141,7 +141,7 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
 
       {/* Zonas */}
       <div>
-        <label className={labelClass()}>Zonas donde trabajas</label>
+        <label className={labelClass()}>{t.zonas}</label>
         <div className="flex flex-wrap gap-3">
           {ZONAS.map((zona) => (
             <label key={zona} className="flex items-center gap-2 cursor-pointer">
@@ -152,7 +152,7 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
                 defaultChecked={acompanante.zonas.includes(zona)}
                 style={{ accentColor: 'var(--green)' }}
               />
-              <span className="text-sm text-(--ink)">{zona}</span>
+              <span className="text-sm text-(--ink)">{zonasNombres[zona] ?? zona}</span>
             </label>
           ))}
         </div>
@@ -160,18 +160,18 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
 
       {/* Modalidades */}
       <div>
-        <label className={labelClass()}>Modalidades</label>
+        <label className={labelClass()}>{t.modalidades}</label>
         <div className="flex flex-wrap gap-3">
-          {MODALIDADES.map((mod) => (
-            <label key={mod.value} className="flex items-center gap-2 cursor-pointer">
+          {MODALIDAD_VALUES.map((mod) => (
+            <label key={mod} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 name="modalidades"
-                value={mod.value}
-                defaultChecked={acompanante.modalidades.includes(mod.value as 'presencial' | 'remoto' | 'ambos')}
+                value={mod}
+                defaultChecked={acompanante.modalidades.includes(mod)}
                 style={{ accentColor: 'var(--green)' }}
               />
-              <span className="text-sm text-(--ink)">{mod.label}</span>
+              <span className="text-sm text-(--ink)">{modalidades[mod]}</span>
             </label>
           ))}
         </div>
@@ -180,7 +180,7 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
       {/* Contacto */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className={labelClass()}>Email de contacto</label>
+          <label className={labelClass()}>{t.emailContacto}</label>
           <input
             name="email_contacto"
             type="email"
@@ -190,12 +190,12 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
           />
         </div>
         <div>
-          <label className={labelClass()}>WhatsApp</label>
+          <label className={labelClass()}>{t.whatsapp}</label>
           <input
             name="whatsapp"
             type="text"
             defaultValue={acompanante.whatsapp ?? ''}
-            placeholder="+34 600 000 000"
+            placeholder={t.whatsappPlaceholder}
             className={inputClass()}
             style={inputStyle}
           />
@@ -205,7 +205,7 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
       {/* Titulación y Experiencia */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className={labelClass()}>Titulación</label>
+          <label className={labelClass()}>{t.titulacion}</label>
           <input
             name="titulacion"
             type="text"
@@ -215,7 +215,7 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
           />
         </div>
         <div>
-          <label className={labelClass()}>Años de experiencia</label>
+          <label className={labelClass()}>{t.aniosExperiencia}</label>
           <input
             name="anios_experiencia"
             type="number"
@@ -236,7 +236,7 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
             defaultChecked={acompanante.interprete_jurado}
             style={{ accentColor: 'var(--green)' }}
           />
-          <span className="text-sm text-(--ink)">Intérprete jurado</span>
+          <span className="text-sm text-(--ink)">{t.interpreteJurado}</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input
@@ -245,7 +245,7 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
             defaultChecked={acompanante.imparte_clases}
             style={{ accentColor: 'var(--green)' }}
           />
-          <span className="text-sm text-(--ink)">Imparto clases</span>
+          <span className="text-sm text-(--ink)">{t.imparteClases}</span>
         </label>
       </div>
 
@@ -269,7 +269,7 @@ export function FichaAcompananteForm({ acompanante }: { acompanante: Acompanante
         className="w-full py-3 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-60"
         style={{ background: 'var(--green)', color: 'var(--bone)' }}
       >
-        {loading ? 'Guardando...' : 'Guardar cambios'}
+        {loading ? t.guardando : t.guardar}
       </button>
     </form>
   );

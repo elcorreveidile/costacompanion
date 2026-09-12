@@ -1,13 +1,9 @@
 import { LogoSymbol } from '@/components/icons/LogoSymbol';
 import Link from 'next/link';
 import { MobileMenu } from './MobileMenu';
-
-const NAV = [
-  { label: 'Cómo funciona', href: '/#como-funciona' },
-  { label: 'Servicios',     href: '/servicios' },
-  { label: 'Acompañantes',  href: '/para-acompanantes' },
-  { label: 'Para negocios', href: '/para-negocios' },
-];
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { getI18n } from '@/lib/i18n/server';
+import { localePath } from '@/lib/i18n/config';
 
 async function getSessionData() {
   try {
@@ -29,14 +25,23 @@ function accountHref(rol: string | null) {
 }
 
 export async function SiteHeader() {
+  const { locale, dict } = await getI18n();
   const session = await getSessionData();
-  const href = accountHref(session?.rol ?? null);
+  const href = localePath(locale, accountHref(session?.rol ?? null));
+  const accountLabel = session ? dict.account.myAccount : dict.account.login;
+
+  const navItems = [
+    { label: dict.nav.comoFunciona, href: localePath(locale, '/#como-funciona') },
+    { label: dict.nav.servicios, href: localePath(locale, '/servicios') },
+    { label: dict.nav.paraAcompanantes, href: localePath(locale, '/para-acompanantes') },
+    { label: dict.nav.paraNegocios, href: localePath(locale, '/para-negocios') },
+  ];
 
   return (
     <header className="w-full sticky top-0 z-30" style={{ background: 'var(--green)' }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+        <Link href={localePath(locale, '/')} className="flex items-center gap-2.5 shrink-0">
           <LogoSymbol strokeColor="#F7F4EF" dotColor="#E0A877" className="h-8 w-8" />
           <span
             className="font-display text-lg font-medium tracking-tight"
@@ -47,8 +52,8 @@ export async function SiteHeader() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-6">
-          {NAV.map((item) => (
+        <nav className="hidden lg:flex items-center gap-6">
+          {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -60,17 +65,23 @@ export async function SiteHeader() {
           ))}
         </nav>
 
-        {/* Desktop CTA */}
-        <Link
-          href={href}
-          className="hidden sm:inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
-          style={{ background: 'var(--terra)', color: 'var(--bone)' }}
-        >
-          {session ? 'Mi cuenta' : 'Entrar'}
-        </Link>
+        {/* Desktop: idioma + CTA */}
+        <div className="hidden lg:flex items-center gap-3">
+          <LanguageSwitcher current={locale} />
+          <Link
+            href={href}
+            className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
+            style={{ background: 'var(--terra)', color: 'var(--bone)' }}
+          >
+            {accountLabel}
+          </Link>
+        </div>
 
-        {/* Mobile hamburger (client component) */}
-        <MobileMenu isLoggedIn={!!session} accountHref={href} />
+        {/* Mobile/tablet: idioma + hamburguesa */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <LanguageSwitcher current={locale} />
+          <MobileMenu accountHref={href} accountLabel={accountLabel} navItems={navItems} />
+        </div>
       </div>
     </header>
   );

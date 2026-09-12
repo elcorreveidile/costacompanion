@@ -4,23 +4,15 @@ import { useState } from 'react';
 import { DateTimePicker } from '@/components/ui/DateTimePicker';
 import { crearDisponibilidad, eliminarDisponibilidad } from '@/lib/acompanante/actions';
 import type { Disponibilidad } from '@/types/supabase';
+import type { Dictionary } from '@/lib/i18n/dictionaries/es';
+import type { Locale } from '@/lib/i18n/config';
 
-const DURACIONES = [
-  { label: '30 minutos', value: 30 },
-  { label: '1 hora', value: 60 },
-  { label: '1h 30min', value: 90 },
-  { label: '2 horas', value: 120 },
-];
+type DisponibilidadDict = Dictionary['panelAcompanante']['disponibilidad'];
+type Modalidades = Dictionary['common']['modalidades'];
 
-const MODALIDADES = [
-  { label: 'Presencial', value: 'presencial' },
-  { label: 'Remoto', value: 'remoto' },
-  { label: 'Ambos', value: 'ambos' },
-];
-
-function formatFechaHora(fechaHora: string): string {
+function formatFechaHora(fechaHora: string, locale: Locale): string {
   const d = new Date(fechaHora);
-  return d.toLocaleString('es-ES', {
+  return d.toLocaleString(locale, {
     weekday: 'short',
     day: '2-digit',
     month: '2-digit',
@@ -42,7 +34,17 @@ function labelClass() {
 
 // ── Add Form ──────────────────────────────────────────────────────────────────
 
-function AddFranjaForm({ onDone }: { onDone: () => void }) {
+function AddFranjaForm({
+  onDone,
+  t,
+  modalidades,
+  locale,
+}: {
+  onDone: () => void;
+  t: DisponibilidadDict;
+  modalidades: Modalidades;
+  locale: Locale;
+}) {
   const [fechaHora, setFechaHora] = useState<Date | null>(null);
   const [duracion, setDuracion] = useState(60);
   const [modalidad, setModalidad] = useState('presencial');
@@ -50,12 +52,25 @@ function AddFranjaForm({ onDone }: { onDone: () => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const DURACIONES: { label: string; value: number }[] = [
+    { label: t.duraciones['30'], value: 30 },
+    { label: t.duraciones['60'], value: 60 },
+    { label: t.duraciones['90'], value: 90 },
+    { label: t.duraciones['120'], value: 120 },
+  ];
+
+  const MODALIDADES: { label: string; value: string }[] = [
+    { label: modalidades.presencial, value: 'presencial' },
+    { label: modalidades.remoto, value: 'remoto' },
+    { label: modalidades.ambos, value: 'ambos' },
+  ];
+
   const today = new Date();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!fechaHora) {
-      setError('Selecciona una fecha y hora.');
+      setError(t.selectFechaError);
       return;
     }
 
@@ -86,17 +101,17 @@ function AddFranjaForm({ onDone }: { onDone: () => void }) {
         {/* Fecha y hora */}
         <div className="md:col-span-2">
           <DateTimePicker
-            label="Fecha y hora *"
+            label={t.fechaHoraLabel}
             value={fechaHora}
             onChange={setFechaHora}
             minDate={today}
-            locale="es"
+            locale={locale === 'es' ? 'es' : 'en'}
           />
         </div>
 
         {/* Duración */}
         <div>
-          <label className={labelClass()}>Duración</label>
+          <label className={labelClass()}>{t.duracion}</label>
           <select
             value={duracion}
             onChange={(e) => setDuracion(Number(e.target.value))}
@@ -113,7 +128,7 @@ function AddFranjaForm({ onDone }: { onDone: () => void }) {
 
         {/* Modalidad */}
         <div>
-          <label className={labelClass()}>Modalidad</label>
+          <label className={labelClass()}>{t.modalidad}</label>
           <select
             value={modalidad}
             onChange={(e) => setModalidad(e.target.value)}
@@ -130,12 +145,12 @@ function AddFranjaForm({ onDone }: { onDone: () => void }) {
 
         {/* Zona */}
         <div className="md:col-span-2">
-          <label className={labelClass()}>Zona (opcional)</label>
+          <label className={labelClass()}>{t.zonaLabel}</label>
           <input
             type="text"
             value={zona}
             onChange={(e) => setZona(e.target.value)}
-            placeholder="Ej: Marbella centro"
+            placeholder={t.zonaPlaceholder}
             className={inputClass()}
             style={inputStyle}
           />
@@ -154,7 +169,7 @@ function AddFranjaForm({ onDone }: { onDone: () => void }) {
         className="px-5 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
         style={{ background: 'var(--green)', color: 'var(--bone)' }}
       >
-        {loading ? 'Añadiendo...' : 'Añadir franja'}
+        {loading ? t.anadiendo : t.anadirFranja}
       </button>
     </form>
   );
@@ -162,15 +177,31 @@ function AddFranjaForm({ onDone }: { onDone: () => void }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export function DisponibilidadManager({ franjas }: { franjas: Disponibilidad[] }) {
+interface Props {
+  franjas: Disponibilidad[];
+  t: DisponibilidadDict;
+  modalidades: Modalidades;
+  eliminar: string;
+  locale: Locale;
+}
+
+export function DisponibilidadManager({ franjas, t, modalidades, eliminar, locale }: Props) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function handleDelete(id: string) {
-    if (!confirm('¿Eliminar esta franja horaria?')) return;
+    if (!confirm(t.confirmEliminar)) return;
     setDeletingId(id);
     await eliminarDisponibilidad(id);
     setDeletingId(null);
+  }
+
+  function estadoLabel(estado: Disponibilidad['estado']): string {
+    return t.estados[estado] ?? estado;
+  }
+
+  function modalidadLabel(modalidad: string): string {
+    return (modalidades as Record<string, string>)[modalidad] ?? modalidad;
   }
 
   // Separar futuras y pasadas
@@ -186,13 +217,13 @@ export function DisponibilidadManager({ franjas }: { franjas: Disponibilidad[] }
         style={{ borderColor: 'var(--line)' }}
       >
         <div className="px-6 py-4" style={{ background: 'var(--bone-2)' }}>
-          <h2 className="font-medium text-(--green)">Próximas franjas</h2>
+          <h2 className="font-medium text-(--green)">{t.proximasFranjas}</h2>
         </div>
 
         {futuras.length === 0 ? (
           <div className="px-6 py-8 text-center" style={{ background: 'var(--bone)' }}>
             <p className="text-(--ink)/50 text-sm">
-              No tienes franjas horarias publicadas. Añade una.
+              {t.vacioFranjas}
             </p>
           </div>
         ) : (
@@ -207,12 +238,12 @@ export function DisponibilidadManager({ franjas }: { franjas: Disponibilidad[] }
               >
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-(--ink) text-sm">
-                    {formatFechaHora(franja.fecha_hora)}
+                    {formatFechaHora(franja.fecha_hora, locale)}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    <span className="text-xs text-(--ink)/50">{franja.duracion_min} min</span>
+                    <span className="text-xs text-(--ink)/50">{franja.duracion_min} {t.min}</span>
                     <span className="text-xs text-(--ink)/50">·</span>
-                    <span className="text-xs text-(--ink)/50">{franja.modalidad}</span>
+                    <span className="text-xs text-(--ink)/50">{modalidadLabel(franja.modalidad)}</span>
                     {franja.zona && (
                       <>
                         <span className="text-xs text-(--ink)/50">·</span>
@@ -227,7 +258,7 @@ export function DisponibilidadManager({ franjas }: { franjas: Disponibilidad[] }
                         border: '1px solid var(--line)',
                       }}
                     >
-                      {franja.estado}
+                      {estadoLabel(franja.estado)}
                     </span>
                   </div>
                 </div>
@@ -237,7 +268,7 @@ export function DisponibilidadManager({ franjas }: { franjas: Disponibilidad[] }
                   disabled={deletingId === franja.id}
                   className="text-sm text-(--terra) transition-opacity hover:opacity-70 disabled:opacity-40 shrink-0"
                 >
-                  Eliminar
+                  {eliminar}
                 </button>
               </div>
             ))}
@@ -256,7 +287,7 @@ export function DisponibilidadManager({ franjas }: { franjas: Disponibilidad[] }
           className="w-full flex items-center justify-between px-6 py-4 text-sm font-medium transition-opacity hover:opacity-70"
           style={{ color: 'var(--green)' }}
         >
-          <span>+ Añadir franja horaria</span>
+          <span>{t.anadirFranjaHoraria}</span>
           <svg
             className="w-4 h-4 transition-transform"
             style={{ transform: showAddForm ? 'rotate(180deg)' : undefined }}
@@ -272,7 +303,12 @@ export function DisponibilidadManager({ franjas }: { franjas: Disponibilidad[] }
         {showAddForm && (
           <div className="px-6 pb-6 border-t" style={{ borderColor: 'var(--line)' }}>
             <div className="pt-4">
-              <AddFranjaForm onDone={() => setShowAddForm(false)} />
+              <AddFranjaForm
+                onDone={() => setShowAddForm(false)}
+                t={t}
+                modalidades={modalidades}
+                locale={locale}
+              />
             </div>
           </div>
         )}
@@ -282,7 +318,7 @@ export function DisponibilidadManager({ franjas }: { franjas: Disponibilidad[] }
       {pasadas.length > 0 && (
         <details className="group">
           <summary className="cursor-pointer text-sm text-(--ink)/40 hover:text-(--ink)/60 transition-colors list-none flex items-center gap-2">
-            <span>Ver historial ({pasadas.length} franjas pasadas)</span>
+            <span>{t.verHistorial.replace('{n}', String(pasadas.length))}</span>
           </summary>
           <div
             className="mt-3 rounded-xl border overflow-hidden"
@@ -298,7 +334,7 @@ export function DisponibilidadManager({ franjas }: { franjas: Disponibilidad[] }
                 }}
               >
                 <p className="text-sm text-(--ink)">
-                  {formatFechaHora(franja.fecha_hora)} · {franja.duracion_min} min · {franja.modalidad}
+                  {formatFechaHora(franja.fecha_hora, locale)} · {franja.duracion_min} {t.min} · {modalidadLabel(franja.modalidad)}
                   {franja.zona ? ` · ${franja.zona}` : ''}
                 </p>
               </div>

@@ -5,15 +5,17 @@ import { profiles, acompanantes } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
 import { accederPortalStripe, cancelarMiSuscripcion } from "@/lib/acompanante/billing";
+import { getI18n } from "@/lib/i18n/server";
+import { localePath } from "@/lib/i18n/config";
 
 type EstadoStripe = 'sin_suscripcion' | 'active' | 'past_due' | 'canceled' | 'trialing';
 
-const STRIPE_BADGE: Record<EstadoStripe, { label: string; bg: string; color: string }> = {
-  active:          { label: 'Activa',           bg: 'rgba(74,111,80,0.12)',  color: 'var(--green-deep)' },
-  trialing:        { label: 'Período de prueba', bg: 'rgba(74,111,80,0.08)',  color: 'var(--green)' },
-  past_due:        { label: 'Pago pendiente',   bg: 'rgba(180,60,50,0.10)',  color: '#b43c32' },
-  canceled:        { label: 'Cancelada',        bg: 'rgba(43,39,36,0.08)',   color: 'rgba(43,39,36,0.5)' },
-  sin_suscripcion: { label: 'Sin suscripción',  bg: 'rgba(201,123,74,0.12)', color: 'var(--terra)' },
+const STRIPE_BADGE: Record<EstadoStripe, { bg: string; color: string }> = {
+  active:          { bg: 'rgba(74,111,80,0.12)',  color: 'var(--green-deep)' },
+  trialing:        { bg: 'rgba(74,111,80,0.08)',  color: 'var(--green)' },
+  past_due:        { bg: 'rgba(180,60,50,0.10)',  color: '#b43c32' },
+  canceled:        { bg: 'rgba(43,39,36,0.08)',   color: 'rgba(43,39,36,0.5)' },
+  sin_suscripcion: { bg: 'rgba(201,123,74,0.12)', color: 'var(--terra)' },
 };
 
 export const metadata = { title: 'Mi Panel — Acompañante | Costa Companion' };
@@ -21,6 +23,9 @@ export const metadata = { title: 'Mi Panel — Acompañante | Costa Companion' }
 export default async function AcompananteDashboard() {
   const sessionUser = await getSessionUser();
   if (!sessionUser) return null;
+
+  const { locale, dict } = await getI18n();
+  const t = dict.panelAcompanante;
 
   const [profile] = await db
     .select({ nombre: profiles.nombre, rol: profiles.rol })
@@ -43,8 +48,8 @@ export default async function AcompananteDashboard() {
   const panelSections = [
     {
       href: '/acompanante/ficha',
-      title: 'Mi ficha',
-      description: 'Edita tu presentación pública: bio, idiomas, zonas, foto y datos de contacto.',
+      title: t.dashboard.cardFichaTitulo,
+      description: t.dashboard.cardFichaDesc,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -54,8 +59,8 @@ export default async function AcompananteDashboard() {
     },
     {
       href: '/acompanante/servicios',
-      title: 'Mis servicios',
-      description: 'Gestiona los servicios que ofreces: categorías, precios, paquetes de clases.',
+      title: t.dashboard.cardServiciosTitulo,
+      description: t.dashboard.cardServiciosDesc,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -65,8 +70,8 @@ export default async function AcompananteDashboard() {
     },
     {
       href: '/acompanante/disponibilidad',
-      title: 'Disponibilidad',
-      description: 'Publica tus franjas horarias disponibles para que los clientes puedan reservar.',
+      title: t.dashboard.cardDisponibilidadTitulo,
+      description: t.dashboard.cardDisponibilidadDesc,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
           <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -77,8 +82,8 @@ export default async function AcompananteDashboard() {
     },
     {
       href: '/acompanante/reservas',
-      title: 'Reservas',
-      description: 'Gestiona las reservas de cita recibidas: confirma, rechaza o marca como completadas.',
+      title: t.dashboard.cardReservasTitulo,
+      description: t.dashboard.cardReservasDesc,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -88,8 +93,8 @@ export default async function AcompananteDashboard() {
     },
     {
       href: '/acompanante/solicitudes',
-      title: 'Solicitudes',
-      description: 'Revisa las solicitudes a medida de tus clientes y propón condiciones.',
+      title: t.dashboard.cardSolicitudesTitulo,
+      description: t.dashboard.cardSolicitudesDesc,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -99,8 +104,8 @@ export default async function AcompananteDashboard() {
     },
     {
       href: '/acompanante/mensajes',
-      title: 'Mis mensajes',
-      description: 'Chat directo con tus clientes para coordinar detalles.',
+      title: t.dashboard.cardMensajesTitulo,
+      description: t.dashboard.cardMensajesDesc,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -116,17 +121,17 @@ export default async function AcompananteDashboard() {
         {/* Encabezado */}
         <div className="mb-8">
           <h1 className="font-display text-3xl font-semibold text-(--green) mb-2">
-            Bienvenido, {nombre}
+            {t.dashboard.bienvenido.replace('{nombre}', String(nombre ?? ''))}
           </h1>
           <p className="text-lg text-(--ink)/70">
-            Tu área de acompañante
+            {t.dashboard.areaAcompanante}
           </p>
         </div>
 
         {/* Banner: ver web pública */}
         {fichaData?.slug && (
           <a
-            href={`/${fichaData.slug}`}
+            href={localePath(locale, `/${fichaData.slug}`)}
             className="flex items-center justify-between gap-4 rounded-xl border px-6 py-4 mb-6 transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--green)' }}
           >
@@ -137,7 +142,7 @@ export default async function AcompananteDashboard() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-(--green)">Mi página pública</p>
+                <p className="text-sm font-medium text-(--green)">{t.dashboard.miPaginaPublica}</p>
                 <p className="text-xs text-(--ink)/50">costacompanion.com/{fichaData.slug}</p>
               </div>
             </div>
@@ -152,7 +157,7 @@ export default async function AcompananteDashboard() {
           {panelSections.map((section) => (
             <Link
               key={section.href}
-              href={section.href}
+              href={localePath(locale, section.href)}
               className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
               style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
             >
@@ -178,23 +183,23 @@ export default async function AcompananteDashboard() {
           const badge = STRIPE_BADGE[estado] ?? STRIPE_BADGE.sin_suscripcion;
           return (
             <div className="bg-(--bone-2) rounded-xl p-6 shadow-sm border border-(--line) mb-4">
-              <h3 className="font-medium text-(--green) mb-3">Tu suscripción</h3>
+              <h3 className="font-medium text-(--green) mb-3">{t.dashboard.suscripcionTitulo}</h3>
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
                   <span
                     className="text-sm font-medium px-3 py-1 rounded-full"
                     style={{ background: badge.bg, color: badge.color }}
                   >
-                    {badge.label}
+                    {t.dashboard.estados[estado] ?? t.dashboard.estados.sin_suscripcion}
                   </span>
                   {estado === 'past_due' && (
                     <p className="text-sm" style={{ color: '#b43c32' }}>
-                      Hay una factura pendiente de pago. Revisa tu correo o accede al portal.
+                      {t.dashboard.pastDueAviso}
                     </p>
                   )}
                   {estado === 'sin_suscripcion' && (
                     <p className="text-sm text-(--ink)/60">
-                      Contacta con el equipo de Costa Companion para activar tu cuenta.
+                      {t.dashboard.sinSuscripcionPre}<strong>{t.dashboard.sinSuscripcionStrong}</strong>{t.dashboard.sinSuscripcionPost}
                     </p>
                   )}
                 </div>
@@ -206,7 +211,7 @@ export default async function AcompananteDashboard() {
                         className="text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
                         style={{ background: 'var(--green)', color: 'var(--bone)' }}
                       >
-                        Ver facturas →
+                        {t.dashboard.verFacturas}
                       </button>
                     </form>
                     {estado !== 'canceled' && (
@@ -220,9 +225,9 @@ export default async function AcompananteDashboard() {
                           type="submit"
                           className="text-sm px-4 py-2 rounded-lg border transition-opacity hover:opacity-70"
                           style={{ borderColor: '#b43c32', color: '#b43c32' }}
-                          title="Tu servicio seguirá activo hasta el final del período actual"
+                          title={t.dashboard.cancelarSuscripcionTitle}
                         >
-                          Cancelar suscripción
+                          {t.dashboard.cancelarSuscripcion}
                         </button>
                       </form>
                     )}
@@ -235,22 +240,22 @@ export default async function AcompananteDashboard() {
 
         {/* Información de cuenta */}
         <div className="bg-(--bone-2) rounded-lg p-6 shadow-sm border border-(--line) mb-4">
-          <h3 className="font-medium text-(--green) mb-2">Información de tu cuenta</h3>
+          <h3 className="font-medium text-(--green) mb-2">{t.dashboard.cuentaTitulo}</h3>
           <div className="text-sm text-(--ink)/70 space-y-1">
-            <p>Email: {sessionUser.email}</p>
-            <p>Rol: Acompañante</p>
-            {profile?.nombre && <p>Nombre: {profile.nombre}</p>}
+            <p>{t.shared.email}: {sessionUser.email}</p>
+            <p>{t.shared.rol}: {t.shared.acompanante}</p>
+            {profile?.nombre && <p>{t.shared.nombre}: {profile.nombre}</p>}
           </div>
         </div>
 
         {/* Acciones */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
-            href="/profile"
+            href={localePath(locale, "/profile")}
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg font-medium text-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--terra)', color: 'var(--bone)' }}
           >
-            Ver mi perfil
+            {t.shared.verPerfil}
           </Link>
           <form action={signOut}>
             <button
@@ -258,7 +263,7 @@ export default async function AcompananteDashboard() {
               className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border font-medium text-sm transition-opacity hover:opacity-70"
               style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}
             >
-              Cerrar sesión
+              {t.shared.cerrarSesion}
             </button>
           </form>
         </div>

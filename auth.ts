@@ -67,7 +67,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       from: MAIL_FROM,
       // Correo con la marca Costa Companion (sustituye a la plantilla genérica).
       async sendVerificationRequest({ identifier, url }) {
-        await emailMagicLink({ to: identifier, url });
+        // Idioma del destinatario si ya tiene perfil; si no, español por defecto.
+        // Best-effort: el fallo del lookup no debe impedir el envío del enlace.
+        let idioma: string | undefined;
+        try {
+          const [p] = await db
+            .select({ idioma: profiles.idiomaPreferido })
+            .from(profiles)
+            .where(eq(profiles.email, identifier))
+            .limit(1);
+          idioma = p?.idioma ?? undefined;
+        } catch (e) {
+          console.error("magic link idioma lookup:", e);
+        }
+        // emailMagicLink NO captura el error: si el envío falla, Auth.js se entera.
+        await emailMagicLink({ to: identifier, url, idioma });
       },
     }),
     // Número de usuario + PIN (solo acompañantes y admin), con bloqueo.
