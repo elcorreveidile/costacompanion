@@ -9,6 +9,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx lib/db/seed.ts",
+    "db:seed:users": "tsx lib/db/seed-usuarios.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
