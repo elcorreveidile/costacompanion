@@ -750,6 +750,7 @@ const ru: Dictionary = {
       noFicha: "Не удалось найти вашу анкету языкового сопровождающего. Свяжитесь с администратором.",
       nombrePublico: "Публичное имя *",
       fotoPerfil: "Фото профиля",
+      presentacion: "О себе",
       presentacionEs: "Презентация (испанский)",
       presentacionEsPlaceholder: "Расскажите о себе...",
       presentacionEn: "Обо мне (английский)",
@@ -913,6 +914,7 @@ const ru: Dictionary = {
       form: {
         nombrePublico: "Публичное имя *",
         fotoPerfil: "Фото профиля",
+        presentacion: "О себе",
         bioEs: "Био (испанский)",
         bioEn: "Био (английский)",
         idiomas: "Языки",

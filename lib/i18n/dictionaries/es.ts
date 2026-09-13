@@ -751,6 +751,7 @@ const es = {
       noFicha: "No se encontró tu ficha de acompañante lingüístico. Contacta con el administrador.",
       nombrePublico: "Nombre público *",
       fotoPerfil: "Foto de perfil",
+      presentacion: "Presentación",
       presentacionEs: "Presentación (Español)",
       presentacionEsPlaceholder: "Cuéntanos sobre ti...",
       presentacionEn: "About me (English)",
@@ -914,6 +915,7 @@ const es = {
       form: {
         nombrePublico: "Nombre público *",
         fotoPerfil: "Foto de perfil",
+        presentacion: "Presentación",
         bioEs: "Bio (Español)",
         bioEn: "Bio (English)",
         idiomas: "Idiomas",

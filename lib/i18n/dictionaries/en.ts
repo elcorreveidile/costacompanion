@@ -750,6 +750,7 @@ const en: Dictionary = {
       noFicha: "We couldn't find your language companion profile. Contact the administrator.",
       nombrePublico: "Public name *",
       fotoPerfil: "Profile photo",
+      presentacion: "About me",
       presentacionEs: "Introduction (Spanish)",
       presentacionEsPlaceholder: "Tell us about yourself...",
       presentacionEn: "About me (English)",
@@ -913,6 +914,7 @@ const en: Dictionary = {
       form: {
         nombrePublico: "Public name *",
         fotoPerfil: "Profile photo",
+        presentacion: "About me",
         bioEs: "Bio (Spanish)",
         bioEn: "Bio (English)",
         idiomas: "Languages",

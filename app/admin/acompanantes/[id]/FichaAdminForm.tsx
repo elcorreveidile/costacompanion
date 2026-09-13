@@ -6,7 +6,7 @@ import { actualizarAcompanante, resetPinAcompanante, subirFotoAcompananteAdmin }
 import type { Acompanante } from '@/types/supabase';
 import { FotoUpload } from '@/app/acompanante/ficha/FotoUpload';
 import type { Dictionary } from '@/lib/i18n/dictionaries/es';
-import { languageName, localePath, type Locale } from '@/lib/i18n/config';
+import { languageName, locales, localePath, type Locale } from '@/lib/i18n/config';
 
 type FormDict = Dictionary['panelAdmin']['acompanantes']['form'];
 type SharedDict = Dictionary['panelAdmin']['shared'];
@@ -49,7 +49,7 @@ export function FichaAdminForm({ acompanante, t, shared, modalidades, fotoT, loc
   const [nuevoPin, setNuevoPin] = useState<{ numeroUsuario?: string; pin?: string } | null>(null);
   const [fotoUrl, setFotoUrl] = useState<string>(acompanante.foto_url ?? '');
 
-  const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
+  const bio = (acompanante.bio ?? {}) as Record<string, string>;
 
   async function handleResetPin() {
     if (!confirm(t.confirmResetPin)) return;
@@ -115,27 +115,24 @@ export function FichaAdminForm({ acompanante, t, shared, modalidades, fotoT, loc
         <input type="hidden" name="foto_url" value={fotoUrl} readOnly />
       </div>
 
-      {/* Bio */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className={labelClass}>{t.bioEs}</label>
-          <textarea
-            name="bio_es"
-            rows={4}
-            defaultValue={bio.es ?? ''}
-            className={`${inputClass} resize-y`}
-            style={inputStyle}
-          />
-        </div>
-        <div>
-          <label className={labelClass}>{t.bioEn}</label>
-          <textarea
-            name="bio_en"
-            rows={4}
-            defaultValue={bio.en ?? ''}
-            className={`${inputClass} resize-y`}
-            style={inputStyle}
-          />
+      {/* Presentación / Bio en los 7 idiomas de la web */}
+      <div>
+        <label className={labelClass}>{t.presentacion}</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {locales.map((code) => (
+            <div key={code}>
+              <label className="block text-xs font-medium mb-1 text-(--ink)/70">
+                {languageName(code, locale)}
+              </label>
+              <textarea
+                name={`bio_${code}`}
+                rows={4}
+                defaultValue={bio[code] ?? ''}
+                className={`${inputClass} resize-y`}
+                style={inputStyle}
+              />
+            </div>
+          ))}
         </div>
       </div>
 

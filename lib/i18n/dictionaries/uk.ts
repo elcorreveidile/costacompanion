@@ -750,6 +750,7 @@ const uk: Dictionary = {
       noFicha: "Не вдалося знайти вашу анкету мовного супровідника. Зв’яжіться з адміністратором.",
       nombrePublico: "Публічне ім’я *",
       fotoPerfil: "Фото профілю",
+      presentacion: "Про себе",
       presentacionEs: "Презентація (іспанська)",
       presentacionEsPlaceholder: "Розкажіть про себе...",
       presentacionEn: "Про мене (англійська)",
@@ -913,6 +914,7 @@ const uk: Dictionary = {
       form: {
         nombrePublico: "Публічне ім’я *",
         fotoPerfil: "Фото профілю",
+        presentacion: "Про себе",
         bioEs: "Біо (іспанська)",
         bioEn: "Біо (англійська)",
         idiomas: "Мови",

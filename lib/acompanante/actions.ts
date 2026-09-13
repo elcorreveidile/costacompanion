@@ -42,10 +42,11 @@ export async function actualizarFicha(
     Boolean
   ) as Modalidad[];
 
-  const bio = {
-    es: (formData.get("bio_es") as string | null) ?? "",
-    en: (formData.get("bio_en") as string | null) ?? "",
-  };
+  const bio: Record<string, string> = {};
+  for (const code of ["es", "en", "fr", "de", "nl", "ru", "uk"]) {
+    const v = (formData.get(`bio_${code}`) as string | null)?.trim();
+    if (v) bio[code] = v;
+  }
 
   const aniosRaw = formData.get("anios_experiencia");
   const aniosExperiencia = aniosRaw ? Number(aniosRaw) || null : null;
