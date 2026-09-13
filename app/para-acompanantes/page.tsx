@@ -3,7 +3,7 @@ import { FormAcompanante } from './FormAcompanante';
 import { getI18n } from '@/lib/i18n/server';
 
 export const metadata = {
-  title: 'Para acompañantes | Costa Companion',
+  title: 'Para acompañantes lingüísticos | Costa Companion',
   description: 'Únete a la red de acompañantes lingüísticos de Costa Companion en la Costa del Sol.',
 };
 

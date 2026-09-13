@@ -14,7 +14,7 @@ import type { Dictionary } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
-  title: 'Nuestros acompañantes | Costa Companion',
+  title: 'Nuestros acompañantes lingüísticos | Costa Companion',
   description: 'Encuentra tu acompañante lingüístico ideal en la Costa del Sol.',
 };
 
@@ -33,6 +33,8 @@ const IDIOMA_CODES = ['es', 'en', 'fr', 'de', 'nl', 'ru', 'zh', 'ar', 'pt', 'it'
 
 const ZONAS_OPTIONS = [
   'Estepona',
+  'Sotogrande',
+  'Duquesa',
   'Manilva',
   'Casares',
   'San Pedro de Alcántara',
