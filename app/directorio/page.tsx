@@ -14,7 +14,7 @@ import type { Dictionary } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
-  title: 'Nuestros acompañantes | Costa Companion',
+  title: 'Nuestros acompañantes lingüísticos | Costa Companion',
   description: 'Encuentra tu acompañante lingüístico ideal en la Costa del Sol.',
 };
 
