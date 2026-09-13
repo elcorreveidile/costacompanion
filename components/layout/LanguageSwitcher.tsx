@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 import {
   locales,
   localeNames,
@@ -55,8 +54,11 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
           {(locales as readonly Locale[]).map((l) => {
             const href = l === defaultLocale ? base : localePath(l, base);
             const isCurrent = l === current;
+            // Navegación dura (no <Link>): al no existir segmento [locale], una
+            // navegación cliente reutilizaría el layout cacheado y el idioma solo
+            // cambiaría a medias. Un <a> fuerza recarga y re-render con x-locale.
             return (
-              <Link
+              <a
                 key={l}
                 href={href}
                 onClick={() => setOpen(false)}
@@ -69,7 +71,7 @@ export function LanguageSwitcher({ current }: { current: Locale }) {
               >
                 <span>{localeNames[l]}</span>
                 <span style={{ color: "var(--ink)", opacity: 0.4 }}>{localeShort[l]}</span>
-              </Link>
+              </a>
             );
           })}
         </div>
