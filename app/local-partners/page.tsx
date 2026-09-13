@@ -61,15 +61,28 @@ export default async function LocalPartnersPage({ searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen bg-(--bone)">
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        {/* Encabezado */}
-        <div className="mb-10">
-          <p className="text-sm font-medium text-(--terra) mb-2 tracking-wide uppercase">Costa del Sol</p>
-          <h1 className="font-display text-4xl font-semibold text-(--green) mb-3">Local Partners</h1>
-          <p className="text-(--ink)/60 text-lg max-w-2xl">
+      {/* Hero */}
+      <section className="relative py-16 px-4 text-center overflow-hidden" style={{ background: 'var(--green)' }}>
+        <Image
+          src="/images/estepona-cartel.jpg"
+          alt="Cartel de Estepona en el centro"
+          fill
+          className="object-cover"
+          style={{ opacity: 0.3 }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(28,50,38,0.45) 0%, rgba(28,50,38,0.8) 100%)' }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto">
+          <p className="text-sm font-medium mb-2 tracking-wide uppercase" style={{ color: 'rgba(247,244,239,0.6)' }}>Costa del Sol</p>
+          <h1 className="font-display text-4xl font-semibold mb-3" style={{ color: 'var(--bone)' }}>Local Partners</h1>
+          <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(247,244,239,0.82)' }}>
             {t.subtitle}
           </p>
         </div>
+      </section>
+      <div className="max-w-6xl mx-auto px-4 py-12">
 
         {/* Filtros */}
         <div className="flex flex-wrap gap-3 mb-8">

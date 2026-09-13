@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { FormAcompanante } from './FormAcompanante';
 import { getI18n } from '@/lib/i18n/server';
 
@@ -16,8 +17,19 @@ export default async function ParaAcompanantesPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bone)' }}>
       {/* Hero */}
-      <section className="py-20 px-6 text-center" style={{ background: 'var(--green)' }}>
-        <div className="max-w-3xl mx-auto">
+      <section className="relative py-20 px-6 text-center overflow-hidden" style={{ background: 'var(--green)' }}>
+        <Image
+          src="/images/palmeras-atardecer.jpg"
+          alt="Palmeras al atardecer en la Costa del Sol"
+          fill
+          className="object-cover"
+          style={{ opacity: 0.3 }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(28,50,38,0.45) 0%, rgba(28,50,38,0.8) 100%)' }}
+        />
+        <div className="relative z-10 max-w-3xl mx-auto">
           <h1
             className="font-display text-4xl sm:text-5xl font-semibold mb-4"
             style={{ color: 'var(--bone)' }}

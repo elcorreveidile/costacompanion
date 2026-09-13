@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Acompanante } from '@/types/supabase';
 import {
   listServiceCategories,
@@ -204,15 +205,28 @@ export default async function DirectorioPage({ searchParams }: PageProps) {
     <div className="min-h-screen bg-(--bone)">
       {/* Hero */}
       <section
-        className="py-16 px-4 text-center"
+        className="relative py-16 px-4 text-center overflow-hidden"
         style={{ background: 'var(--green)' }}
       >
-        <h1 className="font-display text-4xl md:text-5xl font-semibold mb-4" style={{ color: 'var(--bone)' }}>
-          {t.hero.h1}
-        </h1>
-        <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(247,242,233,0.8)' }}>
-          {t.hero.subtitle}
-        </p>
+        <Image
+          src="/images/playa-dia.jpg"
+          alt="Playa de la Costa del Sol"
+          fill
+          className="object-cover"
+          style={{ opacity: 0.28 }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(28,50,38,0.45) 0%, rgba(28,50,38,0.78) 100%)' }}
+        />
+        <div className="relative z-10">
+          <h1 className="font-display text-4xl md:text-5xl font-semibold mb-4" style={{ color: 'var(--bone)' }}>
+            {t.hero.h1}
+          </h1>
+          <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(247,242,233,0.8)' }}>
+            {t.hero.subtitle}
+          </p>
+        </div>
       </section>
 
       <div className="max-w-6xl mx-auto px-4 py-10">
