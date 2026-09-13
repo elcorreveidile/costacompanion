@@ -9,8 +9,8 @@ import { db } from "@/lib/db";
 import { profiles } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 
-type IdiomaPreferido = "es" | "en" | "fr" | "de" | "nl";
-const IDIOMAS_VALIDOS: IdiomaPreferido[] = ["es", "en", "fr", "de", "nl"];
+type IdiomaPreferido = "es" | "en" | "fr" | "de" | "nl" | "ru" | "uk";
+const IDIOMAS_VALIDOS: IdiomaPreferido[] = ["es", "en", "fr", "de", "nl", "ru", "uk"];
 
 /**
  * Envía un enlace mágico (Auth.js + SMTP de Brevo).
