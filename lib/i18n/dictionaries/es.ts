@@ -5,7 +5,7 @@ const es = {
   nav: {
     comoFunciona: "Cómo funciona",
     servicios: "Servicios",
-    paraAcompanantes: "Para acompañantes",
+    paraAcompanantes: "Para acompañantes lingüísticos",
     paraNegocios: "Para negocios",
     directorio: "Directorio",
   },
@@ -89,7 +89,7 @@ const es = {
   },
   directorio: {
     hero: {
-      h1: "Nuestros acompañantes",
+      h1: "Nuestros acompañantes lingüísticos",
       subtitle:
         "Profesionales lingüísticos a tu lado en la Costa del Sol. Trámites, salud, hogar y más.",
     },
@@ -165,7 +165,7 @@ const es = {
       titleLine2: "en tu idioma",
       subtitle:
         "Alguien de confianza que te acompaña al médico, a la policía, al notario o al banco — y habla por ti cuando el idioma se interpone. Presencial o a distancia, en Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares y toda la Costa del Sol occidental.",
-      ctaFind: "Encontrar a mi acompañante",
+      ctaFind: "Encontrar a mi acompañante lingüístico",
       ctaHow: "Cómo funciona",
     },
     problema: {
@@ -179,7 +179,7 @@ const es = {
       h2: "Sencillo, desde el primer momento",
       items: [
         {
-          titulo: "Elige a tu acompañante",
+          titulo: "Elige a tu acompañante lingüístico",
           texto:
             "Busca por idioma, por tipo de gestión y por zona. Cada acompañante tiene su perfil, su experiencia y las valoraciones de quienes ya han contado con él.",
         },
@@ -225,7 +225,7 @@ const es = {
         h3: "¿Hablas idiomas y quieres acompañar?",
         texto:
           "Si conoces la costa, hablas varios idiomas y te gusta ayudar a las personas en los momentos que importan, hay un sitio para ti en Costa Companion. Trabajas a tu manera, con tus precios y tu propio perfil dentro de la plataforma.",
-        cta: "Quiero ser acompañante",
+        cta: "Quiero ser acompañante lingüístico",
       },
       negocio: {
         h3: "¿Tienes un negocio en la costa?",
@@ -238,7 +238,7 @@ const es = {
       h2: "Da el primer paso hoy",
       texto:
         "Tu próxima gestión no tiene por qué hacerse en un idioma que no dominas. Encuentra a la persona que te acompaña.",
-      cta: "Encontrar a mi acompañante",
+      cta: "Encontrar a mi acompañante lingüístico",
     },
   },
   paraAcompanantes: {
@@ -601,7 +601,7 @@ const es = {
       email: "Email",
       nombre: "Nombre",
       rol: "Rol",
-      acompanante: "Acompañante",
+      acompanante: "Acompañante lingüístico",
       cliente: "Cliente",
       whatsapp: "WhatsApp",
       guardar: "Guardar cambios",
@@ -1038,7 +1038,7 @@ const es = {
     cerrarSesion: "Cerrar sesión",
     roles: {
       cliente: "Cliente",
-      acompanante: "Acompañante",
+      acompanante: "Acompañante lingüístico",
       anunciante: "Anunciante (Local Partner)",
       superadmin: "Superadmin",
     },

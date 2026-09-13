@@ -4,7 +4,7 @@ const fr: Dictionary = {
   nav: {
     comoFunciona: "Comment ça marche",
     servicios: "Services",
-    paraAcompanantes: "Pour les accompagnateurs",
+    paraAcompanantes: "Pour les accompagnateurs linguistiques",
     paraNegocios: "Pour les entreprises",
     directorio: "Annuaire",
   },
@@ -88,7 +88,7 @@ const fr: Dictionary = {
   },
   directorio: {
     hero: {
-      h1: "Nos accompagnateurs",
+      h1: "Nos accompagnateurs linguistiques",
       subtitle:
         "Des professionnels de la langue à vos côtés sur la Costa del Sol. Démarches, santé, logement et plus.",
     },
@@ -164,7 +164,7 @@ const fr: Dictionary = {
       titleLine2: "dans votre langue",
       subtitle:
         "Une personne de confiance qui vous accompagne chez le médecin, à la police, chez le notaire ou à la banque — et qui parle pour vous quand la langue devient un obstacle. En personne ou à distance, à Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares et dans toute la Costa del Sol occidentale.",
-      ctaFind: "Trouver mon accompagnateur",
+      ctaFind: "Trouver mon accompagnateur linguistique",
       ctaHow: "Comment ça marche",
     },
     problema: {
@@ -178,7 +178,7 @@ const fr: Dictionary = {
       h2: "Simple, dès le premier instant",
       items: [
         {
-          titulo: "Choisissez votre accompagnateur",
+          titulo: "Choisissez votre accompagnateur linguistique",
           texto:
             "Recherchez par langue, par type de démarche et par zone. Chaque accompagnateur a son profil, son expérience et les avis de ceux qui ont déjà fait appel à lui.",
         },
@@ -224,7 +224,7 @@ const fr: Dictionary = {
         h3: "Vous parlez plusieurs langues et souhaitez accompagner ?",
         texto:
           "Si vous connaissez la côte, parlez plusieurs langues et aimez aider les gens dans les moments qui comptent, il y a une place pour vous chez Costa Companion. Vous travaillez à votre manière, avec vos tarifs et votre propre profil sur la plateforme.",
-        cta: "Je veux devenir accompagnateur",
+        cta: "Je veux devenir accompagnateur linguistique",
       },
       negocio: {
         h3: "Vous avez une entreprise sur la côte ?",
@@ -237,7 +237,7 @@ const fr: Dictionary = {
       h2: "Faites le premier pas aujourd’hui",
       texto:
         "Votre prochaine démarche n’a pas à se faire dans une langue que vous ne maîtrisez pas. Trouvez la personne qui vous accompagnera.",
-      cta: "Trouver mon accompagnateur",
+      cta: "Trouver mon accompagnateur linguistique",
     },
   },
   paraAcompanantes: {
@@ -600,7 +600,7 @@ const fr: Dictionary = {
       email: "E-mail",
       nombre: "Nom",
       rol: "Rôle",
-      acompanante: "Accompagnateur",
+      acompanante: "Accompagnateur linguistique",
       cliente: "Client",
       whatsapp: "WhatsApp",
       guardar: "Enregistrer les modifications",
@@ -1037,7 +1037,7 @@ const fr: Dictionary = {
     cerrarSesion: "Se déconnecter",
     roles: {
       cliente: "Client",
-      acompanante: "Accompagnateur",
+      acompanante: "Accompagnateur linguistique",
       anunciante: "Annonceur (Local Partner)",
       superadmin: "Superadmin",
     },

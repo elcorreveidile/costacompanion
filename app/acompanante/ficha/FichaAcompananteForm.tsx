@@ -14,6 +14,11 @@ const IDIOMA_CODES = ['es', 'en', 'fr', 'de', 'nl', 'ru', 'zh', 'ar', 'pt', 'it'
 
 const ZONAS = [
   'Estepona',
+  'Sotogrande',
+  'Duquesa',
+  'Manilva',
+  'Casares',
+  'Benahavís',
   'Marbella',
   'Fuengirola',
   'Torremolinos',

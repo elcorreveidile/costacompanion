@@ -4,7 +4,7 @@ const en: Dictionary = {
   nav: {
     comoFunciona: "How it works",
     servicios: "Services",
-    paraAcompanantes: "For companions",
+    paraAcompanantes: "For language companions",
     paraNegocios: "For businesses",
     directorio: "Directory",
   },
@@ -88,7 +88,7 @@ const en: Dictionary = {
   },
   directorio: {
     hero: {
-      h1: "Our companions",
+      h1: "Our language companions",
       subtitle:
         "Language professionals by your side on the Costa del Sol. Paperwork, health, home and more.",
     },
@@ -164,7 +164,7 @@ const en: Dictionary = {
       titleLine2: "in your language",
       subtitle:
         "Someone you can trust who goes with you to the doctor, the police, the notary or the bank — and speaks for you when language gets in the way. In person or remotely, in Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares and all of the western Costa del Sol.",
-      ctaFind: "Find my companion",
+      ctaFind: "Find my language companion",
       ctaHow: "How it works",
     },
     problema: {
@@ -178,7 +178,7 @@ const en: Dictionary = {
       h2: "Simple, from the very first moment",
       items: [
         {
-          titulo: "Choose your companion",
+          titulo: "Choose your language companion",
           texto:
             "Search by language, type of task and area. Each companion has their own profile, experience and reviews from the people they’ve already helped.",
         },
@@ -224,7 +224,7 @@ const en: Dictionary = {
         h3: "Do you speak languages and want to accompany others?",
         texto:
           "If you know the coast, speak several languages and enjoy helping people in the moments that matter, there’s a place for you at Costa Companion. You work your way, with your own prices and your own profile on the platform.",
-        cta: "I want to be a companion",
+        cta: "I want to be a language companion",
       },
       negocio: {
         h3: "Do you run a business on the coast?",
@@ -237,7 +237,7 @@ const en: Dictionary = {
       h2: "Take the first step today",
       texto:
         "Your next task doesn’t have to be done in a language you haven’t mastered. Find the person who’ll be by your side.",
-      cta: "Find my companion",
+      cta: "Find my language companion",
     },
   },
   paraAcompanantes: {
@@ -600,7 +600,7 @@ const en: Dictionary = {
       email: "Email",
       nombre: "Name",
       rol: "Role",
-      acompanante: "Companion",
+      acompanante: "Language companion",
       cliente: "Client",
       whatsapp: "WhatsApp",
       guardar: "Save changes",
@@ -1037,7 +1037,7 @@ const en: Dictionary = {
     cerrarSesion: "Log out",
     roles: {
       cliente: "Client",
-      acompanante: "Companion",
+      acompanante: "Language companion",
       anunciante: "Advertiser (Local Partner)",
       superadmin: "Superadmin",
     },

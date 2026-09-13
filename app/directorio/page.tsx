@@ -33,6 +33,8 @@ const IDIOMA_CODES = ['es', 'en', 'fr', 'de', 'nl', 'ru', 'zh', 'ar', 'pt', 'it'
 
 const ZONAS_OPTIONS = [
   'Estepona',
+  'Sotogrande',
+  'Duquesa',
   'Manilva',
   'Casares',
   'San Pedro de Alcántara',

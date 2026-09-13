@@ -4,7 +4,7 @@ const de: Dictionary = {
   nav: {
     comoFunciona: "So funktioniert es",
     servicios: "Leistungen",
-    paraAcompanantes: "Für Begleiter",
+    paraAcompanantes: "Für Sprachbegleiter",
     paraNegocios: "Für Unternehmen",
     directorio: "Verzeichnis",
   },
@@ -88,7 +88,7 @@ const de: Dictionary = {
   },
   directorio: {
     hero: {
-      h1: "Unsere Begleiter",
+      h1: "Unsere Sprachbegleiter",
       subtitle:
         "Sprachprofis an Ihrer Seite an der Costa del Sol. Behördengänge, Gesundheit, Zuhause und mehr.",
     },
@@ -164,7 +164,7 @@ const de: Dictionary = {
       titleLine2: "in Ihrer Sprache",
       subtitle:
         "Eine Vertrauensperson, die Sie zum Arzt, zur Polizei, zum Notar oder zur Bank begleitet — und für Sie spricht, wenn die Sprache im Weg steht. Persönlich oder aus der Ferne, in Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares und an der gesamten westlichen Costa del Sol.",
-      ctaFind: "Meine Begleitung finden",
+      ctaFind: "Meine Sprachbegleitung finden",
       ctaHow: "So funktioniert es",
     },
     problema: {
@@ -178,7 +178,7 @@ const de: Dictionary = {
       h2: "Einfach, vom ersten Moment an",
       items: [
         {
-          titulo: "Wählen Sie Ihre Begleitung",
+          titulo: "Wählen Sie Ihre Sprachbegleitung",
           texto:
             "Suchen Sie nach Sprache, Art des Anliegens und Gebiet. Jede Begleitung hat ihr eigenes Profil, ihre Erfahrung und die Bewertungen derjenigen, die sie bereits in Anspruch genommen haben.",
         },
@@ -224,7 +224,7 @@ const de: Dictionary = {
         h3: "Sprechen Sie mehrere Sprachen und möchten begleiten?",
         texto:
           "Wenn Sie die Küste kennen, mehrere Sprachen sprechen und Menschen gerne in wichtigen Momenten helfen, gibt es einen Platz für Sie bei Costa Companion. Sie arbeiten auf Ihre Weise, mit Ihren Preisen und Ihrem eigenen Profil auf der Plattform.",
-        cta: "Ich möchte Begleiter werden",
+        cta: "Ich möchte Sprachbegleiter werden",
       },
       negocio: {
         h3: "Haben Sie ein Unternehmen an der Küste?",
@@ -237,7 +237,7 @@ const de: Dictionary = {
       h2: "Machen Sie heute den ersten Schritt",
       texto:
         "Ihr nächstes Anliegen muss nicht in einer Sprache erledigt werden, die Sie nicht beherrschen. Finden Sie die Person, die Sie begleitet.",
-      cta: "Meine Begleitung finden",
+      cta: "Meine Sprachbegleitung finden",
     },
   },
   paraAcompanantes: {
@@ -600,7 +600,7 @@ const de: Dictionary = {
       email: "E-Mail",
       nombre: "Name",
       rol: "Rolle",
-      acompanante: "Begleiter",
+      acompanante: "Sprachbegleiter",
       cliente: "Kunde",
       whatsapp: "WhatsApp",
       guardar: "Änderungen speichern",
@@ -1037,7 +1037,7 @@ const de: Dictionary = {
     cerrarSesion: "Abmelden",
     roles: {
       cliente: "Kunde",
-      acompanante: "Begleiter",
+      acompanante: "Sprachbegleiter",
       anunciante: "Inserent (Local Partner)",
       superadmin: "Superadmin",
     },

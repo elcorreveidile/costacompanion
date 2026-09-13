@@ -4,7 +4,7 @@ const nl: Dictionary = {
   nav: {
     comoFunciona: "Hoe het werkt",
     servicios: "Diensten",
-    paraAcompanantes: "Voor begeleiders",
+    paraAcompanantes: "Voor taalbegeleiders",
     paraNegocios: "Voor bedrijven",
     directorio: "Gids",
   },
@@ -88,7 +88,7 @@ const nl: Dictionary = {
   },
   directorio: {
     hero: {
-      h1: "Onze begeleiders",
+      h1: "Onze taalbegeleiders",
       subtitle:
         "Taalprofessionals aan uw zijde aan de Costa del Sol. Formaliteiten, gezondheid, wonen en meer.",
     },
@@ -164,7 +164,7 @@ const nl: Dictionary = {
       titleLine2: "in uw taal",
       subtitle:
         "Iemand die u vertrouwt en die met u meegaat naar de dokter, de politie, de notaris of de bank — en die voor u spreekt wanneer de taal in de weg zit. Persoonlijk of op afstand, in Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares en de hele westelijke Costa del Sol.",
-      ctaFind: "Mijn begeleider vinden",
+      ctaFind: "Mijn taalbegeleider vinden",
       ctaHow: "Hoe het werkt",
     },
     problema: {
@@ -178,7 +178,7 @@ const nl: Dictionary = {
       h2: "Eenvoudig, vanaf het eerste moment",
       items: [
         {
-          titulo: "Kies uw begeleider",
+          titulo: "Kies uw taalbegeleider",
           texto:
             "Zoek op taal, soort kwestie en regio. Elke begeleider heeft een eigen profiel, ervaring en de beoordelingen van wie al een beroep op hem heeft gedaan.",
         },
@@ -224,7 +224,7 @@ const nl: Dictionary = {
         h3: "Spreekt u meerdere talen en wilt u begeleiden?",
         texto:
           "Als u de kust kent, meerdere talen spreekt en mensen graag helpt op de momenten die ertoe doen, is er een plek voor u bij Costa Companion. U werkt op uw manier, met uw eigen tarieven en uw eigen profiel op het platform.",
-        cta: "Ik wil begeleider worden",
+        cta: "Ik wil taalbegeleider worden",
       },
       negocio: {
         h3: "Hebt u een bedrijf aan de kust?",
@@ -237,7 +237,7 @@ const nl: Dictionary = {
       h2: "Zet vandaag de eerste stap",
       texto:
         "Uw volgende kwestie hoeft niet in een taal die u niet beheerst. Vind de persoon die u begeleidt.",
-      cta: "Mijn begeleider vinden",
+      cta: "Mijn taalbegeleider vinden",
     },
   },
   paraAcompanantes: {
@@ -600,7 +600,7 @@ const nl: Dictionary = {
       email: "E-mail",
       nombre: "Naam",
       rol: "Rol",
-      acompanante: "Begeleider",
+      acompanante: "Taalbegeleider",
       cliente: "Klant",
       whatsapp: "WhatsApp",
       guardar: "Wijzigingen opslaan",
@@ -1037,7 +1037,7 @@ const nl: Dictionary = {
     cerrarSesion: "Uitloggen",
     roles: {
       cliente: "Klant",
-      acompanante: "Begeleider",
+      acompanante: "Taalbegeleider",
       anunciante: "Adverteerder (Local Partner)",
       superadmin: "Superadmin",
     },
