@@ -807,6 +807,14 @@ const es = {
     },
   },
   panelAdmin: {
+    equipo: {
+      titulo: "Equipo",
+      subtitulo: "Reinicia el número de usuario y el PIN de acceso de las cuentas de superadministrador.",
+      thEstadoPin: "PIN",
+      conPin: "Con PIN",
+      sinPin: "Sin PIN",
+      confirmReset: "¿Reiniciar el PIN de este superadministrador? El PIN anterior dejará de funcionar.",
+    },
     shared: {
       admin: "Admin",
       volverAlPanel: "← Panel de administración",

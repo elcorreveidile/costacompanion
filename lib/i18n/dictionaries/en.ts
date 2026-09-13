@@ -806,6 +806,14 @@ const en: Dictionary = {
     },
   },
   panelAdmin: {
+    equipo: {
+      titulo: "Team",
+      subtitulo: "Reset the user number and access PIN for superadmin accounts.",
+      thEstadoPin: "PIN",
+      conPin: "Has PIN",
+      sinPin: "No PIN",
+      confirmReset: "Reset this superadmin's PIN? The previous PIN will stop working.",
+    },
     shared: {
       admin: "Admin",
       volverAlPanel: "← Admin panel",

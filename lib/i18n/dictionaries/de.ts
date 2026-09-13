@@ -806,6 +806,14 @@ const de: Dictionary = {
     },
   },
   panelAdmin: {
+    equipo: {
+      titulo: "Team",
+      subtitulo: "Setzt Benutzernummer und Zugangs-PIN von Superadmin-Konten zurück.",
+      thEstadoPin: "PIN",
+      conPin: "Mit PIN",
+      sinPin: "Ohne PIN",
+      confirmReset: "PIN dieses Superadmins zurücksetzen? Der bisherige PIN funktioniert dann nicht mehr.",
+    },
     shared: {
       admin: "Admin",
       volverAlPanel: "← Verwaltungsbereich",

@@ -806,6 +806,14 @@ const uk: Dictionary = {
     },
   },
   panelAdmin: {
+    equipo: {
+      titulo: "Команда",
+      subtitulo: "Скидання номера користувача та PIN-коду доступу для облікових записів суперадміністратора.",
+      thEstadoPin: "PIN",
+      conPin: "Є PIN",
+      sinPin: "Немає PIN",
+      confirmReset: "Скинути PIN цього суперадміністратора? Попередній PIN перестане працювати.",
+    },
     shared: {
       admin: "Адмін",
       volverAlPanel: "← Панель адміністрування",

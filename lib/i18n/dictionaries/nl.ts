@@ -806,6 +806,14 @@ const nl: Dictionary = {
     },
   },
   panelAdmin: {
+    equipo: {
+      titulo: "Team",
+      subtitulo: "Reset het gebruikersnummer en de toegangs-PIN van superadmin-accounts.",
+      thEstadoPin: "PIN",
+      conPin: "Met PIN",
+      sinPin: "Zonder PIN",
+      confirmReset: "PIN van deze superadmin resetten? De vorige PIN werkt dan niet meer.",
+    },
     shared: {
       admin: "Admin",
       volverAlPanel: "← Beheerpaneel",

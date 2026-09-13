@@ -219,6 +219,32 @@ export async function resetPinAcompanante(profileId: string): Promise<AltaResult
   return { numeroUsuario: numero, pin };
 }
 
+/**
+ * Reinicia (o asigna) el número de usuario + PIN de OTRA cuenta superadmin.
+ * Solo un superadmin puede hacerlo, y solo sobre perfiles con rol superadmin.
+ */
+export async function resetPinSuperadmin(profileId: string): Promise<AltaResult> {
+  if (!(await requireSuperadmin()).ok) return { error: "No autorizado." };
+  const [target] = await db
+    .select({ rol: profiles.rol, numeroUsuario: profiles.numeroUsuario })
+    .from(profiles)
+    .where(eq(profiles.id, profileId))
+    .limit(1);
+  if (!target) return { error: "No se encontró el perfil." };
+  if (target.rol !== "superadmin") {
+    return { error: "Solo se puede reiniciar el PIN de cuentas superadmin desde aquí." };
+  }
+  const pin = pin6();
+  const pinHash = await bcrypt.hash(pin, 10);
+  const numero = target.numeroUsuario ?? (await numeroUnico());
+  await db
+    .update(profiles)
+    .set({ pinHash, numeroUsuario: numero, pinIntentos: 0, pinBloqueadoHasta: null })
+    .where(eq(profiles.id, profileId));
+  revalidatePath("/admin/equipo");
+  return { numeroUsuario: numero, pin };
+}
+
 export async function asignarAcompananteExistente(
   formData: FormData
 ): Promise<AltaResult> {

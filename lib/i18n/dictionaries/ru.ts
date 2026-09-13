@@ -806,6 +806,14 @@ const ru: Dictionary = {
     },
   },
   panelAdmin: {
+    equipo: {
+      titulo: "Команда",
+      subtitulo: "Сброс номера пользователя и PIN-кода доступа для учётных записей суперадминистратора.",
+      thEstadoPin: "PIN",
+      conPin: "Есть PIN",
+      sinPin: "Нет PIN",
+      confirmReset: "Сбросить PIN этого суперадминистратора? Прежний PIN перестанет работать.",
+    },
     shared: {
       admin: "Админ",
       volverAlPanel: "← Панель администрирования",

@@ -806,6 +806,14 @@ const fr: Dictionary = {
     },
   },
   panelAdmin: {
+    equipo: {
+      titulo: "Équipe",
+      subtitulo: "Réinitialise le numéro d'utilisateur et le PIN d'accès des comptes superadministrateur.",
+      thEstadoPin: "PIN",
+      conPin: "Avec PIN",
+      sinPin: "Sans PIN",
+      confirmReset: "Réinitialiser le PIN de ce superadministrateur ? L'ancien PIN cessera de fonctionner.",
+    },
     shared: {
       admin: "Admin",
       volverAlPanel: "← Panneau d’administration",
