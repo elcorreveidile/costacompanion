@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import type { Servicio, PaqueteClases, Resena } from '@/types/supabase';
 import type { Metadata } from 'next';
 import { getSessionUser } from '@/lib/auth/session';
@@ -131,7 +132,18 @@ export default async function AcompananteSlugPage({ params }: PageProps) {
     <div className="min-h-screen bg-(--bone)">
       {/* ── Hero ── */}
       <section className="relative overflow-hidden" style={{ background: 'var(--green)' }}>
-        <div className="max-w-5xl mx-auto px-4 py-16 md:py-20 flex flex-col md:flex-row items-center gap-10">
+        <Image
+          src="/images/paseo-palmeras.jpg"
+          alt="Paseo marítimo con palmeras en la Costa del Sol"
+          fill
+          className="object-cover"
+          style={{ opacity: 0.25 }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(28,50,38,0.5) 0%, rgba(28,50,38,0.82) 100%)' }}
+        />
+        <div className="relative z-10 max-w-5xl mx-auto px-4 py-16 md:py-20 flex flex-col md:flex-row items-center gap-10">
           {/* Foto */}
           <div className="shrink-0">
             {acompanante.foto_url ? (
