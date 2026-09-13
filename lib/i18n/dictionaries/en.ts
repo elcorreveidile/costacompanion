@@ -629,7 +629,7 @@ const en: Dictionary = {
       pastDueAviso: "There is an unpaid invoice. Check your email or go to the portal.",
       sinSuscripcionPre: "Your profile is active and ",
       sinSuscripcionStrong: "free",
-      sinSuscripcionPost: ". You'll start paying (49 € one-time setup fee, + 19 €/month) when you confirm your first booking.",
+      sinSuscripcionPost: ". You'll start paying ({alta} one-time setup fee, + {cuota}/month) when you confirm your first booking.",
       verFacturas: "View invoices →",
       cancelarSuscripcion: "Cancel subscription",
       cancelarSuscripcionTitle: "Your service will remain active until the end of the current period",

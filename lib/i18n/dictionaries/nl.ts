@@ -629,7 +629,7 @@ const nl: Dictionary = {
       pastDueAviso: "Er staat een openstaande factuur. Controleer je e-mail of ga naar het portaal.",
       sinSuscripcionPre: "Je profiel is actief en ",
       sinSuscripcionStrong: "gratis",
-      sinSuscripcionPost: ". Je begint te betalen (49 € eenmalige aanmeldkosten, + 19 €/maand) zodra je je eerste boeking bevestigt.",
+      sinSuscripcionPost: ". Je begint te betalen ({alta} eenmalige aanmeldkosten, + {cuota}/maand) zodra je je eerste boeking bevestigt.",
       verFacturas: "Facturen bekijken →",
       cancelarSuscripcion: "Abonnement opzeggen",
       cancelarSuscripcionTitle: "Je service blijft actief tot het einde van de huidige periode",

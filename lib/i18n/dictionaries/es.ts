@@ -630,7 +630,7 @@ const es = {
       pastDueAviso: "Hay una factura pendiente de pago. Revisa tu correo o accede al portal.",
       sinSuscripcionPre: "Tu ficha está activa y es ",
       sinSuscripcionStrong: "gratuita",
-      sinSuscripcionPost: ". Empezarás a pagar (49 € de alta, una vez, + 19 €/mes) al confirmar tu primera reserva.",
+      sinSuscripcionPost: ". Empezarás a pagar ({alta} de alta, una vez, + {cuota}/mes) al confirmar tu primera reserva.",
       verFacturas: "Ver facturas →",
       cancelarSuscripcion: "Cancelar suscripción",
       cancelarSuscripcionTitle: "Tu servicio seguirá activo hasta el final del período actual",

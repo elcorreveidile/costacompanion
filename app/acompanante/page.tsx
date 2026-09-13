@@ -26,6 +26,9 @@ export default async function AcompananteDashboard() {
 
   const { locale, dict } = await getI18n();
   const t = dict.panelAcompanante;
+  // Importes mostrados (autoajustables por env; el cobro real usa los price IDs de Stripe).
+  const altaDisplay = process.env.NEXT_PUBLIC_PRICE_DISPLAY_ACOMP_ALTA ?? '49 €';
+  const cuotaDisplay = process.env.NEXT_PUBLIC_PRICE_DISPLAY_ACOMP_CUOTA ?? '19 €';
 
   const [profile] = await db
     .select({ nombre: profiles.nombre, rol: profiles.rol })
@@ -199,7 +202,7 @@ export default async function AcompananteDashboard() {
                   )}
                   {estado === 'sin_suscripcion' && (
                     <p className="text-sm text-(--ink)/60">
-                      {t.dashboard.sinSuscripcionPre}<strong>{t.dashboard.sinSuscripcionStrong}</strong>{t.dashboard.sinSuscripcionPost}
+                      {t.dashboard.sinSuscripcionPre}<strong>{t.dashboard.sinSuscripcionStrong}</strong>{t.dashboard.sinSuscripcionPost.replace('{alta}', altaDisplay).replace('{cuota}', cuotaDisplay)}
                     </p>
                   )}
                 </div>

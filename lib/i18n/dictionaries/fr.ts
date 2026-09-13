@@ -629,7 +629,7 @@ const fr: Dictionary = {
       pastDueAviso: "Une facture est en attente de paiement. Vérifiez votre e-mail ou accédez au portail.",
       sinSuscripcionPre: "Votre fiche est active et ",
       sinSuscripcionStrong: "gratuite",
-      sinSuscripcionPost: ". Vous commencerez à payer (49 € de frais d’inscription, une seule fois, + 19 €/mois) à la confirmation de votre première réservation.",
+      sinSuscripcionPost: ". Vous commencerez à payer ({alta} de frais d’inscription, une seule fois, + {cuota}/mois) à la confirmation de votre première réservation.",
       verFacturas: "Voir les factures →",
       cancelarSuscripcion: "Annuler l’abonnement",
       cancelarSuscripcionTitle: "Votre service restera actif jusqu’à la fin de la période en cours",

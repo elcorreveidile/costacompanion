@@ -629,7 +629,7 @@ const de: Dictionary = {
       pastDueAviso: "Es liegt eine offene Rechnung vor. Prüfen Sie Ihre E-Mails oder rufen Sie das Portal auf.",
       sinSuscripcionPre: "Ihr Profil ist aktiv und ",
       sinSuscripcionStrong: "kostenlos",
-      sinSuscripcionPost: ". Sie beginnen mit der Zahlung (49 € einmalige Einrichtungsgebühr, + 19 €/Monat), sobald Sie Ihre erste Buchung bestätigen.",
+      sinSuscripcionPost: ". Sie beginnen mit der Zahlung ({alta} einmalige Einrichtungsgebühr, + {cuota}/Monat), sobald Sie Ihre erste Buchung bestätigen.",
       verFacturas: "Rechnungen ansehen →",
       cancelarSuscripcion: "Abonnement kündigen",
       cancelarSuscripcionTitle: "Ihr Dienst bleibt bis zum Ende des laufenden Zeitraums aktiv",
