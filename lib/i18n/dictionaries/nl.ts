@@ -750,6 +750,7 @@ const nl: Dictionary = {
       noFicha: "We konden je taalbegeleidersprofiel niet vinden. Neem contact op met de beheerder.",
       nombrePublico: "Openbare naam *",
       fotoPerfil: "Profielfoto",
+      presentacion: "Over mij",
       presentacionEs: "Introductie (Spaans)",
       presentacionEsPlaceholder: "Vertel ons over jezelf...",
       presentacionEn: "Over mij (Engels)",
@@ -913,6 +914,7 @@ const nl: Dictionary = {
       form: {
         nombrePublico: "Openbare naam *",
         fotoPerfil: "Profielfoto",
+        presentacion: "Over mij",
         bioEs: "Bio (Spaans)",
         bioEn: "Bio (Engels)",
         idiomas: "Talen",

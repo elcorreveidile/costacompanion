@@ -750,6 +750,7 @@ const de: Dictionary = {
       noFicha: "Ihr Sprachbegleiterprofil wurde nicht gefunden. Wenden Sie sich an den Administrator.",
       nombrePublico: "Öffentlicher Name *",
       fotoPerfil: "Profilfoto",
+      presentacion: "Vorstellung",
       presentacionEs: "Vorstellung (Spanisch)",
       presentacionEsPlaceholder: "Erzählen Sie uns von sich...",
       presentacionEn: "Über mich (Englisch)",
@@ -913,6 +914,7 @@ const de: Dictionary = {
       form: {
         nombrePublico: "Öffentlicher Name *",
         fotoPerfil: "Profilfoto",
+        presentacion: "Vorstellung",
         bioEs: "Bio (Spanisch)",
         bioEn: "Bio (Englisch)",
         idiomas: "Sprachen",

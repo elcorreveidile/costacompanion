@@ -5,7 +5,7 @@ import { actualizarFicha } from '@/lib/acompanante/actions';
 import { FotoUpload } from './FotoUpload';
 import type { Acompanante } from '@/types/supabase';
 import type { Dictionary } from '@/lib/i18n/dictionaries/es';
-import { languageName, type Locale } from '@/lib/i18n/config';
+import { languageName, locales, type Locale } from '@/lib/i18n/config';
 
 type FichaDict = Dictionary['panelAcompanante']['ficha'];
 type Modalidades = Dictionary['common']['modalidades'];
@@ -50,7 +50,7 @@ export function FichaAcompananteForm({ acompanante, t, modalidades, locale }: Pr
   const [loading, setLoading] = useState(false);
   const [fotoUrl, setFotoUrl] = useState<string>(acompanante.foto_url ?? '');
 
-  const bio = (acompanante.bio ?? {}) as { es?: string; en?: string };
+  const bio = (acompanante.bio ?? {}) as Record<string, string>;
 
   const zonasNombres = t.zonasNombres as Record<string, string>;
 
@@ -99,29 +99,25 @@ export function FichaAcompananteForm({ acompanante, t, modalidades, locale }: Pr
         <input type="hidden" name="foto_url" value={fotoUrl} readOnly />
       </div>
 
-      {/* Bio */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className={labelClass()}>{t.presentacionEs}</label>
-          <textarea
-            name="bio_es"
-            rows={5}
-            defaultValue={bio.es ?? ''}
-            placeholder={t.presentacionEsPlaceholder}
-            className={`${inputClass()} resize-y`}
-            style={inputStyle}
-          />
-        </div>
-        <div>
-          <label className={labelClass()}>{t.presentacionEn}</label>
-          <textarea
-            name="bio_en"
-            rows={5}
-            defaultValue={bio.en ?? ''}
-            placeholder={t.presentacionEnPlaceholder}
-            className={`${inputClass()} resize-y`}
-            style={inputStyle}
-          />
+      {/* Presentación / Bio en los 7 idiomas de la web */}
+      <div>
+        <label className={labelClass()}>{t.presentacion}</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {locales.map((code) => (
+            <div key={code}>
+              <label className="block text-xs font-medium mb-1 text-(--ink)/70">
+                {languageName(code, locale)}
+              </label>
+              <textarea
+                name={`bio_${code}`}
+                rows={4}
+                defaultValue={bio[code] ?? ''}
+                placeholder={code === 'es' ? t.presentacionEsPlaceholder : undefined}
+                className={`${inputClass()} resize-y`}
+                style={inputStyle}
+              />
+            </div>
+          ))}
         </div>
       </div>
 

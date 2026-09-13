@@ -750,6 +750,7 @@ const fr: Dictionary = {
       noFicha: "Nous n’avons pas trouvé votre fiche d’accompagnateur linguistique. Contactez l’administrateur.",
       nombrePublico: "Nom public *",
       fotoPerfil: "Photo de profil",
+      presentacion: "Présentation",
       presentacionEs: "Présentation (espagnol)",
       presentacionEsPlaceholder: "Parlez-nous de vous...",
       presentacionEn: "À propos de moi (anglais)",
@@ -913,6 +914,7 @@ const fr: Dictionary = {
       form: {
         nombrePublico: "Nom public *",
         fotoPerfil: "Photo de profil",
+        presentacion: "Présentation",
         bioEs: "Bio (espagnol)",
         bioEn: "Bio (anglais)",
         idiomas: "Langues",
