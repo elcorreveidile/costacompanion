@@ -6,7 +6,7 @@ import { anunciantes } from '@/lib/db/schema';
 import { getSessionUser } from '@/lib/auth/session';
 import type { MultilingualText } from '@/types/supabase';
 import { getI18n } from '@/lib/i18n/server';
-import { localePath } from '@/lib/i18n/config';
+import { localePath, locales } from '@/lib/i18n/config';
 import { FichaAnuncianteForm } from './FichaAnuncianteForm';
 
 export const dynamic = 'force-dynamic';
@@ -49,10 +49,11 @@ export default async function AnuncianteFichaPage() {
     const u = await getSessionUser();
     if (!u) return { error: t.noAutenticado };
 
-    const descripcion = {
-      es: (formData.get('descripcion_es') as string | null) ?? '',
-      en: (formData.get('descripcion_en') as string | null) ?? '',
-    };
+    const descripcion: Record<string, string> = {};
+    for (const code of locales) {
+      const v = ((formData.get(`descripcion_${code}`) as string | null) ?? '').trim();
+      if (v) descripcion[code] = v;
+    }
 
     try {
       await db
