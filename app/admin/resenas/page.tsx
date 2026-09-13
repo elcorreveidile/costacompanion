@@ -81,10 +81,10 @@ export default async function AdminResenasPage() {
           </div>
         ) : (
           <div
-            className="rounded-xl border overflow-hidden shadow-sm"
+            className="rounded-xl border shadow-sm overflow-x-auto"
             style={{ borderColor: 'var(--line)' }}
           >
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-[720px]">
               <thead>
                 <tr style={{ background: 'var(--bone-2)', borderBottom: '1px solid var(--line)' }}>
                   <th className="text-left px-4 py-3 font-medium text-(--ink)/60">{t.resenas.thAcompanante}</th>
