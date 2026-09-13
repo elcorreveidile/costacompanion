@@ -259,7 +259,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hola ${clienteNombre}, <strong>${acompananteNombre}</strong> ha confirmado tu cita.`,
     labelFecha: "Fecha:",
-    note: "Puedes contactar directamente con el acompañante desde su perfil si necesitas coordinar algo.",
+    note: "Puedes contactar directamente con el acompañante lingüístico desde su perfil si necesitas coordinar algo.",
     button: "Ver mis reservas",
   },
   en: {
@@ -269,7 +269,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hi ${clienteNombre}, <strong>${acompananteNombre}</strong> has confirmed your appointment.`,
     labelFecha: "Date:",
-    note: "You can contact the companion directly from their profile if you need to coordinate anything.",
+    note: "You can contact the language companion directly from their profile if you need to coordinate anything.",
     button: "View my bookings",
   },
   fr: {
@@ -299,7 +299,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hoi ${clienteNombre}, <strong>${acompananteNombre}</strong> heeft je afspraak bevestigd.`,
     labelFecha: "Datum:",
-    note: "Je kunt de begeleider rechtstreeks via zijn of haar profiel contacteren als je iets wilt afstemmen.",
+    note: "Je kunt de taalbegeleider rechtstreeks via zijn of haar profiel contacteren als je iets wilt afstemmen.",
     button: "Mijn boekingen bekijken",
   },
   ru: {
@@ -309,7 +309,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Здравствуйте, ${clienteNombre}! <strong>${acompananteNombre}</strong> подтвердил(а) вашу встречу.`,
     labelFecha: "Дата:",
-    note: "Вы можете связаться с сопровождающим напрямую через его профиль, если нужно что-то согласовать.",
+    note: "Вы можете связаться с языковым сопровождающим напрямую через его профиль, если нужно что-то согласовать.",
     button: "Мои бронирования",
   },
   uk: {
@@ -319,7 +319,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Вітаємо, ${clienteNombre}! <strong>${acompananteNombre}</strong> підтвердив(ла) вашу зустріч.`,
     labelFecha: "Дата:",
-    note: "Ви можете зв’язатися із супровідником безпосередньо через його профіль, якщо потрібно щось узгодити.",
+    note: "Ви можете зв’язатися з мовним супровідником безпосередньо через його профіль, якщо потрібно щось узгодити.",
     button: "Мої бронювання",
   },
 };
@@ -333,7 +333,7 @@ export const reservaRechazada: Record<Locale, ReservaRechazadaStrings> = {
     heading: "Reserva no disponible",
     intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
       `Hola ${clienteNombre}, lamentablemente <strong>${acompananteNombre}</strong> no puede atenderte en esa franja (${fechaStr}).`,
-    note: "Te animamos a ver otros horarios disponibles o explorar más acompañantes en el directorio.",
+    note: "Te animamos a ver otros horarios disponibles o explorar más acompañantes lingüísticos en el directorio.",
     button: "Ver directorio",
   },
   en: {
@@ -342,7 +342,7 @@ export const reservaRechazada: Record<Locale, ReservaRechazadaStrings> = {
     heading: "Booking unavailable",
     intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
       `Hi ${clienteNombre}, unfortunately <strong>${acompananteNombre}</strong> can't take you at that time (${fechaStr}).`,
-    note: "We encourage you to check other available times or explore more companions in the directory.",
+    note: "We encourage you to check other available times or explore more language companions in the directory.",
     button: "Browse the directory",
   },
   fr: {
@@ -369,7 +369,7 @@ export const reservaRechazada: Record<Locale, ReservaRechazadaStrings> = {
     heading: "Boeking niet beschikbaar",
     intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
       `Hoi ${clienteNombre}, helaas kan <strong>${acompananteNombre}</strong> je op dat tijdstip niet ontvangen (${fechaStr}).`,
-    note: "We raden je aan om andere beschikbare tijden te bekijken of meer begeleiders in de gids te ontdekken.",
+    note: "We raden je aan om andere beschikbare tijden te bekijken of meer taalbegeleiders in de gids te ontdekken.",
     button: "Gids bekijken",
   },
   ru: {
@@ -378,7 +378,7 @@ export const reservaRechazada: Record<Locale, ReservaRechazadaStrings> = {
     heading: "Бронирование недоступно",
     intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
       `Здравствуйте, ${clienteNombre}! К сожалению, <strong>${acompananteNombre}</strong> не может принять вас в это время (${fechaStr}).`,
-    note: "Рекомендуем посмотреть другое доступное время или найти других сопровождающих в каталоге.",
+    note: "Рекомендуем посмотреть другое доступное время или найти других языковых сопровождающих в каталоге.",
     button: "Открыть каталог",
   },
   uk: {
@@ -387,7 +387,7 @@ export const reservaRechazada: Record<Locale, ReservaRechazadaStrings> = {
     heading: "Бронювання недоступне",
     intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
       `Вітаємо, ${clienteNombre}! На жаль, <strong>${acompananteNombre}</strong> не може прийняти вас у цей час (${fechaStr}).`,
-    note: "Радимо переглянути інший доступний час або знайти інших супровідників у каталозі.",
+    note: "Радимо переглянути інший доступний час або знайти інших мовних супровідників у каталозі.",
     button: "Відкрити каталог",
   },
 };
@@ -463,7 +463,7 @@ export const solicitudAceptada: Record<Locale, SolicitudAceptadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hola ${clienteNombre}, <strong>${acompananteNombre}</strong> ha aceptado tu solicitud.`,
     precio: ({ precio }) => `Precio propuesto: ${precio}€`,
-    note: "Puedes contactar al acompañante desde su perfil para coordinar los detalles.",
+    note: "Puedes contactar al acompañante lingüístico desde su perfil para coordinar los detalles.",
     button: "Ver solicitudes",
   },
   en: {
@@ -473,7 +473,7 @@ export const solicitudAceptada: Record<Locale, SolicitudAceptadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hi ${clienteNombre}, <strong>${acompananteNombre}</strong> has accepted your request.`,
     precio: ({ precio }) => `Proposed price: ${precio}€`,
-    note: "You can contact the companion from their profile to arrange the details.",
+    note: "You can contact the language companion from their profile to arrange the details.",
     button: "View requests",
   },
   fr: {
@@ -503,7 +503,7 @@ export const solicitudAceptada: Record<Locale, SolicitudAceptadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hoi ${clienteNombre}, <strong>${acompananteNombre}</strong> heeft je verzoek geaccepteerd.`,
     precio: ({ precio }) => `Voorgestelde prijs: € ${precio}`,
-    note: "Je kunt de begeleider via zijn of haar profiel contacteren om de details af te stemmen.",
+    note: "Je kunt de taalbegeleider via zijn of haar profiel contacteren om de details af te stemmen.",
     button: "Verzoeken bekijken",
   },
   ru: {
@@ -513,7 +513,7 @@ export const solicitudAceptada: Record<Locale, SolicitudAceptadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Здравствуйте, ${clienteNombre}! <strong>${acompananteNombre}</strong> принял(а) ваш запрос.`,
     precio: ({ precio }) => `Предложенная цена: ${precio} €`,
-    note: "Вы можете связаться с сопровождающим через его профиль, чтобы согласовать детали.",
+    note: "Вы можете связаться с языковым сопровождающим через его профиль, чтобы согласовать детали.",
     button: "Посмотреть запросы",
   },
   uk: {
@@ -523,7 +523,7 @@ export const solicitudAceptada: Record<Locale, SolicitudAceptadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Вітаємо, ${clienteNombre}! <strong>${acompananteNombre}</strong> прийняв(ла) ваш запит.`,
     precio: ({ precio }) => `Запропонована ціна: ${precio} €`,
-    note: "Ви можете зв’язатися із супровідником через його профіль, щоб узгодити деталі.",
+    note: "Ви можете зв’язатися з мовним супровідником через його профіль, щоб узгодити деталі.",
     button: "Переглянути запити",
   },
 };
@@ -537,7 +537,7 @@ export const solicitudRechazada: Record<Locale, SolicitudRechazadaStrings> = {
     heading: "Solicitud no disponible",
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hola ${clienteNombre}, <strong>${acompananteNombre}</strong> no puede atender tu solicitud en este momento.`,
-    note: "Puedes explorar otros acompañantes en el directorio o enviar una nueva solicitud.",
+    note: "Puedes explorar otros acompañantes lingüísticos en el directorio o enviar una nueva solicitud.",
     button: "Ver directorio",
   },
   en: {
@@ -546,7 +546,7 @@ export const solicitudRechazada: Record<Locale, SolicitudRechazadaStrings> = {
     heading: "Request unavailable",
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hi ${clienteNombre}, <strong>${acompananteNombre}</strong> can't take on your request at the moment.`,
-    note: "You can explore other companions in the directory or send a new request.",
+    note: "You can explore other language companions in the directory or send a new request.",
     button: "Browse the directory",
   },
   fr: {
@@ -573,7 +573,7 @@ export const solicitudRechazada: Record<Locale, SolicitudRechazadaStrings> = {
     heading: "Verzoek niet beschikbaar",
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hoi ${clienteNombre}, <strong>${acompananteNombre}</strong> kan je verzoek op dit moment niet behandelen.`,
-    note: "Je kunt andere begeleiders in de gids ontdekken of een nieuw verzoek sturen.",
+    note: "Je kunt andere taalbegeleiders in de gids ontdekken of een nieuw verzoek sturen.",
     button: "Gids bekijken",
   },
   ru: {
@@ -582,7 +582,7 @@ export const solicitudRechazada: Record<Locale, SolicitudRechazadaStrings> = {
     heading: "Запрос недоступен",
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Здравствуйте, ${clienteNombre}! <strong>${acompananteNombre}</strong> сейчас не может обработать ваш запрос.`,
-    note: "Вы можете найти других сопровождающих в каталоге или отправить новый запрос.",
+    note: "Вы можете найти других языковых сопровождающих в каталоге или отправить новый запрос.",
     button: "Открыть каталог",
   },
   uk: {
@@ -591,7 +591,7 @@ export const solicitudRechazada: Record<Locale, SolicitudRechazadaStrings> = {
     heading: "Запит недоступний",
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Вітаємо, ${clienteNombre}! <strong>${acompananteNombre}</strong> наразі не може обробити ваш запит.`,
-    note: "Ви можете знайти інших супровідників у каталозі або надіслати новий запит.",
+    note: "Ви можете знайти інших мовних супровідників у каталозі або надіслати новий запит.",
     button: "Відкрити каталог",
   },
 };

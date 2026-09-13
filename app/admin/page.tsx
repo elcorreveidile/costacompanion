@@ -132,6 +132,25 @@ export default async function AdminDashboard() {
             </p>
           </Link>
 
+          <Link
+            href={localePath(locale, "/admin/equipo")}
+            className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
+            style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
+          >
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
+              style={{ background: 'var(--green-deep)' }}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="font-display text-lg font-medium text-(--green) mb-1">
+              {t.equipo.titulo}
+            </h3>
+            <p className="text-sm text-(--ink)/60">{t.equipo.subtitulo}</p>
+          </Link>
+
           <div
             className="rounded-xl border p-6 shadow-sm opacity-40"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
