@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { profiles, anunciantes } from '@/lib/db/schema';
 import { getSessionUser } from '@/lib/auth/session';
 import type { CategoriaAnunciante, PlanAnunciante } from '@/types/supabase';
+import { locales } from '@/lib/i18n/config';
 
 async function requireSuperadmin(): Promise<boolean> {
   const user = await getSessionUser();
@@ -169,10 +170,11 @@ export async function actualizarAnunciante(
   if (!(await requireSuperadmin())) return { error: 'No autorizado.' };
 
   try {
-    const descripcion = {
-      es: (formData.get('descripcion_es') as string | null) ?? '',
-      en: (formData.get('descripcion_en') as string | null) ?? '',
-    };
+    const descripcion: Record<string, string> = {};
+    for (const code of locales) {
+      const v = ((formData.get(`descripcion_${code}`) as string | null) ?? '').trim();
+      if (v) descripcion[code] = v;
+    }
 
     await db
       .update(anunciantes)

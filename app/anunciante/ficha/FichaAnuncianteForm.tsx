@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Anunciante } from '@/types/supabase';
 import type { Dictionary } from '@/lib/i18n/dictionaries/es';
-import { localePath, type Locale } from '@/lib/i18n/config';
+import { localePath, locales, localeNames, type Locale } from '@/lib/i18n/config';
 
 const inputClass = 'w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-2';
 const inputStyle = { background: 'var(--bone)', borderColor: 'var(--line)', color: 'var(--ink)' };
@@ -22,7 +22,7 @@ export function FichaAnuncianteForm({ anunciante, action, t, locale }: Props) {
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const desc = (anunciante.descripcion ?? {}) as { es?: string; en?: string };
+  const desc = (anunciante.descripcion ?? {}) as Record<string, string>;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -56,20 +56,22 @@ export function FichaAnuncianteForm({ anunciante, action, t, locale }: Props) {
         <p className="text-xs text-(--ink)/40 mt-1">{t.logoNota}</p>
       </div>
 
-      {/* Descripción ES */}
-      <div>
-        <label className={labelClass}>{t.descEs}</label>
-        <textarea name="descripcion_es" rows={4} defaultValue={desc.es ?? ''}
-          placeholder={t.descEsPlaceholder}
-          className={inputClass} style={{ ...inputStyle, resize: 'vertical' }} />
-      </div>
-
-      {/* Descripción EN */}
-      <div>
-        <label className={labelClass}>{t.descEn}</label>
-        <textarea name="descripcion_en" rows={4} defaultValue={desc.en ?? ''}
-          placeholder={t.descEnPlaceholder}
-          className={inputClass} style={{ ...inputStyle, resize: 'vertical' }} />
+      {/* Descripción por idioma */}
+      <div className="space-y-3">
+        <label className={labelClass}>{t.descripcion}</label>
+        {locales.map((code) => (
+          <div key={code}>
+            <span className="block text-xs mb-1 text-(--ink)/50">{localeNames[code]}</span>
+            <textarea
+              name={`descripcion_${code}`}
+              rows={code === 'es' || code === 'en' ? 4 : 2}
+              defaultValue={desc[code] ?? ''}
+              placeholder={code === locale ? t.descEsPlaceholder : ''}
+              className={inputClass}
+              style={{ ...inputStyle, resize: 'vertical' }}
+            />
+          </div>
+        ))}
       </div>
 
       {/* Web */}
