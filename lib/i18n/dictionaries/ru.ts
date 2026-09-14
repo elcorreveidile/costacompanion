@@ -605,6 +605,7 @@ const ru: Dictionary = {
       whatsapp: "WhatsApp",
       guardar: "Сохранить изменения",
       guardando: "Сохранение...",
+      editar: "Редактировать",
       eliminar: "Удалить",
       cancelar: "Отменить",
       rechazar: "Отклонить",

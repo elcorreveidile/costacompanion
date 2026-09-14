@@ -54,6 +54,10 @@ export default async function AcompananteServiciosPage() {
             t={t.servicios}
             modalidades={dict.common.modalidades}
             eliminar={t.shared.eliminar}
+            editar={t.shared.editar}
+            guardar={t.shared.guardar}
+            guardando={t.shared.guardando}
+            cancelar={t.shared.cancelar}
             locale={locale}
           />
         )}

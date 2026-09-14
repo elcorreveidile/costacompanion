@@ -605,6 +605,7 @@ const nl: Dictionary = {
       whatsapp: "WhatsApp",
       guardar: "Wijzigingen opslaan",
       guardando: "Opslaan...",
+      editar: "Bewerken",
       eliminar: "Verwijderen",
       cancelar: "Annuleren",
       rechazar: "Weigeren",

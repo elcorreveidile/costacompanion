@@ -27,6 +27,10 @@ interface Props {
   t: ServiciosDict;
   modalidades: Modalidades;
   eliminar: string;
+  editar: string;
+  guardar: string;
+  guardando: string;
+  cancelar: string;
   locale: Locale;
 }
 
@@ -40,21 +44,31 @@ function labelClass() {
   return 'block text-xs font-medium mb-1 text-(--ink)/70';
 }
 
-// ── Add Service Form ──────────────────────────────────────────────────────────
+// ── Service Form (crear y editar) ─────────────────────────────────────────────
 
-function AddServiceForm({
+function ServiceForm({
   categorias,
   onDone,
+  onCancel,
   t,
   modalidades,
   locale,
+  labels,
+  servicio,
 }: {
   categorias: ServiceCategory[];
   onDone: () => void;
+  onCancel?: () => void;
   t: ServiciosDict;
   modalidades: Modalidades;
   locale: Locale;
+  labels: { guardar: string; guardando: string; cancelar: string };
+  servicio?: ServicioConPaquetes;
 }) {
+  const editing = !!servicio;
+  const titulo = (servicio?.titulo ?? {}) as { es?: string; en?: string };
+  const descripcion = (servicio?.descripcion ?? {}) as { es?: string; en?: string };
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,13 +90,15 @@ function AddServiceForm({
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const result = await crearServicio(formData);
+    const result = editing
+      ? await actualizarServicio(servicio!.id, formData)
+      : await crearServicio(formData);
 
     setLoading(false);
     if (result.error) {
       setError(result.error);
     } else {
-      (e.target as HTMLFormElement).reset();
+      if (!editing) (e.target as HTMLFormElement).reset();
       onDone();
     }
   }
@@ -93,7 +109,13 @@ function AddServiceForm({
         {/* Categoría */}
         <div>
           <label className={labelClass()}>{t.categoria}</label>
-          <select name="categoria" required className={inputClass()} style={inputStyle}>
+          <select
+            name="categoria"
+            required
+            defaultValue={servicio?.categoria ?? ''}
+            className={inputClass()}
+            style={inputStyle}
+          >
             <option value="">{t.seleccionar}</option>
             {categorias.map((cat) => {
               const nombre = pickLang(cat.nombre as Record<string, unknown>, locale) || cat.key;
@@ -109,7 +131,13 @@ function AddServiceForm({
         {/* Modalidad */}
         <div>
           <label className={labelClass()}>{t.modalidad}</label>
-          <select name="modalidad" required className={inputClass()} style={inputStyle}>
+          <select
+            name="modalidad"
+            required
+            defaultValue={servicio?.modalidad ?? 'presencial'}
+            className={inputClass()}
+            style={inputStyle}
+          >
             {MODALIDADES.map((m) => (
               <option key={m.value} value={m.value}>
                 {m.label}
@@ -125,6 +153,7 @@ function AddServiceForm({
             name="titulo_es"
             type="text"
             required
+            defaultValue={titulo.es ?? ''}
             className={inputClass()}
             style={inputStyle}
           />
@@ -133,7 +162,13 @@ function AddServiceForm({
         {/* Título EN */}
         <div>
           <label className={labelClass()}>{t.tituloEn}</label>
-          <input name="titulo_en" type="text" className={inputClass()} style={inputStyle} />
+          <input
+            name="titulo_en"
+            type="text"
+            defaultValue={titulo.en ?? ''}
+            className={inputClass()}
+            style={inputStyle}
+          />
         </div>
 
         {/* Descripción ES */}
@@ -142,6 +177,7 @@ function AddServiceForm({
           <textarea
             name="descripcion_es"
             rows={3}
+            defaultValue={descripcion.es ?? ''}
             className={`${inputClass()} resize-y`}
             style={inputStyle}
           />
@@ -153,6 +189,7 @@ function AddServiceForm({
           <textarea
             name="descripcion_en"
             rows={3}
+            defaultValue={descripcion.en ?? ''}
             className={`${inputClass()} resize-y`}
             style={inputStyle}
           />
@@ -167,6 +204,7 @@ function AddServiceForm({
             min={0}
             step={0.01}
             required
+            defaultValue={servicio?.precio ?? ''}
             className={inputClass()}
             style={inputStyle}
           />
@@ -175,7 +213,12 @@ function AddServiceForm({
         {/* Unidad */}
         <div>
           <label className={labelClass()}>{t.unidadPrecio}</label>
-          <select name="unidad_precio" className={inputClass()} style={inputStyle}>
+          <select
+            name="unidad_precio"
+            defaultValue={servicio?.unidad_precio ?? 'hora'}
+            className={inputClass()}
+            style={inputStyle}
+          >
             {UNIDADES.map((u) => (
               <option key={u.value} value={u.value}>
                 {u.label}
@@ -190,6 +233,7 @@ function AddServiceForm({
         <input
           type="checkbox"
           name="es_clase"
+          defaultChecked={servicio?.es_clase ?? false}
           style={{ accentColor: 'var(--green)' }}
         />
         <span className="text-sm text-(--ink)">{t.esClase}</span>
@@ -201,14 +245,26 @@ function AddServiceForm({
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="px-5 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-60"
-        style={{ background: 'var(--green)', color: 'var(--bone)' }}
-      >
-        {loading ? t.anadiendo : t.anadirServicio}
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={loading}
+          className="px-5 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-60"
+          style={{ background: 'var(--green)', color: 'var(--bone)' }}
+        >
+          {loading ? (editing ? labels.guardando : t.anadiendo) : editing ? labels.guardar : t.anadirServicio}
+        </button>
+        {editing && onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-70"
+            style={{ background: 'var(--bone)', color: 'var(--ink)', border: '1px solid var(--line)' }}
+          >
+            {labels.cancelar}
+          </button>
+        )}
+      </div>
     </form>
   );
 }
@@ -286,15 +342,32 @@ function AddPaqueteForm({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export function ServiciosManager({ servicios, categorias, t, modalidades, eliminar, locale }: Props) {
+export function ServiciosManager({
+  servicios,
+  categorias,
+  t,
+  modalidades,
+  eliminar,
+  editar,
+  guardar,
+  guardando,
+  cancelar,
+  locale,
+}: Props) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const formLabels = { guardar, guardando, cancelar };
 
   async function handleDelete(id: string) {
     if (!confirm(t.confirmEliminarServicio)) return;
+    setDeleteError(null);
     setDeletingId(id);
-    await eliminarServicio(id);
+    const res = await eliminarServicio(id);
     setDeletingId(null);
+    if (res?.error) setDeleteError(res.error);
   }
 
   async function handleDeletePaquete(id: string) {
@@ -318,6 +391,15 @@ export function ServiciosManager({ servicios, categorias, t, modalidades, elimin
 
   return (
     <div className="space-y-6">
+      {deleteError && (
+        <p
+          className="rounded-lg px-4 py-3 text-sm"
+          style={{ background: 'rgba(201,123,74,0.10)', color: 'var(--terra)' }}
+        >
+          {deleteError}
+        </p>
+      )}
+
       {/* Lista de servicios */}
       {servicios.length === 0 ? (
         <div
@@ -331,6 +413,7 @@ export function ServiciosManager({ servicios, categorias, t, modalidades, elimin
           {servicios.map((servicio) => {
             const titulo = pickLang(servicio.titulo as Record<string, unknown>, locale) || t.sinTitulo;
             const descripcion = pickLang(servicio.descripcion as Record<string, unknown> | null, locale);
+            const isEditing = editingId === servicio.id;
 
             return (
               <div
@@ -338,78 +421,104 @@ export function ServiciosManager({ servicios, categorias, t, modalidades, elimin
                 className="rounded-xl border shadow-sm p-5"
                 style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-medium text-(--ink)">{titulo}</h3>
-                      <span
-                        className="text-xs px-2 py-0.5 rounded-full"
-                        style={{ background: 'var(--bone)', color: 'var(--green)', border: '1px solid var(--line)' }}
-                      >
-                        {getCategoryName(servicio.categoria)}
-                      </span>
-                      {servicio.es_clase && (
-                        <span
-                          className="text-xs px-2 py-0.5 rounded-full"
-                          style={{ background: 'var(--terra-soft)', color: 'var(--terra)' }}
-                        >
-                          {t.claseBadge}
-                        </span>
-                      )}
-                      {!servicio.activo && (
-                        <span className="text-xs text-(--ink)/40">{t.inactivo}</span>
-                      )}
-                    </div>
-                    {descripcion && (
-                      <p className="text-sm text-(--ink)/60 mt-1 truncate">{descripcion}</p>
-                    )}
-                    <p className="text-sm text-(--ink)/70 mt-1">
-                      <span className="font-medium">{servicio.precio}€</span>
-                      <span className="text-(--ink)/40"> / {unidadLabel(servicio.unidad_precio)}</span>
-                      <span className="ml-2 text-(--ink)/40">{modalidadLabel(servicio.modalidad)}</span>
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => handleDelete(servicio.id)}
-                    disabled={deletingId === servicio.id}
-                    className="shrink-0 text-sm text-(--terra) transition-opacity hover:opacity-70 disabled:opacity-40"
-                  >
-                    {eliminar}
-                  </button>
-                </div>
-
-                {/* Paquetes */}
-                {servicio.es_clase && (
-                  <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
-                    <p className="text-xs font-medium text-(--ink)/50 mb-2">{t.paquetesTitulo}</p>
-
-                    {servicio.paquetes_clases.length > 0 ? (
-                      <div className="space-y-2">
-                        {servicio.paquetes_clases.map((paq) => (
-                          <div
-                            key={paq.id}
-                            className="flex items-center justify-between text-sm px-3 py-2 rounded-lg"
-                            style={{ background: 'var(--bone)', border: '1px solid var(--line)' }}
+                {isEditing ? (
+                  <ServiceForm
+                    categorias={categorias}
+                    servicio={servicio}
+                    onDone={() => setEditingId(null)}
+                    onCancel={() => setEditingId(null)}
+                    t={t}
+                    modalidades={modalidades}
+                    locale={locale}
+                    labels={formLabels}
+                  />
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-medium text-(--ink)">{titulo}</h3>
+                          <span
+                            className="text-xs px-2 py-0.5 rounded-full"
+                            style={{ background: 'var(--bone)', color: 'var(--green)', border: '1px solid var(--line)' }}
                           >
-                            <span className="text-(--ink)">
-                              {paq.num_sesiones} {t.sesiones} — <strong>{paq.precio_total}€</strong>
-                            </span>
-                            <button
-                              onClick={() => handleDeletePaquete(paq.id)}
-                              className="text-xs text-(--terra) transition-opacity hover:opacity-70"
+                            {getCategoryName(servicio.categoria)}
+                          </span>
+                          {servicio.es_clase && (
+                            <span
+                              className="text-xs px-2 py-0.5 rounded-full"
+                              style={{ background: 'var(--terra-soft)', color: 'var(--terra)' }}
                             >
-                              ×
-                            </button>
-                          </div>
-                        ))}
+                              {t.claseBadge}
+                            </span>
+                          )}
+                          {!servicio.activo && (
+                            <span className="text-xs text-(--ink)/40">{t.inactivo}</span>
+                          )}
+                        </div>
+                        {descripcion && (
+                          <p className="text-sm text-(--ink)/60 mt-1 truncate">{descripcion}</p>
+                        )}
+                        <p className="text-sm text-(--ink)/70 mt-1">
+                          <span className="font-medium">{servicio.precio}€</span>
+                          <span className="text-(--ink)/40"> / {unidadLabel(servicio.unidad_precio)}</span>
+                          <span className="ml-2 text-(--ink)/40">{modalidadLabel(servicio.modalidad)}</span>
+                        </p>
                       </div>
-                    ) : (
-                      <p className="text-xs text-(--ink)/40">{t.sinPaquetes}</p>
-                    )}
 
-                    <AddPaqueteForm servicioId={servicio.id} onDone={() => {}} t={t} />
-                  </div>
+                      <div className="shrink-0 flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setDeleteError(null);
+                            setEditingId(servicio.id);
+                          }}
+                          className="text-sm text-(--green) transition-opacity hover:opacity-70"
+                        >
+                          {editar}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(servicio.id)}
+                          disabled={deletingId === servicio.id}
+                          className="text-sm text-(--terra) transition-opacity hover:opacity-70 disabled:opacity-40"
+                        >
+                          {eliminar}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Paquetes */}
+                    {servicio.es_clase && (
+                      <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
+                        <p className="text-xs font-medium text-(--ink)/50 mb-2">{t.paquetesTitulo}</p>
+
+                        {servicio.paquetes_clases.length > 0 ? (
+                          <div className="space-y-2">
+                            {servicio.paquetes_clases.map((paq) => (
+                              <div
+                                key={paq.id}
+                                className="flex items-center justify-between text-sm px-3 py-2 rounded-lg"
+                                style={{ background: 'var(--bone)', border: '1px solid var(--line)' }}
+                              >
+                                <span className="text-(--ink)">
+                                  {paq.num_sesiones} {t.sesiones} — <strong>{paq.precio_total}€</strong>
+                                </span>
+                                <button
+                                  onClick={() => handleDeletePaquete(paq.id)}
+                                  className="text-xs text-(--terra) transition-opacity hover:opacity-70"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-(--ink)/40">{t.sinPaquetes}</p>
+                        )}
+
+                        <AddPaqueteForm servicioId={servicio.id} onDone={() => {}} t={t} />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             );
@@ -444,12 +553,13 @@ export function ServiciosManager({ servicios, categorias, t, modalidades, elimin
         {showAddForm && (
           <div className="px-6 pb-6 border-t" style={{ borderColor: 'var(--line)' }}>
             <div className="pt-4">
-              <AddServiceForm
+              <ServiceForm
                 categorias={categorias}
                 onDone={() => setShowAddForm(false)}
                 t={t}
                 modalidades={modalidades}
                 locale={locale}
+                labels={formLabels}
               />
             </div>
           </div>
