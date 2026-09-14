@@ -606,6 +606,7 @@ const es = {
       whatsapp: "WhatsApp",
       guardar: "Guardar cambios",
       guardando: "Guardando...",
+      editar: "Editar",
       eliminar: "Eliminar",
       cancelar: "Cancelar",
       rechazar: "Rechazar",

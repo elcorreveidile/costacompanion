@@ -605,6 +605,7 @@ const uk: Dictionary = {
       whatsapp: "WhatsApp",
       guardar: "Зберегти зміни",
       guardando: "Збереження...",
+      editar: "Редагувати",
       eliminar: "Видалити",
       cancelar: "Скасувати",
       rechazar: "Відхилити",

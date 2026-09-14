@@ -605,6 +605,7 @@ const fr: Dictionary = {
       whatsapp: "WhatsApp",
       guardar: "Enregistrer les modifications",
       guardando: "Enregistrement...",
+      editar: "Modifier",
       eliminar: "Supprimer",
       cancelar: "Annuler",
       rechazar: "Refuser",
