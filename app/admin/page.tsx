@@ -189,8 +189,9 @@ export default async function AdminDashboard() {
             <p className="text-sm text-(--ink)/60">{t.reservas.cardDesc}</p>
           </Link>
 
-          <div
-            className="rounded-xl border p-6 shadow-sm opacity-40"
+          <Link
+            href={localePath(locale, "/admin/analiticas")}
+            className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
             <div
@@ -205,7 +206,7 @@ export default async function AdminDashboard() {
               {t.dashboard.cardAnaliticasTitulo}
             </h3>
             <p className="text-sm text-(--ink)/60">{t.dashboard.cardAnaliticasDesc}</p>
-          </div>
+          </Link>
         </div>
 
         {/* Información de cuenta */}
