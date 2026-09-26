@@ -8,6 +8,8 @@ const uk: Dictionary = {
     paraNegocios: "Для бізнесу",
     directorio: "Каталог",
     solicitar: "Запросити супровідника",
+    serasAcompanante: "Хочете стати мовним супровідником?",
+    colabora: "Співпраця",
   },
   account: {
     login: "Увійти",

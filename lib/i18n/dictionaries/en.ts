@@ -8,6 +8,8 @@ const en: Dictionary = {
     paraNegocios: "For businesses",
     directorio: "Directory",
     solicitar: "Request a companion",
+    serasAcompanante: "Want to become a language companion?",
+    colabora: "Get involved",
   },
   account: {
     login: "Log in",

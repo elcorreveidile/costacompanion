@@ -8,6 +8,8 @@ const fr: Dictionary = {
     paraNegocios: "Pour les entreprises",
     directorio: "Annuaire",
     solicitar: "Demander un accompagnant",
+    serasAcompanante: "Devenir accompagnant linguistique ?",
+    colabora: "Rejoignez-nous",
   },
   account: {
     login: "Se connecter",

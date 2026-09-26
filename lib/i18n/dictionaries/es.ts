@@ -9,6 +9,8 @@ const es = {
     paraNegocios: "Para negocios",
     directorio: "Directorio",
     solicitar: "Solicitar acompañante",
+    serasAcompanante: "¿Quieres ser acompañante lingüístico?",
+    colabora: "Colabora",
   },
   account: {
     login: "Entrar",

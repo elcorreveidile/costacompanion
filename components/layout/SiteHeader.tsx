@@ -1,6 +1,7 @@
 import { LogoSymbol } from '@/components/icons/LogoSymbol';
 import Link from 'next/link';
 import { MobileMenu } from './MobileMenu';
+import { NavDropdown } from './NavDropdown';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { getI18n } from '@/lib/i18n/server';
 import { localePath } from '@/lib/i18n/config';
@@ -30,13 +31,29 @@ export async function SiteHeader() {
   const href = localePath(locale, accountHref(session?.rol ?? null));
   const accountLabel = session ? dict.account.myAccount : dict.account.login;
 
-  const navItems = [
-    { label: dict.nav.comoFunciona, href: localePath(locale, '/#como-funciona') },
+  // Nav agrupada: «Servicios» (reserva y directorio) y «Colabora» (altas).
+  const serviciosItems = [
     { label: dict.nav.servicios, href: localePath(locale, '/servicios') },
     { label: dict.nav.directorio, href: localePath(locale, '/directorio') },
     { label: dict.nav.solicitar, href: localePath(locale, '/reservar') },
-    { label: dict.nav.paraAcompanantes, href: localePath(locale, '/para-acompanantes') },
+  ];
+  const colaboraItems = [
+    { label: dict.nav.serasAcompanante, href: localePath(locale, '/para-acompanantes') },
     { label: dict.nav.paraNegocios, href: localePath(locale, '/para-negocios') },
+  ];
+  // Menú móvil: lista completa con títulos de sección.
+  const mobileGroups: {
+    title: string | null;
+    items: { label: string; href: string }[];
+  }[] = [
+    {
+      title: null,
+      items: [
+        { label: dict.nav.comoFunciona, href: localePath(locale, '/#como-funciona') },
+      ],
+    },
+    { title: dict.nav.servicios, items: serviciosItems },
+    { title: dict.nav.colabora, items: colaboraItems },
   ];
 
   return (
@@ -55,16 +72,15 @@ export async function SiteHeader() {
 
         {/* Desktop nav */}
         <nav className="hidden lg:flex items-center gap-6">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-sm transition-opacity hover:opacity-70"
-              style={{ color: 'rgba(247,244,239,0.85)' }}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <Link
+            href={localePath(locale, '/#como-funciona')}
+            className="text-sm transition-opacity hover:opacity-70"
+            style={{ color: 'rgba(247,244,239,0.85)' }}
+          >
+            {dict.nav.comoFunciona}
+          </Link>
+          <NavDropdown label={dict.nav.servicios} items={serviciosItems} />
+          <NavDropdown label={dict.nav.colabora} items={colaboraItems} />
         </nav>
 
         {/* Desktop: idioma + CTA */}
@@ -82,7 +98,7 @@ export async function SiteHeader() {
         {/* Mobile/tablet: idioma + hamburguesa */}
         <div className="flex items-center gap-2 lg:hidden">
           <LanguageSwitcher current={locale} />
-          <MobileMenu accountHref={href} accountLabel={accountLabel} navItems={navItems} />
+          <MobileMenu accountHref={href} accountLabel={accountLabel} groups={mobileGroups} />
         </div>
       </div>
     </header>

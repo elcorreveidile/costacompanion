@@ -8,6 +8,8 @@ const nl: Dictionary = {
     paraNegocios: "Voor bedrijven",
     directorio: "Gids",
     solicitar: "Begeleider aanvragen",
+    serasAcompanante: "Wil je taalbegeleider worden?",
+    colabora: "Doe mee",
   },
   account: {
     login: "Inloggen",

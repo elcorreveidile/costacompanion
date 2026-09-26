@@ -8,6 +8,8 @@ const de: Dictionary = {
     paraNegocios: "Für Unternehmen",
     directorio: "Verzeichnis",
     solicitar: "Begleitung anfragen",
+    serasAcompanante: "Möchten Sie Sprachbegleiter werden?",
+    colabora: "Mitmachen",
   },
   account: {
     login: "Anmelden",

@@ -6,10 +6,10 @@ import { LogoSymbol } from '@/components/icons/LogoSymbol';
 interface MobileMenuProps {
   accountHref: string;
   accountLabel: string;
-  navItems: { label: string; href: string }[];
+  groups: { title: string | null; items: { label: string; href: string }[] }[];
 }
 
-export function MobileMenu({ accountHref, accountLabel, navItems }: MobileMenuProps) {
+export function MobileMenu({ accountHref, accountLabel, groups }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -73,17 +73,29 @@ export function MobileMenu({ accountHref, accountLabel, navItems }: MobileMenuPr
           </button>
         </div>
 
-        <nav className="flex flex-col px-6 py-8 gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className="py-3 text-base font-medium border-b transition-opacity hover:opacity-70"
-              style={{ color: 'var(--bone)', borderColor: 'rgba(247,244,239,0.12)' }}
-            >
-              {item.label}
-            </Link>
+        <nav className="flex flex-col px-6 py-8 gap-1 overflow-y-auto">
+          {groups.map((group, gi) => (
+            <div key={gi}>
+              {group.title && (
+                <p
+                  className="pt-4 pb-1 text-xs font-semibold uppercase tracking-wider"
+                  style={{ color: 'rgba(247,244,239,0.45)' }}
+                >
+                  {group.title}
+                </p>
+              )}
+              {group.items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="py-3 text-base font-medium border-b transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--bone)', borderColor: 'rgba(247,244,239,0.12)' }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
 

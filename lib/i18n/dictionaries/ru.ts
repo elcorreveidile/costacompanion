@@ -8,6 +8,8 @@ const ru: Dictionary = {
     paraNegocios: "Для бизнеса",
     directorio: "Каталог",
     solicitar: "Запросить сопровождающего",
+    serasAcompanante: "Хотите стать языковым сопровождающим?",
+    colabora: "Сотрудничество",
   },
   account: {
     login: "Войти",
