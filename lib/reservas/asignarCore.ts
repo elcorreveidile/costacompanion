@@ -152,6 +152,7 @@ export async function asignarReservaACandidato(opts: {
     clienteEmail: reserva.clienteEmail,
     clienteIdioma: reserva.clienteIdioma,
     acompId: acomp.id,
+    acompProfileId: acomp.profileId,
     acompNombre: acomp.nombrePublico,
     acompEmail: acomp.emailContacto,
     acompIdioma: acomp.idioma,
@@ -172,6 +173,7 @@ export async function notificarAsignacion(a: {
   clienteEmail: string | null;
   clienteIdioma: string | null;
   acompId: string;
+  acompProfileId: string;
   acompNombre: string;
   acompEmail: string | null;
   acompIdioma: string | null;
@@ -220,4 +222,13 @@ export async function notificarAsignacion(a: {
     url: `/cliente/reservas/${a.reservaId}`,
     tag: `reserva-${a.reservaId}`,
   }).catch((e) => console.error("push asignación (cliente):", e));
+
+  // Al acompañante asignado: mismo aviso que una reserva directa (push).
+  const pa = pushStrings[isLocale(a.acompIdioma) ? a.acompIdioma : "es"];
+  enviarPushAPerfil(a.acompProfileId, {
+    title: pa.nuevaReservaTitle,
+    body: pa.nuevaReservaBody({ clienteNombre: a.clienteNombre, fechaStr }),
+    url: "/acompanante/reservas",
+    tag: `reserva-${a.reservaId}`,
+  }).catch((e) => console.error("push asignación (acompañante):", e));
 }

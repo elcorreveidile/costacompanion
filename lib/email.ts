@@ -162,6 +162,43 @@ export async function emailReservaRechazada(opts: {
 }
 
 /**
+ * Aviso interno al equipo (ADMIN_EMAIL) de cada reserva de gestión nueva.
+ * Uso interno: texto solo en español, sin catálogo ×7. Si ADMIN_EMAIL no está
+ * definida, sale silenciosamente (la funcionalidad no depende de este correo).
+ */
+export async function emailReservaAdmin(opts: {
+  modoGestion: string;
+  tipoGestionKey: string | null;
+  fechaStr: string;
+  zona: string | null;
+  metodoPago: string;
+  enCola: boolean;
+  acompananteNombre?: string;
+  clienteNombre: string;
+}) {
+  const to = process.env.ADMIN_EMAIL;
+  if (!to) return;
+  await sendMail({
+    from: FROM,
+    to: [to],
+    subject: 'Costa Companion · Nueva reserva de gestión',
+    html: html(`
+      <h2 style="margin:0 0 14px;font-size:20px">Nueva reserva de gestión</h2>
+      <ul style="padding-left:18px;line-height:1.8">
+        <li><strong>Modo</strong> ${opts.modoGestion}</li>
+        ${opts.tipoGestionKey ? `<li><strong>Tipo</strong> ${opts.tipoGestionKey}</li>` : ''}
+        <li><strong>Fecha</strong> ${opts.fechaStr}</li>
+        ${opts.zona ? `<li><strong>Zona</strong> ${opts.zona}</li>` : ''}
+        <li><strong>Pago</strong> ${opts.metodoPago}</li>
+        <li><strong>Estado</strong> ${opts.enCola ? 'En cola (sin asignar)' : `Asignada a ${opts.acompananteNombre ?? '—'}`}</li>
+        <li><strong>Cliente</strong> ${opts.clienteNombre}</li>
+      </ul>
+      ${btn('Ver reservas', `${SITE}/admin/reservas`)}
+    `),
+  }).catch(console.error);
+}
+
+/**
  * Recordatorio 24 h (cron horario): push + este correo. Se envía una sola vez
  * por reserva (dedupe atómico en el cron).
  */

@@ -25,6 +25,13 @@ type Plantillas = {
   asignadaBody: (a: { acompananteNombre: string; fechaStr: string }) => string;
   nuevaPeticionTitle: string;
   nuevaPeticionBody: (a: { tipoGestion: string; fechaStr: string }) => string;
+  nuevoMensajeTitle: string;
+  nuevoMensajeBody: (a: { emisorNombre: string }) => string;
+  nuevaReservaTitle: string;
+  nuevaReservaBody: (a: {
+    clienteNombre: string;
+    fechaStr: string;
+  }) => string;
 };
 
 export const pushStrings: Record<Locale, Plantillas> = {
@@ -44,6 +51,12 @@ export const pushStrings: Record<Locale, Plantillas> = {
     nuevaPeticionTitle: "Nueva petición en cola",
     nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
       `Nueva petición de ${tipoGestion} para el ${fechaStr}. Revísala y acéptala si encaja.`,
+    nuevoMensajeTitle: "Nuevo mensaje",
+    nuevoMensajeBody: ({ emisorNombre }) =>
+      `${emisorNombre} te ha escrito un mensaje. Ábrelo para responderle.`,
+    nuevaReservaTitle: "Nueva reserva",
+    nuevaReservaBody: ({ clienteNombre, fechaStr }) =>
+      `${clienteNombre} ha solicitado una reserva para el ${fechaStr}. Revísala y confírmala.`,
   },
   en: {
     confirmadaTitle: "Booking confirmed",
@@ -61,6 +74,12 @@ export const pushStrings: Record<Locale, Plantillas> = {
     nuevaPeticionTitle: "New request in the queue",
     nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
       `New ${tipoGestion} request for ${fechaStr}. Review it and accept it if it suits you.`,
+    nuevoMensajeTitle: "New message",
+    nuevoMensajeBody: ({ emisorNombre }) =>
+      `${emisorNombre} has sent you a message. Open it to reply.`,
+    nuevaReservaTitle: "New booking",
+    nuevaReservaBody: ({ clienteNombre, fechaStr }) =>
+      `${clienteNombre} has requested a booking for ${fechaStr}. Review it and confirm.`,
   },
   fr: {
     confirmadaTitle: "Réservation confirmée",
@@ -78,6 +97,12 @@ export const pushStrings: Record<Locale, Plantillas> = {
     nuevaPeticionTitle: "Nouvelle demande en file d’attente",
     nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
       `Nouvelle demande de ${tipoGestion} pour le ${fechaStr}. Consultez-la et acceptez-la si elle vous convient.`,
+    nuevoMensajeTitle: "Nouveau message",
+    nuevoMensajeBody: ({ emisorNombre }) =>
+      `${emisorNombre} vous a écrit un message. Ouvrez-le pour lui répondre.`,
+    nuevaReservaTitle: "Nouvelle réservation",
+    nuevaReservaBody: ({ clienteNombre, fechaStr }) =>
+      `${clienteNombre} a demandé une réservation pour le ${fechaStr}. Vérifiez-la et confirmez.`,
   },
   de: {
     confirmadaTitle: "Buchung bestätigt",
@@ -95,6 +120,12 @@ export const pushStrings: Record<Locale, Plantillas> = {
     nuevaPeticionTitle: "Neues Anliegen in der Warteschlange",
     nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
       `Neues Anliegen (${tipoGestion}) für den ${fechaStr}. Prüfen Sie es und nehmen Sie es an, wenn es passt.`,
+    nuevoMensajeTitle: "Neue Nachricht",
+    nuevoMensajeBody: ({ emisorNombre }) =>
+      `${emisorNombre} hat Ihnen eine Nachricht geschrieben. Öffnen Sie sie, um zu antworten.`,
+    nuevaReservaTitle: "Neue Buchung",
+    nuevaReservaBody: ({ clienteNombre, fechaStr }) =>
+      `${clienteNombre} hat eine Buchung für den ${fechaStr} angefragt. Prüfen Sie sie und bestätigen Sie.`,
   },
   nl: {
     confirmadaTitle: "Reservering bevestigd",
@@ -112,6 +143,12 @@ export const pushStrings: Record<Locale, Plantillas> = {
     nuevaPeticionTitle: "Nieuwe aanvraag in de wachtrij",
     nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
       `Nieuwe aanvraag (${tipoGestion}) voor ${fechaStr}. Bekijk hem en accepteer hem als hij past.`,
+    nuevoMensajeTitle: "Nieuw bericht",
+    nuevoMensajeBody: ({ emisorNombre }) =>
+      `${emisorNombre} heeft je een bericht gestuurd. Open het om te antwoorden.`,
+    nuevaReservaTitle: "Nieuwe reservering",
+    nuevaReservaBody: ({ clienteNombre, fechaStr }) =>
+      `${clienteNombre} heeft een reservering aangevraagd voor ${fechaStr}. Bekijk hem en bevestig.`,
   },
   ru: {
     confirmadaTitle: "Бронирование подтверждено",
@@ -129,6 +166,12 @@ export const pushStrings: Record<Locale, Plantillas> = {
     nuevaPeticionTitle: "Новый запрос в очереди",
     nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
       `Новый запрос (${tipoGestion}) на ${fechaStr}. Просмотрите его и примите, если он вам подходит.`,
+    nuevoMensajeTitle: "Новое сообщение",
+    nuevoMensajeBody: ({ emisorNombre }) =>
+      `${emisorNombre} написал вам сообщение. Откройте его, чтобы ответить.`,
+    nuevaReservaTitle: "Новое бронирование",
+    nuevaReservaBody: ({ clienteNombre, fechaStr }) =>
+      `${clienteNombre} запросил бронирование на ${fechaStr}. Проверьте его и подтвердите.`,
   },
   uk: {
     confirmadaTitle: "Бронювання підтверджено",
@@ -146,5 +189,11 @@ export const pushStrings: Record<Locale, Plantillas> = {
     nuevaPeticionTitle: "Новий запит у черзі",
     nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
       `Новий запит (${tipoGestion}) на ${fechaStr}. Перегляньте його та прийміть, якщо він вам підходить.`,
+    nuevoMensajeTitle: "Нове повідомлення",
+    nuevoMensajeBody: ({ emisorNombre }) =>
+      `${emisorNombre} написав вам повідомлення. Відкрийте його, щоб відповісти.`,
+    nuevaReservaTitle: "Нове бронювання",
+    nuevaReservaBody: ({ clienteNombre, fechaStr }) =>
+      `${clienteNombre} запросив бронювання на ${fechaStr}. Перевірте його та підтвердьте.`,
   },
 };

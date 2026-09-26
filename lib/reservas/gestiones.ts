@@ -29,6 +29,7 @@ import {
 import {
   emailNuevaReserva,
   emailPeticionRecibida,
+  emailReservaAdmin,
 } from "@/lib/email";
 
 /**
@@ -66,6 +67,7 @@ async function getAcompananteReserva(acompananteId: string) {
       modalidades: acompanantes.modalidades,
       activo: acompanantes.activo,
       aceptaGestiones: acompanantes.aceptaGestiones,
+      profileId: acompanantes.profileId,
       idioma: profiles.idiomaPreferido,
     })
     .from(acompanantes)
@@ -238,6 +240,7 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
   let acompNombre = "";
   let acompEmail: string | null = null;
   let acompIdioma: string | null = null;
+  let acompProfileId: string | null = null;
   if (!esCola) {
     const a = await getAcompananteReserva(acompananteId);
     const volverA = `/${a?.slug ?? ""}/reservar`;
@@ -246,6 +249,7 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
     slug = a.slug;
     acompNombre = a.nombrePublico;
     acompEmail = a.emailContacto;
+    acompProfileId = a.profileId;
     acompIdioma = a.idioma;
   }
   const volver = esCola ? "/reservar" : `/${slug}/reservar`;
@@ -353,6 +357,18 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
 
   const clienteNombre = profile?.nombre ?? user.email ?? "Un cliente";
 
+  // Aviso interno al equipo (no-op sin ADMIN_EMAIL). Ambas ramas.
+  emailReservaAdmin({
+    modoGestion,
+    tipoGestionKey,
+    fechaStr: fechaHoraMadrid(fechaHora),
+    zona: modoGestion === "remota" ? null : zonaKey,
+    metodoPago,
+    enCola: esCola,
+    acompananteNombre: esCola ? undefined : acompNombre,
+    clienteNombre,
+  });
+
   if (esCola) {
     // Cola: confirmación al cliente (gratis hasta asignar). Sin email al
     // acompañante: aún no existe.
@@ -408,7 +424,32 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
           });
         })
     );
-  } else if (acompEmail) {
+
+    // Aviso también a los superadmins (push a /admin/reservas). Tag distinto
+    // del de acompañantes para no colapsar en dispositivos con ambos roles.
+    const admins = await db
+      .select({ id: profiles.id, idioma: profiles.idiomaPreferido })
+      .from(profiles)
+      .where(eq(profiles.rol, "superadmin"));
+    await Promise.allSettled(
+      admins.map((sa) => {
+        const idioma = isLocale(sa.idioma) ? sa.idioma : "es";
+        const p = pushStrings[idioma];
+        return enviarPushAPerfil(sa.id, {
+          title: p.nuevaPeticionTitle,
+          body: p.nuevaPeticionBody({
+            tipoGestion:
+              (tipoNombre ? pickLang(tipoNombre, idioma) : "") ||
+              tipoGestionKey ||
+              "",
+            fechaStr,
+          }),
+          url: "/admin/reservas",
+          tag: `peticion-admin-${reserva.id}`,
+        });
+      })
+    );
+  } else {
     // Notificar al acompañante (fire-and-forget; sin datos sensibles)
     let tipoNombre: string | undefined;
     if (tipoGestionKey) {
@@ -419,21 +460,37 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
         .limit(1);
       tipoNombre = (tg?.nombre as { es?: string } | undefined)?.es;
     }
-    emailNuevaReserva({
-      toEmail: acompEmail,
-      clienteNombre,
-      acompananteNombre: acompNombre,
-      fechaStr: fechaHora.toLocaleString("es-ES", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      servicioNombre: tipoNombre,
-      idioma: acompIdioma ?? undefined,
-    });
+    if (acompEmail) {
+      emailNuevaReserva({
+        toEmail: acompEmail,
+        clienteNombre,
+        acompananteNombre: acompNombre,
+        fechaStr: fechaHora.toLocaleString("es-ES", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        servicioNombre: tipoNombre,
+        idioma: acompIdioma ?? undefined,
+      });
+    }
+    if (acompProfileId) {
+      const p = pushStrings[isLocale(acompIdioma) ? acompIdioma : "es"];
+      enviarPushAPerfil(acompProfileId, {
+        title: p.nuevaReservaTitle,
+        body: p.nuevaReservaBody({
+          clienteNombre,
+          fechaStr: fechaHoraMadrid(fechaHora),
+        }),
+        url: "/acompanante/reservas",
+        tag: `reserva-${reserva.id}`,
+      }).catch((e) =>
+        console.error("push reserva directa (acompañante):", e)
+      );
+    }
   }
 
   revalidatePath("/cliente/reservas");

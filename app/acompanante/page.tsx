@@ -1,11 +1,14 @@
-import { eq } from "drizzle-orm";
+import { and, count, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { db } from "@/lib/db";
-import { profiles, acompanantes } from "@/lib/db/schema";
+import { mensajes, profiles, acompanantes, reservas } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
 import { ActivarPush } from "@/components/push/ActivarPush";
 import { accederPortalStripe, cancelarMiSuscripcion } from "@/lib/acompanante/billing";
+import { modalidadCompatible } from "@/lib/precios";
+import { RealtimeRefresher } from "@/components/RealtimeRefresher";
 import { getI18n } from "@/lib/i18n/server";
 import { localePath } from "@/lib/i18n/config";
 
@@ -44,12 +47,44 @@ export default async function AcompananteDashboard() {
       slug: acompanantes.slug,
       stripe_customer_id: acompanantes.stripeCustomerId,
       stripe_subscription_status: acompanantes.stripeSubscriptionStatus,
+      modalidades: acompanantes.modalidades,
     })
     .from(acompanantes)
     .where(eq(acompanantes.profileId, sessionUser.id))
     .limit(1);
 
-  const panelSections = [
+  // Avisos del dashboard: mensajes sin leer y peticiones de gestión en cola
+  // compatibles con las modalidades de la ficha (patrón de peticiones/page.tsx).
+  const [noLeidos] = await db
+    .select({ n: count() })
+    .from(mensajes)
+    .where(and(eq(mensajes.receptorId, sessionUser.id), eq(mensajes.leido, false)));
+
+  const colaRows = await db
+    .select({ modoGestion: reservas.modoGestion })
+    .from(reservas)
+    .where(
+      and(
+        isNull(reservas.acompananteId),
+        eq(reservas.tipoReserva, "gestion"),
+        eq(reservas.estado, "pendiente")
+      )
+    );
+  const peticionesCola = colaRows.filter(
+    (p) =>
+      !!p.modoGestion &&
+      modalidadCompatible(fichaData?.modalidades ?? null, p.modoGestion)
+  ).length;
+
+  const panelSections: Array<{
+    href: string;
+    title: string;
+    description: string;
+    icon: ReactNode;
+    color: string;
+    badge?: number;
+    badgeLabel?: string;
+  }> = [
     {
       href: '/acompanante/ficha',
       title: t.dashboard.cardFichaTitulo,
@@ -110,6 +145,8 @@ export default async function AcompananteDashboard() {
       href: '/acompanante/peticiones',
       title: t.dashboard.cardPeticionesTitulo,
       description: t.dashboard.cardPeticionesDesc,
+      badge: peticionesCola,
+      badgeLabel: t.dashboard.badgePeticiones,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -121,6 +158,8 @@ export default async function AcompananteDashboard() {
       href: '/acompanante/mensajes',
       title: t.dashboard.cardMensajesTitulo,
       description: t.dashboard.cardMensajesDesc,
+      badge: noLeidos?.n ?? 0,
+      badgeLabel: t.dashboard.badgeMensajes,
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -133,6 +172,7 @@ export default async function AcompananteDashboard() {
   return (
     <div className="min-h-screen bg-(--bone)">
       <div className="max-w-4xl mx-auto px-4 py-12">
+        <RealtimeRefresher />
         {/* Encabezado */}
         <div className="mb-8">
           <h1 className="font-display text-3xl font-semibold text-(--green) mb-2">
@@ -182,8 +222,18 @@ export default async function AcompananteDashboard() {
               >
                 {section.icon}
               </div>
-              <h3 className="font-display text-lg font-medium text-(--green) mb-1">
+              <h3 className="font-display text-lg font-medium text-(--green) mb-1 flex items-center gap-2 flex-wrap">
                 {section.title}
+                {!!section.badge && section.badge > 0 && (
+                  <span
+                    className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(201,123,74,0.12)', color: 'var(--terra)' }}
+                    title={section.badgeLabel}
+                    aria-label={`${section.badge} ${section.badgeLabel ?? ''}`}
+                  >
+                    {section.badge}
+                  </span>
+                )}
               </h3>
               <p className="text-sm text-(--ink)/60">
                 {section.description}

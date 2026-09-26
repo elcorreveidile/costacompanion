@@ -1,7 +1,7 @@
 import { and, count, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { documentos, profiles, zonas } from "@/lib/db/schema";
+import { documentos, mensajes, profiles, zonas } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
 import { ActivarPush } from "@/components/push/ActivarPush";
@@ -9,6 +9,7 @@ import { getProximaGestion } from "@/lib/db/queries/cliente";
 import { videoEnVentana } from "@/lib/reservas/videollamada";
 import { TZ_MADRID } from "@/lib/tiempo";
 import { pickLang } from "@/lib/i18n/pick";
+import { RealtimeRefresher } from "@/components/RealtimeRefresher";
 import { getI18n } from "@/lib/i18n/server";
 import { localePath } from "@/lib/i18n/config";
 
@@ -26,6 +27,12 @@ export default async function ClienteDashboard() {
     .limit(1);
 
   const nombre = profile?.nombre || user.email || '';
+
+  // Aviso del dashboard: mensajes sin leer.
+  const [noLeidos] = await db
+    .select({ n: count() })
+    .from(mensajes)
+    .where(and(eq(mensajes.receptorId, user.id), eq(mensajes.leido, false)));
 
   // Mi próxima gestión (confirmada, futura, la más cercana) + sus documentos.
   const proxima = await getProximaGestion(user.id);
@@ -51,6 +58,7 @@ export default async function ClienteDashboard() {
   return (
     <div className="min-h-screen bg-(--bone)">
       <div className="max-w-4xl mx-auto px-4 py-12">
+        <RealtimeRefresher />
         {/* Encabezado */}
         <div className="mb-8">
           <h1 className="font-display text-3xl font-semibold text-(--green) mb-2">
@@ -169,8 +177,18 @@ export default async function ClienteDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
             </div>
-            <h3 className="font-display text-lg font-medium text-(--green) mb-1">
+            <h3 className="font-display text-lg font-medium text-(--green) mb-1 flex items-center gap-2 flex-wrap">
               {t.dashboard.cardMensajesTitulo}
+              {(noLeidos?.n ?? 0) > 0 && (
+                <span
+                  className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                  style={{ background: 'rgba(201,123,74,0.12)', color: 'var(--terra)' }}
+                  title={t.dashboard.badgeMensajes}
+                  aria-label={`${noLeidos?.n} ${t.dashboard.badgeMensajes}`}
+                >
+                  {noLeidos?.n}
+                </span>
+              )}
             </h3>
             <p className="text-sm text-(--ink)/60">
               {t.dashboard.cardMensajesDesc}

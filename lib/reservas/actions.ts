@@ -73,17 +73,20 @@ export async function crearReserva(formData: FormData): Promise<void> {
   const zona = (formData.get("zona") as string | null) || null;
   const detalleServicio = (formData.get("detalle_servicio") as string | null) || null;
 
-  await db.insert(reservas).values({
-    acompananteId,
-    clienteId: user.id,
-    servicioId,
-    disponibilidadId,
-    fechaHora: new Date(fechaHora),
-    modalidad,
-    zona,
-    detalleServicio,
-    estado: "pendiente",
-  });
+  const [nueva] = await db
+    .insert(reservas)
+    .values({
+      acompananteId,
+      clienteId: user.id,
+      servicioId,
+      disponibilidadId,
+      fechaHora: new Date(fechaHora),
+      modalidad,
+      zona,
+      detalleServicio,
+      estado: "pendiente",
+    })
+    .returning({ id: reservas.id });
 
   // Notificar al acompañante
   const [acomp] = await db
@@ -91,6 +94,7 @@ export async function crearReserva(formData: FormData): Promise<void> {
       nombrePublico: acompanantes.nombrePublico,
       emailContacto: acompanantes.emailContacto,
       slug: acompanantes.slug,
+      profileId: acompanantes.profileId,
       idioma: profiles.idiomaPreferido,
     })
     .from(acompanantes)
@@ -98,25 +102,39 @@ export async function crearReserva(formData: FormData): Promise<void> {
     .where(eq(acompanantes.id, acompananteId))
     .limit(1);
 
+  const cliente = await getClienteContacto(user.id);
+  const clienteNombre = cliente.nombre ?? user.email ?? "Un cliente";
+  let servicioNombre: string | undefined;
+  if (servicioId) {
+    const [svc] = await db
+      .select({ titulo: servicios.titulo })
+      .from(servicios)
+      .where(eq(servicios.id, servicioId))
+      .limit(1);
+    servicioNombre = (svc?.titulo as { es?: string } | undefined)?.es;
+  }
+
   if (acomp?.emailContacto) {
-    const cliente = await getClienteContacto(user.id);
-    let servicioNombre: string | undefined;
-    if (servicioId) {
-      const [svc] = await db
-        .select({ titulo: servicios.titulo })
-        .from(servicios)
-        .where(eq(servicios.id, servicioId))
-        .limit(1);
-      servicioNombre = (svc?.titulo as { es?: string } | undefined)?.es;
-    }
     emailNuevaReserva({
       toEmail: acomp.emailContacto,
-      clienteNombre: cliente.nombre ?? user.email ?? "Un cliente",
+      clienteNombre,
       acompananteNombre: acomp.nombrePublico,
       fechaStr: formatFecha(fechaHora),
       servicioNombre,
       idioma: acomp.idioma ?? undefined,
     });
+  }
+  if (acomp?.profileId) {
+    const p = pushStrings[isLocale(acomp.idioma) ? acomp.idioma : "es"];
+    enviarPushAPerfil(acomp.profileId, {
+      title: p.nuevaReservaTitle,
+      body: p.nuevaReservaBody({
+        clienteNombre,
+        fechaStr: formatFecha(fechaHora),
+      }),
+      url: "/acompanante/reservas",
+      tag: `reserva-${nueva.id}`,
+    }).catch((e) => console.error("push reserva (acompañante):", e));
   }
 
   revalidatePath("/cliente/reservas");

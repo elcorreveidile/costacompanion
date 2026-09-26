@@ -8,6 +8,49 @@ import { db } from "@/lib/db";
 import { mensajes, profiles, acompanantes } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { notificarNuevoMensaje } from "@/lib/email";
+import { enviarPushAPerfil } from "@/lib/push/send";
+import { pushStrings } from "@/lib/push/strings";
+import { isLocale } from "@/lib/i18n/config";
+
+/**
+ * Aviso al receptor de un mensaje nuevo: push (en su idioma, al panel según
+ * su rol) + email si tiene. Best-effort: nunca rompe el envío del mensaje.
+ */
+async function notificarMensajeNuevo(
+  receptor: {
+    id: string;
+    nombre: string | null;
+    email: string | null;
+    idioma: string | null;
+    rol: string | null;
+  },
+  emisorId: string
+) {
+  const [emisor] = await db
+    .select({ nombre: profiles.nombre })
+    .from(profiles)
+    .where(eq(profiles.id, emisorId))
+    .limit(1);
+  const emisorNombre = emisor?.nombre || "Alguien";
+  const p = pushStrings[isLocale(receptor.idioma) ? receptor.idioma : "es"];
+  await enviarPushAPerfil(receptor.id, {
+    title: p.nuevoMensajeTitle,
+    body: p.nuevoMensajeBody({ emisorNombre }),
+    url:
+      receptor.rol === "acompanante"
+        ? "/acompanante/mensajes"
+        : "/cliente/mensajes",
+    tag: `mensaje-${emisorId}`,
+  }).catch((e) => console.error("push mensaje:", e));
+  if (receptor.email) {
+    await notificarNuevoMensaje({
+      receptorEmail: receptor.email,
+      receptorNombre: receptor.nombre || "Hola",
+      emisorNombre,
+      idioma: receptor.idioma || "es",
+    }).catch(console.error);
+  }
+}
 
 export interface MensajeDTO {
   id: string;
@@ -64,6 +107,7 @@ export async function enviarMensaje(
       nombre: profiles.nombre,
       email: profiles.email,
       idioma: profiles.idiomaPreferido,
+      rol: profiles.rol,
     })
     .from(profiles)
     .where(eq(profiles.id, receptorId))
@@ -86,20 +130,8 @@ export async function enviarMensaje(
   revalidatePath("/cliente/mensajes");
   revalidatePath("/acompanante/mensajes");
 
-  // Notificación por email al receptor (con su email, ya en profiles).
-  if (receptor.email) {
-    const [emisor] = await db
-      .select({ nombre: profiles.nombre })
-      .from(profiles)
-      .where(eq(profiles.id, user.id))
-      .limit(1);
-    await notificarNuevoMensaje({
-      receptorEmail: receptor.email,
-      receptorNombre: receptor.nombre || "Hola",
-      emisorNombre: emisor?.nombre || "Alguien",
-      idioma: receptor.idioma || "es",
-    }).catch(console.error);
-  }
+  // Push + email al receptor (best-effort, ya en el helper).
+  await notificarMensajeNuevo(receptor, user.id);
 
   return {};
 }
@@ -294,7 +326,23 @@ export async function iniciarConversacion(
       return { error: "No se pudo iniciar la conversación." };
     }
     revalidatePath("/cliente/mensajes");
+    revalidatePath("/acompanante/mensajes");
     revalidatePath(`/${slug}`);
+
+    // Notificar al acompañante (push + email). ANTES del redirect: el
+    // redirect lanza NEXT_REDIRECT y abortaría lo que quede pendiente.
+    const [receptor] = await db
+      .select({
+        id: profiles.id,
+        nombre: profiles.nombre,
+        email: profiles.email,
+        idioma: profiles.idiomaPreferido,
+        rol: profiles.rol,
+      })
+      .from(profiles)
+      .where(eq(profiles.id, acomp.profileId))
+      .limit(1);
+    if (receptor) await notificarMensajeNuevo(receptor, user.id);
   }
 
   redirect("/cliente/mensajes");

@@ -247,6 +247,7 @@ export async function reasignarReserva(formData: FormData): Promise<void> {
     clienteEmail: reserva.clienteEmail,
     clienteIdioma: reserva.clienteIdioma,
     acompId: acomp.id,
+    acompProfileId: acomp.profileId,
     acompNombre: acomp.nombrePublico,
     acompEmail: acomp.emailContacto,
     acompIdioma: acomp.idioma,

@@ -1,9 +1,10 @@
-import { eq } from "drizzle-orm";
+import { and, count, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { profiles } from "@/lib/db/schema";
+import { profiles, reservas } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
+import { RealtimeRefresher } from "@/components/RealtimeRefresher";
 import { getI18n } from "@/lib/i18n/server";
 import { localePath } from "@/lib/i18n/config";
 
@@ -28,9 +29,22 @@ export default async function AdminDashboard() {
 
   const nombre = profile?.nombre || user.email;
 
+  // Aviso del dashboard: peticiones de gestión en cola (sin asignar).
+  const [cola] = await db
+    .select({ n: count() })
+    .from(reservas)
+    .where(
+      and(
+        isNull(reservas.acompananteId),
+        eq(reservas.tipoReserva, "gestion"),
+        eq(reservas.estado, "pendiente")
+      )
+    );
+
   return (
     <div className="min-h-screen bg-(--bone)">
       <div className="max-w-4xl mx-auto px-4 py-12">
+        <RealtimeRefresher />
         {/* Encabezado */}
         <div className="mb-8">
           <h1 className="font-display text-3xl font-semibold text-(--green) mb-2">
@@ -183,8 +197,18 @@ export default async function AdminDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="font-display text-lg font-medium text-(--green) mb-1">
+            <h3 className="font-display text-lg font-medium text-(--green) mb-1 flex items-center gap-2 flex-wrap">
               {t.reservas.titulo}
+              {(cola?.n ?? 0) > 0 && (
+                <span
+                  className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                  style={{ background: 'rgba(201,123,74,0.12)', color: 'var(--terra)' }}
+                  title={t.dashboard.badgeReservasCola}
+                  aria-label={`${cola?.n} ${t.dashboard.badgeReservasCola}`}
+                >
+                  {cola?.n}
+                </span>
+              )}
             </h3>
             <p className="text-sm text-(--ink)/60">{t.reservas.cardDesc}</p>
           </Link>
