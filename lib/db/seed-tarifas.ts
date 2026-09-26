@@ -96,7 +96,7 @@ const TARIFAS: {
 const CONFIG_PRECIOS: { clave: string; valorEntero: number; descripcion: string }[] = [
   { clave: "urgencia_pct", valorEntero: 50, descripcion: "Recargo de urgencia (%) sobre base + zona" },
   { clave: "urgencia_horas_limite", valorEntero: 48, descripcion: "Cita en menos de X horas ⇒ urgencia" },
-  { clave: "min_horas_facturables", valorEntero: 2, descripcion: "Mínimo facturable en modo hora" },
+  { clave: "min_horas_facturables", valorEntero: 1, descripcion: "Mínimo facturable en modo hora" },
   { clave: "horas_media_jornada", valorEntero: 4, descripcion: "Duración de la media jornada (h)" },
   { clave: "horas_jornada", valorEntero: 8, descripcion: "Duración de la jornada (h)" },
   { clave: "cancelacion_horas_gratis", valorEntero: 48, descripcion: "Cancelación gratuita hasta X h antes" },
