@@ -32,6 +32,9 @@ interface Props {
   nombrePublico: string;
   servicios: ServicioItem[];
   disponibilidades: DisponibilidadItem[];
+  /** Enlace de vuelta al flujo de gestiones (si el acompañante las acepta). */
+  tabGestionHref?: string | null;
+  tabGestionLabel?: string;
 }
 
 export function ReservarFormClient({
@@ -43,6 +46,8 @@ export function ReservarFormClient({
   nombrePublico,
   servicios,
   disponibilidades,
+  tabGestionHref,
+  tabGestionLabel,
 }: Props) {
   const [fechaHora, setFechaHora] = useState<Date | null>(null);
   const today = new Date();
@@ -83,6 +88,25 @@ export function ReservarFormClient({
           </h1>
           <p className="text-(--ink)/60 mt-1">{t.con.replace('{nombre}', nombrePublico)}</p>
         </div>
+
+        {/* Conmutador clase / gestión */}
+        {tabGestionHref && tabGestionLabel && (
+          <div className="flex gap-2 mb-8">
+            <span
+              className="px-4 py-2 rounded-full text-sm font-medium"
+              style={{ background: 'var(--green)', color: 'var(--bone)' }}
+            >
+              {tr.h1}
+            </span>
+            <Link
+              href={tabGestionHref}
+              className="px-4 py-2 rounded-full text-sm font-medium border transition-opacity hover:opacity-70"
+              style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
+            >
+              {tabGestionLabel}
+            </Link>
+          </div>
+        )}
 
         {/* Formulario */}
         <form action={crearReserva} className="space-y-6">

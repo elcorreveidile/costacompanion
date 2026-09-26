@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { profiles, acompanantes } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
+import { ActivarPush } from "@/components/push/ActivarPush";
 import { accederPortalStripe, cancelarMiSuscripcion } from "@/lib/acompanante/billing";
 import { getI18n } from "@/lib/i18n/server";
 import { localePath } from "@/lib/i18n/config";
@@ -253,6 +254,13 @@ export default async function AcompananteDashboard() {
 
         {/* Acciones */}
         <div className="flex flex-col sm:flex-row gap-3">
+          <ActivarPush
+            labels={{
+              activar: dict.notificaciones.activar,
+              activadas: dict.notificaciones.activadas,
+              error: dict.notificaciones.error,
+            }}
+          />
           <Link
             href={localePath(locale, "/profile")}
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg font-medium text-sm transition-opacity hover:opacity-80"

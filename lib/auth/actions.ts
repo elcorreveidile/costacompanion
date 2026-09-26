@@ -65,6 +65,23 @@ export async function signInWithPin(formData: FormData): Promise<void> {
   }
 }
 
+/**
+ * Acceso con Google (Auth.js, provider OAuth).
+ * En éxito, signIn lanza la redirección hacia Google (NEXT_REDIRECT);
+ * si Google devuelve un error, volvemos al login con mensaje genérico.
+ */
+export async function signInWithGoogle(formData: FormData): Promise<void> {
+  const next = (formData.get("redirect") as string | null) ?? "";
+  try {
+    await signIn("google", { redirectTo: next || "/post-login" });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      redirect("/auth/login?error=google");
+    }
+    throw error; // re-lanza NEXT_REDIRECT (hacia Google) y otros
+  }
+}
+
 /** Cierra la sesión y redirige al inicio. */
 export async function signOut(): Promise<void> {
   await authSignOut({ redirectTo: "/" });

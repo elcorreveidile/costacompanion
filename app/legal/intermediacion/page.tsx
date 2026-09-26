@@ -30,6 +30,12 @@ export default async function IntermediacionPage() {
           <p className="text-base leading-relaxed mt-4">
             {t.intermediacion.p2}
           </p>
+          <p className="text-base leading-relaxed mt-4">
+            {t.intermediacion.p3}
+          </p>
+          <p className="text-base leading-relaxed mt-4">
+            {t.intermediacion.p4}
+          </p>
         </div>
       </div>
     </div>

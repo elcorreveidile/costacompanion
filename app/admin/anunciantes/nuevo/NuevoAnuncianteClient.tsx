@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { crearAnunciante, asignarAnuncianteExistente } from '@/lib/admin/anunciantes';
 import type { Dictionary } from '@/lib/i18n/dictionaries/es';
 import { localePath, type Locale } from '@/lib/i18n/config';
+import { ZONAS_ANUNCIANTE as ZONAS } from '@/lib/zonas';
 
 type AdminDict = Dictionary['panelAdmin'];
 
@@ -19,11 +20,6 @@ const labelClass = 'block text-sm font-medium mb-1.5 text-(--ink)';
 
 const CATEGORIA_VALUES: (keyof Dictionary['common']['categoriasAnunciante'])[] = [
   'inmobiliaria', 'salud', 'legal', 'restauracion', 'comercio', 'otros',
-];
-
-const ZONAS = [
-  'Estepona', 'Sotogrande', 'Duquesa', 'Manilva', 'Casares', 'San Pedro de Alcántara', 'Puerto Banús', 'Benahavís',
-  'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Otra Costa del Sol',
 ];
 
 interface Props {

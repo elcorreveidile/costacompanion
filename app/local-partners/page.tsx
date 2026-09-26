@@ -5,6 +5,7 @@ import { listAnunciantesActivos } from '@/lib/db/queries/public';
 import { getI18n } from '@/lib/i18n/server';
 import { localePath } from '@/lib/i18n/config';
 import { pickLang } from '@/lib/i18n/pick';
+import { ZONAS_ANUNCIANTE as ZONAS } from '@/lib/zonas';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
@@ -18,11 +19,6 @@ interface PageProps {
 
 const CATEGORIA_VALUES: CategoriaAnunciante[] = [
   'inmobiliaria', 'salud', 'legal', 'restauracion', 'comercio', 'otros',
-];
-
-const ZONAS = [
-  'Estepona', 'Sotogrande', 'Duquesa', 'Manilva', 'Casares', 'San Pedro de Alcántara', 'Puerto Banús', 'Benahavís',
-  'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Otra Costa del Sol',
 ];
 
 const CAT_ICON: Record<CategoriaAnunciante, string> = {

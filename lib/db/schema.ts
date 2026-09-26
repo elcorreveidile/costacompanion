@@ -10,6 +10,7 @@ import {
   timestamp,
   jsonb,
   index,
+  uniqueIndex,
   check,
   primaryKey,
 } from "drizzle-orm/pg-core";
@@ -81,6 +82,33 @@ export const estadoStripe = pgEnum("estado_stripe", [
   "canceled",
   "trialing",
 ]);
+/** Modo de la sesión de gestión (define el precio, junto con zona y urgencia). */
+export const modoGestion = pgEnum("modo_gestion", [
+  "remota",
+  "horas",
+  "media_jornada",
+  "jornada",
+]);
+/** Tipo de reserva. NULL = reservas de clases/legacy (flujo antiguo sin pago). */
+export const tipoReserva = pgEnum("tipo_reserva", ["gestion", "clase"]);
+/** Estado del cobro de una gestión. */
+export const estadoPago = pgEnum("estado_pago", [
+  "no_aplica",
+  "pendiente_pago",
+  "pagada",
+  "pendiente_cobro",
+  "cobrada",
+  "reembolsada",
+]);
+/** Método de pago elegido. Remota ⇒ siempre tarjeta. */
+export const metodoPago = pgEnum("metodo_pago", ["tarjeta", "efectivo"]);
+/** Política de cancelación aplicada al cancelar (según plazo restante). */
+export const politicaCancelacion = pgEnum("politica_cancelacion", [
+  "gratuita",
+  "mitad",
+  "sin_reembolso",
+  "no_show",
+]);
 
 // ── profiles — un registro por usuario (tabla de usuarios de Auth.js) ─────────
 
@@ -102,6 +130,8 @@ export const profiles = pgTable(
     numeroUsuario: text("numero_usuario").unique(),
     pinIntentos: integer("pin_intentos").notNull().default(0),
     pinBloqueadoHasta: timestamp("pin_bloqueado_hasta", { withTimezone: true }),
+    // Antecedente de no-shows con pago en efectivo (≥2) ⇒ prepago obligatorio.
+    efectivoBloqueado: boolean("efectivo_bloqueado").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -147,6 +177,9 @@ export const acompanantes = pgTable(
       .array()
       .notNull()
       .default(sql`'{}'`),
+    // Municipio base del acompañante (key de la tabla `zonas`): las gestiones
+    // en esta zona no llevan recargo. Null ⇒ recargo en todas las zonas.
+    zonaBase: text("zona_base"),
     modalidades: modalidadServicio("modalidades")
       .array()
       .notNull()
@@ -157,6 +190,8 @@ export const acompanantes = pgTable(
     interpreteJurado: boolean("interprete_jurado").notNull().default(false),
     aniosExperiencia: integer("anios_experiencia"),
     imparteClases: boolean("imparte_clases").notNull().default(false),
+    // Acepta reservas de gestiones con la tarjeta de precios de la plataforma.
+    aceptaGestiones: boolean("acepta_gestiones").notNull().default(true),
     valoracionMedia: numeric("valoracion_media", { precision: 3, scale: 2 }),
     numResenas: integer("num_resenas").notNull().default(0),
     activo: boolean("activo").notNull().default(false),
@@ -275,6 +310,43 @@ export const reservas = pgTable(
     // dato sensible — RGPD art. 9; nunca en emails ni logs
     detalleServicio: text("detalle_servicio"),
     estado: estadoReserva("estado").notNull().default("pendiente"),
+    // ── Reservas de gestiones (v2) ──
+    // tipoReserva NULL ⇒ reserva de clases/legacy (sin pago, precio decimal).
+    tipoReserva: tipoReserva("tipo_reserva"),
+    modoGestion: modoGestion("modo_gestion"),
+    // metadata del catálogo de gestiones (tipos_gestion.key)
+    tipoGestionKey: text("tipo_gestion_key"),
+    // idioma en el que se acompaña (code ISO de profiles.idiomaPreferido)
+    idiomaGestion: text("idioma_gestion"),
+    metodoPago: metodoPago("metodo_pago"),
+    estadoPago: estadoPago("estado_pago").notNull().default("no_aplica"),
+    // importe total en CÉNTIMOS (gestiones); snapshot inmutable del cálculo
+    precioTotalCents: integer("precio_total_cents"),
+    precioDesglose: jsonb("precio_desglose"),
+    moneda: text("moneda").notNull().default("eur"),
+    stripeCheckoutSessionId: text("stripe_checkout_session_id"),
+    stripePaymentIntentId: text("stripe_payment_intent_id"),
+    stripeRefundId: text("stripe_refund_id"),
+    reembolsoCents: integer("reembolso_cents").notNull().default(0),
+    politicaAplicada: politicaCancelacion("politica_aplicada"),
+    canceladaPor: text("cancelada_por"), // 'cliente'|'acompanante'|'superadmin'|'sistema'
+    canceladaMotivo: text("cancelada_motivo"),
+    noShow: boolean("no_show").notNull().default(false),
+    noShowAt: timestamp("no_show_at", { withTimezone: true }),
+    // notas post-gestión — privado (acompañante asignado + superadmin); RGPD:
+    // sin diagnósticos ni datos de terceros
+    notasAcompanante: text("notas_acompanante"),
+    // videollamada (modo remota): enlace Jitsi autogenerado o Meet/Zoom manual
+    enlaceVideo: text("enlace_video"),
+    enlaceVideoOrigen: text("enlace_video_origen"), // 'auto_jitsi' | 'manual'
+    // dedupe de notificaciones (push/email)
+    pushConfirmacionEnviadaAt: timestamp("push_confirmacion_enviada_at", {
+      withTimezone: true,
+    }),
+    pushRecordatorio24hEnviadoAt: timestamp(
+      "push_recordatorio_24h_enviado_at",
+      { withTimezone: true }
+    ),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -283,6 +355,9 @@ export const reservas = pgTable(
   (t) => [
     index("reservas_acompanante_estado_idx").on(t.acompananteId, t.estado),
     index("reservas_cliente_idx").on(t.clienteId),
+    index("reservas_cliente_fecha_idx").on(t.clienteId, t.fechaHora),
+    index("reservas_acompanante_fecha_idx").on(t.acompananteId, t.fechaHora),
+    index("reservas_recordatorio_idx").on(t.estado, t.fechaHora),
   ]
 );
 
@@ -432,6 +507,122 @@ export const solicitudesAcompanante = pgTable("solicitudes_acompanante", {
     .notNull()
     .defaultNow(),
 });
+
+// ── zonas — municipios con precio de la Costa del Sol ────────────────────────
+// Fuente canónica para el recargo por zona de la tarjeta de precios.
+// Los nombres de display i18n siguen en los diccionarios (zonasNombres); este
+// jsonb es la copia editable desde el panel admin. "Toda la Costa del Sol" NO
+// es una zona de reserva: es un marcador de cobertura del acompañante.
+
+export const zonas = pgTable("zonas", {
+  key: text("key").primaryKey(),
+  nombre: jsonb("nombre").notNull().default({}),
+  recargoCents: integer("recargo_cents").notNull().default(0),
+  orden: integer("orden").notNull().default(0),
+  activo: boolean("activo").notNull().default(true),
+});
+
+// ── tarifas — tarjeta de precios de la plataforma, por modo de sesión ─────────
+// El tipo de gestión es metadata; el precio depende solo del modo.
+// Importes en CÉNTIMOS (enteros). Editable por superadmin (validar contra
+// mercado antes de publicar).
+
+export const tarifas = pgTable(
+  "tarifas",
+  {
+    key: text("key").primaryKey(), // 'remota' | 'hora' | 'media_jornada' | 'jornada'
+    descripcion: jsonb("descripcion").notNull().default({}),
+    importeCents: integer("importe_cents").notNull(),
+    unidad: text("unidad").notNull(), // 'sesion' | 'hora'
+    orden: integer("orden").notNull().default(0),
+    activo: boolean("activo").notNull().default(true),
+  },
+  (t) => [check("tarifa_importe_positivo", sql`${t.importeCents} > 0`)]
+);
+
+// ── config_precios — parámetros numéricos del cálculo de precios ──────────────
+// Urgencia, mínimos facturables, plazos de cancelación, recordatorio, retención.
+
+export const configPrecios = pgTable("config_precios", {
+  clave: text("clave").primaryKey(),
+  valorEntero: integer("valor_entero").notNull(),
+  descripcion: text("descripcion"),
+});
+
+// ── tipos_gestion — catálogo de tipos de gestión (metadata de la reserva) ─────
+
+export const tiposGestion = pgTable("tipos_gestion", {
+  key: text("key").primaryKey(), // 'medica', 'administrativa', 'notarial', ...
+  nombre: jsonb("nombre").notNull().default({}),
+  orden: integer("orden").notNull().default(0),
+  activo: boolean("activo").notNull().default(true),
+});
+
+// ── documentos — docs de citación de una reserva (Vercel Blob privado) ────────
+// Sensibles por diseño (RGPD art. 9): cita médica, carta de la administración…
+// Acceso SOLO vía /api/documentos/[id] con sesión + ownership ⇒ URL firmada 5 min.
+
+export const documentos = pgTable(
+  "documentos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    reservaId: uuid("reserva_id")
+      .notNull()
+      .references(() => reservas.id, { onDelete: "cascade" }),
+    // Desnormalizados para autorizar sin joins: dueño y acompañante asignado.
+    clienteId: uuid("cliente_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    acompananteId: uuid("acompanante_id")
+      .notNull()
+      .references(() => acompanantes.id, { onDelete: "cascade" }),
+    blobPathname: text("blob_pathname").notNull(),
+    blobUrl: text("blob_url").notNull(),
+    mime: text("mime").notNull(),
+    bytes: integer("bytes").notNull(),
+    nombreOriginal: text("nombre_original").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    // soft-delete: corta el acceso de inmediato; el cron de purga remueve el blob
+    eliminadoAt: timestamp("eliminado_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("documentos_reserva_idx").on(t.reservaId),
+    index("documentos_purga_idx").on(t.createdAt),
+  ]
+);
+
+// ── push_subscriptions — suscripciones web push (y FCM en la fase nativa) ─────
+// Una fila por navegador/dispositivo. `endpoint` es único ⇒ upsert idempotente.
+// Las revocadas (404/410 del push service, o el usuario las anula) se marcan
+// con `revocadaAt` y dejan de recibir envíos; la fila se conserva para auditoría.
+
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    plataforma: text("plataforma").notNull().default("web"), // 'web' | 'fcm'
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh"),
+    auth: text("auth"),
+    // Solo plataforma='fcm' (shell nativo, Etapa 9): token de dispositivo.
+    tokenFcm: text("token_fcm"),
+    userAgent: text("user_agent"),
+    locale: text("locale"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    revocadaAt: timestamp("revocada_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("push_subscriptions_endpoint_key").on(t.endpoint),
+    index("push_subscriptions_profile_idx").on(t.profileId),
+  ]
+);
 
 // ── Tablas del adaptador de Auth.js ───────────────────────────────────────────
 // La tabla de usuarios es `profiles` (arriba). Estas son las auxiliares que

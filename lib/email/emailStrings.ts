@@ -39,6 +39,17 @@ export interface ReservaConfirmadaStrings {
   heading: string;
   intro: (a: { clienteNombre: string; acompananteNombre: string }) => string;
   labelFecha: string;
+  labelImporte: string;
+  note: string;
+  button: string;
+}
+
+export interface ReservaCanceladaStrings {
+  subject: (a: { acompananteNombre: string }) => string;
+  heading: string;
+  intro: (a: { clienteNombre: string; acompananteNombre: string; fechaStr: string }) => string;
+  labelFecha: string;
+  labelReembolso: string;
   note: string;
   button: string;
 }
@@ -82,6 +93,14 @@ export interface SolicitudRechazadaStrings {
 export interface NuevoMensajeStrings {
   subject: string;
   intro: (a: { receptorNombre: string; emisorNombre: string }) => string;
+  note: string;
+  button: string;
+}
+
+export interface RecordatorioStrings {
+  subject: string;
+  heading: string;
+  intro: (a: { clienteNombre: string; acompananteNombre: string; fechaStr: string }) => string;
   note: string;
   button: string;
 }
@@ -259,6 +278,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hola ${clienteNombre}, <strong>${acompananteNombre}</strong> ha confirmado tu cita.`,
     labelFecha: "Fecha:",
+    labelImporte: "Importe pagado:",
     note: "Puedes contactar directamente con el acompañante lingüístico desde su perfil si necesitas coordinar algo.",
     button: "Ver mis reservas",
   },
@@ -269,6 +289,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hi ${clienteNombre}, <strong>${acompananteNombre}</strong> has confirmed your appointment.`,
     labelFecha: "Date:",
+    labelImporte: "Amount paid:",
     note: "You can contact the language companion directly from their profile if you need to coordinate anything.",
     button: "View my bookings",
   },
@@ -279,6 +300,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Bonjour ${clienteNombre}, <strong>${acompananteNombre}</strong> a confirmé votre rendez-vous.`,
     labelFecha: "Date :",
+    labelImporte: "Montant payé :",
     note: "Vous pouvez contacter directement l’accompagnant depuis son profil si vous devez coordonner quelque chose.",
     button: "Voir mes réservations",
   },
@@ -289,6 +311,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hallo ${clienteNombre}, <strong>${acompananteNombre}</strong> hat Ihren Termin bestätigt.`,
     labelFecha: "Datum:",
+    labelImporte: "Bezahlter Betrag:",
     note: "Sie können die Begleitperson bei Bedarf direkt über ihr Profil kontaktieren, um Details abzustimmen.",
     button: "Meine Buchungen ansehen",
   },
@@ -299,6 +322,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Hoi ${clienteNombre}, <strong>${acompananteNombre}</strong> heeft je afspraak bevestigd.`,
     labelFecha: "Datum:",
+    labelImporte: "Betaald bedrag:",
     note: "Je kunt de taalbegeleider rechtstreeks via zijn of haar profiel contacteren als je iets wilt afstemmen.",
     button: "Mijn boekingen bekijken",
   },
@@ -309,6 +333,7 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Здравствуйте, ${clienteNombre}! <strong>${acompananteNombre}</strong> подтвердил(а) вашу встречу.`,
     labelFecha: "Дата:",
+    labelImporte: "Оплаченная сумма:",
     note: "Вы можете связаться с языковым сопровождающим напрямую через его профиль, если нужно что-то согласовать.",
     button: "Мои бронирования",
   },
@@ -319,7 +344,90 @@ export const reservaConfirmada: Record<Locale, ReservaConfirmadaStrings> = {
     intro: ({ clienteNombre, acompananteNombre }) =>
       `Вітаємо, ${clienteNombre}! <strong>${acompananteNombre}</strong> підтвердив(ла) вашу зустріч.`,
     labelFecha: "Дата:",
+    labelImporte: "Сплачена сума:",
     note: "Ви можете зв’язатися з мовним супровідником безпосередньо через його профіль, якщо потрібно щось узгодити.",
+    button: "Мої бронювання",
+  },
+};
+
+// ── Reserva: cancelada (al cliente) ─────────────────────────────────────────
+
+export const reservaCancelada: Record<Locale, ReservaCanceladaStrings> = {
+  es: {
+    subject: ({ acompananteNombre }) =>
+      `Reserva cancelada — ${acompananteNombre}`,
+    heading: "Reserva cancelada",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hola ${clienteNombre}, tu cita con <strong>${acompananteNombre}</strong> del ${fechaStr} ha quedado cancelada.`,
+    labelFecha: "Fecha:",
+    labelReembolso: "Importe reembolsado:",
+    note: "Según la política de cancelación: más de 48 h de antelación, reembolso completo; entre 48 y 24 h, 50 %; con menos de 24 h o en caso de no presentarse, sin reembolso.",
+    button: "Ver mis reservas",
+  },
+  en: {
+    subject: ({ acompananteNombre }) =>
+      `Booking cancelled — ${acompananteNombre}`,
+    heading: "Booking cancelled",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hi ${clienteNombre}, your appointment with <strong>${acompananteNombre}</strong> on ${fechaStr} has been cancelled.`,
+    labelFecha: "Date:",
+    labelReembolso: "Amount refunded:",
+    note: "Cancellation policy: more than 48 h in advance, full refund; between 48 and 24 h, 50 %; less than 24 h or no-show, no refund.",
+    button: "View my bookings",
+  },
+  fr: {
+    subject: ({ acompananteNombre }) =>
+      `Réservation annulée — ${acompananteNombre}`,
+    heading: "Réservation annulée",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Bonjour ${clienteNombre}, votre rendez-vous avec <strong>${acompananteNombre}</strong> du ${fechaStr} a été annulé.`,
+    labelFecha: "Date :",
+    labelReembolso: "Montant remboursé :",
+    note: "Politique d’annulation : plus de 48 h à l’avance, remboursement intégral ; entre 48 et 24 h, 50 % ; moins de 24 h ou absence, aucun remboursement.",
+    button: "Voir mes réservations",
+  },
+  de: {
+    subject: ({ acompananteNombre }) =>
+      `Buchung storniert — ${acompananteNombre}`,
+    heading: "Buchung storniert",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hallo ${clienteNombre}, Ihr Termin mit <strong>${acompananteNombre}</strong> am ${fechaStr} wurde storniert.`,
+    labelFecha: "Datum:",
+    labelReembolso: "Erstatteter Betrag:",
+    note: "Stornierungsrichtlinie: mehr als 48 Std. im Voraus, volle Erstattung; zwischen 48 und 24 Std., 50 %; weniger als 24 Std. oder Nichterscheinen, keine Erstattung.",
+    button: "Meine Buchungen ansehen",
+  },
+  nl: {
+    subject: ({ acompananteNombre }) =>
+      `Boeking geannuleerd — ${acompananteNombre}`,
+    heading: "Boeking geannuleerd",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hoi ${clienteNombre}, je afspraak met <strong>${acompananteNombre}</strong> op ${fechaStr} is geannuleerd.`,
+    labelFecha: "Datum:",
+    labelReembolso: "Terugbetaald bedrag:",
+    note: "Annuleringsbeleid: meer dan 48 uur vooraf, volledige terugbetaling; tussen 48 en 24 uur, 50 %; minder dan 24 uur of no-show, geen terugbetaling.",
+    button: "Mijn boekingen bekijken",
+  },
+  ru: {
+    subject: ({ acompananteNombre }) =>
+      `Бронирование отменено — ${acompananteNombre}`,
+    heading: "Бронирование отменено",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Здравствуйте, ${clienteNombre}! Ваша встреча с <strong>${acompananteNombre}</strong> на ${fechaStr} отменена.`,
+    labelFecha: "Дата:",
+    labelReembolso: "Возвращённая сумма:",
+    note: "Политика отмены: более чем за 48 часов — полный возврат; от 48 до 24 часов — 50 %; менее чем за 24 часа или при неявке — без возврата.",
+    button: "Мои бронирования",
+  },
+  uk: {
+    subject: ({ acompananteNombre }) =>
+      `Бронювання скасовано — ${acompananteNombre}`,
+    heading: "Бронювання скасовано",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Вітаємо, ${clienteNombre}! Вашу зустріч із <strong>${acompananteNombre}</strong> на ${fechaStr} скасовано.`,
+    labelFecha: "Дата:",
+    labelReembolso: "Повернута сума:",
+    note: "Політика скасування: понад 48 годин заздалегідь — повне повернення; від 48 до 24 годин — 50 %; менш ніж за 24 години або при неявці — без повернення.",
     button: "Мої бронювання",
   },
 };
@@ -647,5 +755,66 @@ export const nuevoMensaje: Record<Locale, NuevoMensajeStrings> = {
       `Вітаємо, ${receptorNombre}! У вас нове повідомлення від <strong>${emisorNombre}</strong> у Costa Companion.`,
     note: "Увійдіть на платформу, щоб прочитати та відповісти.",
     button: "Переглянути повідомлення",
+  },
+};
+
+// ── Correo: recordatorio de gestión (24 h antes, cron horario) ──────────────
+
+export const recordatorio: Record<Locale, RecordatorioStrings> = {
+  es: {
+    subject: "Mañana tienes tu gestión con Costa Companion",
+    heading: "Tu gestión es mañana",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hola ${clienteNombre}, te recordamos que <strong>${acompananteNombre}</strong> te acompañará el <strong>${fechaStr}</strong>.`,
+    note: "Puedes consultar los detalles, el enlace de videollamada y tus documentos desde tus reservas.",
+    button: "Ver mis reservas",
+  },
+  en: {
+    subject: "Your Costa Companion session is tomorrow",
+    heading: "Your session is tomorrow",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hi ${clienteNombre}, a reminder that <strong>${acompananteNombre}</strong> will accompany you on <strong>${fechaStr}</strong>.`,
+    note: "You can check the details, the video call link and your documents from your bookings.",
+    button: "View my bookings",
+  },
+  fr: {
+    subject: "Votre démarche Costa Companion est demain",
+    heading: "Votre démarche est demain",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Bonjour ${clienteNombre}, rappel : <strong>${acompananteNombre}</strong> vous accompagnera le <strong>${fechaStr}</strong>.`,
+    note: "Vous pouvez consulter les détails, le lien de visioconférence et vos documents depuis vos réservations.",
+    button: "Voir mes réservations",
+  },
+  de: {
+    subject: "Morgen ist Ihr Costa Companion Termin",
+    heading: "Ihr Termin ist morgen",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hallo ${clienteNombre}, wir erinnern Sie daran, dass <strong>${acompananteNombre}</strong> Sie am <strong>${fechaStr}</strong> begleitet.`,
+    note: "Details, den Videocall-Link und Ihre Dokumente finden Sie unter Ihren Buchungen.",
+    button: "Meine Buchungen ansehen",
+  },
+  nl: {
+    subject: "Morgen is je afspraak met Costa Companion",
+    heading: "Je afspraak is morgen",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hoi ${clienteNombre}, herinnering: <strong>${acompananteNombre}</strong> begeleidt je op <strong>${fechaStr}</strong>.`,
+    note: "Je kunt de details, de videobel-link en je documenten bekijken bij je reserveringen.",
+    button: "Mijn reserveringen bekijken",
+  },
+  ru: {
+    subject: "Завтра ваша встреча с Costa Companion",
+    heading: "Ваша встреча — завтра",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Здравствуйте, ${clienteNombre}! Напоминаем: <strong>${acompananteNombre}</strong> сопровождит вас <strong>${fechaStr}</strong>.`,
+    note: "Детали, ссылку на видеозвонок и документы можно посмотреть в ваших бронированиях.",
+    button: "Мои бронирования",
+  },
+  uk: {
+    subject: "Завтра ваша зустріч із Costa Companion",
+    heading: "Ваша зустріч — завтра",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Вітаємо, ${clienteNombre}! Нагадуємо: <strong>${acompananteNombre}</strong> супроводжуватиме вас <strong>${fechaStr}</strong>.`,
+    note: "Деталі, посилання на відеозв'язок і документи можна переглянути у ваших бронюваннях.",
+    button: "Мої бронювання",
   },
 };

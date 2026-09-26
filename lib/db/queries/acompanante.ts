@@ -1,7 +1,9 @@
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lt, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   acompanantes,
+  documentos as tDocumentos,
+  estadoPago,
   profiles,
   reservas as tReservas,
   solicitudes as tSolicitudes,
@@ -9,6 +11,7 @@ import {
   paquetesClases as tPaquetes,
   disponibilidad as tDisp,
 } from "@/lib/db/schema";
+import { limitesDiaMadrid, horaMadrid } from "@/lib/tiempo";
 import type {
   Servicio,
   PaqueteClases,
@@ -125,6 +128,7 @@ export interface ReservaAcompanante {
   modalidad: Modalidad;
   zona: string | null;
   estado: EstadoReserva;
+  enlace_video: string | null;
   profiles: { nombre: string | null } | null;
   servicios: { titulo: MultilingualText | null } | null;
 }
@@ -139,6 +143,7 @@ export async function getReservasDeAcompanante(
       modalidad: tReservas.modalidad,
       zona: tReservas.zona,
       estado: tReservas.estado,
+      enlaceVideo: tReservas.enlaceVideo,
       clienteNombre: profiles.nombre,
       servicioTitulo: tServicios.titulo,
     })
@@ -154,11 +159,138 @@ export async function getReservasDeAcompanante(
     modalidad: r.modalidad as Modalidad,
     zona: r.zona,
     estado: r.estado as EstadoReserva,
+    enlace_video: r.enlaceVideo ?? null,
     profiles: { nombre: r.clienteNombre ?? null },
     servicios: r.servicioTitulo
       ? { titulo: r.servicioTitulo as MultilingualText }
       : null,
   }));
+}
+
+/** Ítem de la agenda del día del acompañante. */
+export interface AgendaItem {
+  id: string;
+  fecha_hora: string;
+  hora_madrid: string;
+  estado: EstadoReserva;
+  modalidad: Modalidad;
+  zona: string | null;
+  tipo_reserva: "gestion" | "clase" | null;
+  modo_gestion: string | null;
+  idioma_gestion: string | null;
+  detalle_servicio: string | null;
+  metodo_pago: "tarjeta" | "efectivo" | null;
+  estado_pago: (typeof estadoPago.enumValues)[number];
+  precio_total_cents: number | null;
+  enlace_video: string | null;
+  notas_acompanante: string | null;
+  cliente: { nombre: string | null; idioma: string | null } | null;
+  servicios: { titulo: MultilingualText | null } | null;
+}
+
+/**
+ * Agenda de un día natural de Madrid (DST-safe: extremos con fromZonedTime).
+ * Orden «ruta del día»: municipio alfabético primero, hora después
+ * (las remotas, sin municipio, al final por hora).
+ */
+export async function getAgendaDelDia(
+  acompananteId: string,
+  fechaMadridISO: string
+): Promise<AgendaItem[]> {
+  const { desde, hasta } = limitesDiaMadrid(fechaMadridISO);
+  const rows = await db
+    .select({
+      id: tReservas.id,
+      fechaHora: tReservas.fechaHora,
+      estado: tReservas.estado,
+      modalidad: tReservas.modalidad,
+      zona: tReservas.zona,
+      tipoReserva: tReservas.tipoReserva,
+      modoGestion: tReservas.modoGestion,
+      idiomaGestion: tReservas.idiomaGestion,
+      detalleServicio: tReservas.detalleServicio,
+      metodoPago: tReservas.metodoPago,
+      estadoPago: tReservas.estadoPago,
+      precioTotalCents: tReservas.precioTotalCents,
+      enlaceVideo: tReservas.enlaceVideo,
+      notasAcompanante: tReservas.notasAcompanante,
+      clienteNombre: profiles.nombre,
+      clienteIdioma: profiles.idiomaPreferido,
+      servicioTitulo: tServicios.titulo,
+    })
+    .from(tReservas)
+    .leftJoin(profiles, eq(profiles.id, tReservas.clienteId))
+    .leftJoin(tServicios, eq(tServicios.id, tReservas.servicioId))
+    .where(
+      and(
+        eq(tReservas.acompananteId, acompananteId),
+        gte(tReservas.fechaHora, desde),
+        lt(tReservas.fechaHora, hasta),
+        ne(tReservas.estado, "pendiente")
+      )
+    );
+
+  return rows
+    .map((r) => ({
+      id: r.id,
+      fecha_hora: r.fechaHora.toISOString(),
+      hora_madrid: horaMadrid(r.fechaHora),
+      estado: r.estado as EstadoReserva,
+      modalidad: r.modalidad as Modalidad,
+      zona: r.zona,
+      tipo_reserva: r.tipoReserva,
+      modo_gestion: r.modoGestion,
+      idioma_gestion: r.idiomaGestion,
+      detalle_servicio: r.detalleServicio,
+      metodo_pago: r.metodoPago,
+      estado_pago: r.estadoPago ?? "no_aplica",
+      precio_total_cents: r.precioTotalCents,
+      enlace_video: r.enlaceVideo,
+      notas_acompanante: r.notasAcompanante,
+      cliente: r.clienteNombre
+        ? { nombre: r.clienteNombre, idioma: r.clienteIdioma }
+        : null,
+      servicios: r.servicioTitulo
+        ? { titulo: r.servicioTitulo as MultilingualText }
+        : null,
+    }))
+    .sort((a, b) => {
+      const za = a.zona ?? "\uffff"; // remota (sin zona) al final
+      const zb = b.zona ?? "\uffff";
+      if (za !== zb) return za.localeCompare(zb);
+      return a.fecha_hora.localeCompare(b.fecha_hora);
+    });
+}
+
+/** Documentos (id + nombre) de las reservas indicadas, para lectura en agenda. */
+export async function getDocumentosDeReservas(
+  acompananteId: string,
+  reservaIds: string[]
+): Promise<Map<string, { id: string; nombre: string }[]>> {
+  if (reservaIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      id: tDocumentos.id,
+      reservaId: tDocumentos.reservaId,
+      nombre: tDocumentos.nombreOriginal,
+    })
+    .from(tDocumentos)
+    .where(
+      and(
+        eq(tDocumentos.acompananteId, acompananteId),
+        inArray(tDocumentos.reservaId, reservaIds),
+        isNull(tDocumentos.eliminadoAt)
+      )
+    )
+    .orderBy(asc(tDocumentos.createdAt));
+
+  const mapa = new Map<string, { id: string; nombre: string }[]>();
+  for (const d of rows) {
+    const lista = mapa.get(d.reservaId) ?? [];
+    lista.push({ id: d.id, nombre: d.nombre });
+    mapa.set(d.reservaId, lista);
+  }
+  return mapa;
 }
 
 export interface SolicitudAcompanante {

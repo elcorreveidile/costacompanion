@@ -6,25 +6,12 @@ import { FotoUpload } from './FotoUpload';
 import type { Acompanante } from '@/types/supabase';
 import type { Dictionary } from '@/lib/i18n/dictionaries/es';
 import { languageName, locales, type Locale } from '@/lib/i18n/config';
+import { ZONAS_ACOMPANANTE as ZONAS, ZONAS_GESTION } from '@/lib/zonas';
 
 type FichaDict = Dictionary['panelAcompanante']['ficha'];
 type Modalidades = Dictionary['common']['modalidades'];
 
 const IDIOMA_CODES = ['es', 'en', 'fr', 'de', 'nl', 'ru', 'zh', 'ar', 'pt', 'it'];
-
-const ZONAS = [
-  'Estepona',
-  'Sotogrande',
-  'Duquesa',
-  'Manilva',
-  'Casares',
-  'Benahavís',
-  'Marbella',
-  'Fuengirola',
-  'Torremolinos',
-  'Málaga',
-  'Toda la Costa del Sol',
-];
 
 const MODALIDAD_VALUES: ('presencial' | 'remoto' | 'ambos')[] = ['presencial', 'remoto', 'ambos'];
 
@@ -157,6 +144,22 @@ export function FichaAcompananteForm({ acompanante, t, modalidades, locale }: Pr
             </label>
           ))}
         </div>
+      </div>
+
+      {/* Municipio base de gestiones (recargo 0 ahí) */}
+      <div>
+        <label className={labelClass()}>{t.zonaBase}</label>
+        <select
+          name="zona_base"
+          defaultValue={acompanante.zona_base ?? ''}
+          className={inputClass()}
+          style={inputStyle}
+        >
+          <option value="">—</option>
+          {ZONAS_GESTION.map((z) => (
+            <option key={z.key} value={z.key}>{z.nombreEs}</option>
+          ))}
+        </select>
       </div>
 
       {/* Modalidades */}

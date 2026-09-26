@@ -11,6 +11,7 @@ import { getI18n } from '@/lib/i18n/server';
 import { localePath, languageName, type Locale } from '@/lib/i18n/config';
 import { pickLang } from '@/lib/i18n/pick';
 import type { Dictionary } from '@/lib/i18n';
+import { ZONAS_FILTRO_DIRECTORIO as ZONAS_OPTIONS } from '@/lib/zonas';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
@@ -30,22 +31,6 @@ interface PageProps {
 }
 
 const IDIOMA_CODES = ['es', 'en', 'fr', 'de', 'nl', 'ru', 'zh', 'ar', 'pt', 'it'];
-
-const ZONAS_OPTIONS = [
-  'Estepona',
-  'Sotogrande',
-  'Duquesa',
-  'Manilva',
-  'Casares',
-  'San Pedro de Alcántara',
-  'Puerto Banús',
-  'Benahavís',
-  'Marbella',
-  'Fuengirola',
-  'Torremolinos',
-  'Málaga',
-  'Toda la Costa del Sol',
-];
 
 function Estrellas({ valor, total }: { valor: number | null; total: number }) {
   const rounded = Math.round((valor ?? 0) * 2) / 2;

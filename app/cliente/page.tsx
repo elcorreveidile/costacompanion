@@ -1,9 +1,14 @@
-import { eq } from "drizzle-orm";
+import { and, count, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { profiles } from "@/lib/db/schema";
+import { documentos, profiles, zonas } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
+import { ActivarPush } from "@/components/push/ActivarPush";
+import { getProximaGestion } from "@/lib/db/queries/cliente";
+import { videoEnVentana } from "@/lib/reservas/videollamada";
+import { TZ_MADRID } from "@/lib/tiempo";
+import { pickLang } from "@/lib/i18n/pick";
 import { getI18n } from "@/lib/i18n/server";
 import { localePath } from "@/lib/i18n/config";
 
@@ -22,6 +27,27 @@ export default async function ClienteDashboard() {
 
   const nombre = profile?.nombre || user.email || '';
 
+  // Mi próxima gestión (confirmada, futura, la más cercana) + sus documentos.
+  const proxima = await getProximaGestion(user.id);
+  const [docsProxima, zonaProxima] = proxima
+    ? await Promise.all([
+        db
+          .select({ n: count() })
+          .from(documentos)
+          .where(and(eq(documentos.reservaId, proxima.id), isNull(documentos.eliminadoAt))),
+        proxima.zona
+          ? db
+              .select({ nombre: zonas.nombre })
+              .from(zonas)
+              .where(eq(zonas.key, proxima.zona))
+              .limit(1)
+          : Promise.resolve([]),
+      ])
+    : [[{ n: 0 }], []];
+  const zonaNombre = proxima?.zona
+    ? pickLang(zonaProxima[0]?.nombre as Record<string, unknown> | null, locale) || proxima.zona
+    : null;
+
   return (
     <div className="min-h-screen bg-(--bone)">
       <div className="max-w-4xl mx-auto px-4 py-12">
@@ -34,6 +60,57 @@ export default async function ClienteDashboard() {
             {t.dashboard.areaCliente}
           </p>
         </div>
+
+        {/* Mi próxima gestión */}
+        {proxima && (
+          <div
+            className="rounded-xl border p-6 shadow-sm mb-8"
+            style={{ background: 'var(--bone-2)', borderColor: 'var(--green)' }}
+          >
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="min-w-0">
+                <p className="font-display text-sm font-semibold uppercase tracking-wide text-(--green) mb-1">
+                  {t.dashboard.proximaTitulo}
+                </p>
+                <p className="font-display text-lg font-medium text-(--ink)">
+                  {new Intl.DateTimeFormat(locale, {
+                    timeZone: TZ_MADRID,
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }).format(new Date(proxima.fecha_hora))}
+                </p>
+                <p className="text-sm text-(--ink)/60 mt-1">
+                  {proxima.acompanantes?.nombre_publico}
+                  {zonaNombre ? ` · ${zonaNombre}` : ''}
+                  {docsProxima[0]?.n ? ` · ${t.dashboard.proximaDocs}: ${docsProxima[0].n}` : ''}
+                </p>
+              </div>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <Link
+                  href={localePath(locale, `/cliente/reservas/${proxima.id}`)}
+                  className="text-sm font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--green)', color: 'var(--bone)' }}
+                >
+                  {t.reservas.verDetalle}
+                </Link>
+                {proxima.enlace_video && videoEnVentana(new Date(proxima.fecha_hora)) && (
+                  <a
+                    href={proxima.enlace_video}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium px-4 py-2 rounded-lg border transition-opacity hover:opacity-80"
+                    style={{ borderColor: 'var(--green)', color: 'var(--green)' }}
+                  >
+                    {t.detalle.enlaceVideo}
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Cards de navegación */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -134,6 +211,13 @@ export default async function ClienteDashboard() {
 
         {/* Acciones */}
         <div className="flex flex-col sm:flex-row gap-3">
+          <ActivarPush
+            labels={{
+              activar: dict.notificaciones.activar,
+              activadas: dict.notificaciones.activadas,
+              error: dict.notificaciones.error,
+            }}
+          />
           <Link
             href={localePath(locale, "/profile")}
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg font-medium text-sm transition-opacity hover:opacity-80"

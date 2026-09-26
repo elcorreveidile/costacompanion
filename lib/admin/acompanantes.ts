@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { profiles, acompanantes } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
+import { zonaGestionPorKey } from "@/lib/zonas";
 
 type Modalidad = "presencial" | "remoto" | "ambos";
 
@@ -154,6 +155,11 @@ export async function actualizarAcompanante(
     const aniosRaw = formData.get("anios_experiencia");
     const aniosExperiencia = aniosRaw ? Number(aniosRaw) || null : null;
 
+    // Municipio base de gestiones: debe ser un key de `zonas` de booking.
+    const zonaBaseRaw = (formData.get("zona_base") as string | null) || null;
+    const zonaBase =
+      zonaBaseRaw && zonaGestionPorKey(zonaBaseRaw) ? zonaBaseRaw : null;
+
     await db
       .update(acompanantes)
       .set({
@@ -162,6 +168,7 @@ export async function actualizarAcompanante(
         bio,
         idiomas,
         zonas,
+        zonaBase,
         modalidades,
         emailContacto: (formData.get("email_contacto") as string | null) || null,
         whatsapp: (formData.get("whatsapp") as string | null) || null,

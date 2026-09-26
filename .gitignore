@@ -46,3 +46,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+.env*
+
+# credenciales OAuth descargadas de Google Cloud (contienen el client secret)
+docs/client_secret_*.json

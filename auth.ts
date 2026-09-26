@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import Nodemailer from "next-auth/providers/nodemailer";
+import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
@@ -54,6 +55,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   providers: [
+    // Google OAuth. allowDangerousEmailAccountLinking es seguro aquí: el magic
+    // link y Google verifican ambos la propiedad del email (jamás añadir un
+    // proveedor sin email verificado). Así, quien entró antes por magic link
+    // puede vincular su cuenta de Google conservando rol e idioma.
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    }),
     // Enlace mágico por email, vía SMTP de Brevo.
     Nodemailer({
       server: {

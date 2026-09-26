@@ -70,6 +70,8 @@ export interface Acompanante {
   bio: MultilingualText | null;
   idiomas: string[];
   zonas: string[];
+  /** Municipio base (key de la tabla `zonas`): gestiones ahí sin recargo. */
+  zona_base: string | null;
   modalidades: Modalidad[];
   email_contacto: string | null;
   whatsapp: string | null;
@@ -77,6 +79,8 @@ export interface Acompanante {
   interprete_jurado: boolean;
   anios_experiencia: number | null;
   imparte_clases: boolean;
+  /** Acepta reservas de gestiones con la tarjeta de precios de la plataforma. */
+  acepta_gestiones: boolean;
   valoracion_media: number | null;
   num_resenas: number;
   activo: boolean;

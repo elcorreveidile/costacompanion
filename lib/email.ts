@@ -92,6 +92,7 @@ export async function emailReservaConfirmada(opts: {
   acompananteNombre: string;
   acompananteSlug: string;
   fechaStr: string;
+  importeStr?: string;        // p. ej. «58,50 €» — solo gestiones con tarjeta
   idioma?: string;            // idioma del cliente
 }) {
   const t = S.reservaConfirmada[loc(opts.idioma)];
@@ -104,9 +105,36 @@ export async function emailReservaConfirmada(opts: {
       <p>${t.intro({ clienteNombre: opts.clienteNombre, acompananteNombre: opts.acompananteNombre })}</p>
       <ul style="padding-left:18px;line-height:1.8">
         <li><strong>${t.labelFecha}</strong> ${opts.fechaStr}</li>
+        ${opts.importeStr ? `<li><strong>${t.labelImporte}</strong> ${opts.importeStr}</li>` : ''}
       </ul>
       <p style="color:#555;font-size:13px">${t.note}</p>
       ${btn(t.button, `${SITE}/cliente/reservas`)}
+    `),
+  }).catch(console.error);
+}
+
+export async function emailReservaCancelada(opts: {
+  toEmail: string;
+  clienteNombre: string;
+  acompananteNombre: string;
+  fechaStr: string;
+  importeReembolsadoStr?: string;  // presente solo si hay reembolso (tarjeta)
+  idioma?: string;                 // idioma del cliente
+}) {
+  const t = S.reservaCancelada[loc(opts.idioma)];
+  await sendMail({
+    from: FROM,
+    to: [opts.toEmail],
+    subject: t.subject({ acompananteNombre: opts.acompananteNombre }),
+    html: html(`
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre, acompananteNombre: opts.acompananteNombre, fechaStr: opts.fechaStr })}</p>
+      <ul style="padding-left:18px;line-height:1.8">
+        <li><strong>${t.labelFecha}</strong> ${opts.fechaStr}</li>
+        ${opts.importeReembolsadoStr ? `<li><strong>${t.labelReembolso}</strong> ${opts.importeReembolsadoStr}</li>` : ''}
+      </ul>
+      <p style="color:#555;font-size:13px">${t.note}</p>
+      ${btn(t.button, `${SITE}/directorio`)}
     `),
   }).catch(console.error);
 }
@@ -129,6 +157,31 @@ export async function emailReservaRechazada(opts: {
       <p>${t.intro({ clienteNombre: opts.clienteNombre, acompananteNombre: opts.acompananteNombre, fechaStr: opts.fechaStr })}</p>
       <p style="color:#555;font-size:13px">${t.note}</p>
       ${btn(t.button, `${SITE}/directorio`)}
+    `),
+  }).catch(console.error);
+}
+
+/**
+ * Recordatorio 24 h (cron horario): push + este correo. Se envía una sola vez
+ * por reserva (dedupe atómico en el cron).
+ */
+export async function emailRecordatorioReserva(opts: {
+  toEmail: string;
+  clienteNombre: string;
+  acompananteNombre: string;
+  fechaStr: string;
+  idioma?: string; // idioma del cliente
+}) {
+  const t = S.recordatorio[loc(opts.idioma)];
+  await sendMail({
+    from: FROM,
+    to: [opts.toEmail],
+    subject: t.subject,
+    html: html(`
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre, acompananteNombre: opts.acompananteNombre, fechaStr: opts.fechaStr })}</p>
+      <p style="color:#555;font-size:13px">${t.note}</p>
+      ${btn(t.button, `${SITE}/cliente/reservas`)}
     `),
   }).catch(console.error);
 }

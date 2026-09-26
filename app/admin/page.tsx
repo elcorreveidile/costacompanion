@@ -151,6 +151,44 @@ export default async function AdminDashboard() {
             <p className="text-sm text-(--ink)/60">{t.equipo.subtitulo}</p>
           </Link>
 
+          <Link
+            href={localePath(locale, "/admin/tarifas")}
+            className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
+            style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
+          >
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
+              style={{ background: 'var(--terra)' }}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="font-display text-lg font-medium text-(--green) mb-1">
+              {t.tarifas.titulo}
+            </h3>
+            <p className="text-sm text-(--ink)/60">{t.tarifas.tarifasDesc}</p>
+          </Link>
+
+          <Link
+            href={localePath(locale, "/admin/reservas")}
+            className="group rounded-xl border p-6 shadow-sm transition-opacity hover:opacity-80"
+            style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
+          >
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
+              style={{ background: 'var(--green)' }}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="font-display text-lg font-medium text-(--green) mb-1">
+              {t.reservas.titulo}
+            </h3>
+            <p className="text-sm text-(--ink)/60">{t.reservas.cardDesc}</p>
+          </Link>
+
           <div
             className="rounded-xl border p-6 shadow-sm opacity-40"
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}

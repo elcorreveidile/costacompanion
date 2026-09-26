@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { CapacitorPushBridge } from "@/components/push/CapacitorPushBridge";
 import { getLocale } from "@/lib/i18n/server";
 import { htmlLang, alternatesFor, isLocale, type Locale } from "@/lib/i18n/config";
 
@@ -66,6 +67,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-(--bone) text-(--ink) font-sans antialiased flex flex-col">
+        <CapacitorPushBridge />
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />

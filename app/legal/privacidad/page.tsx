@@ -28,9 +28,19 @@ export default async function PrivacidadPage() {
           >
             {t.pendiente}
           </p>
-          <p className="text-sm leading-relaxed" style={{ opacity: 0.6 }}>
+          <p className="text-sm leading-relaxed mb-6" style={{ opacity: 0.6 }}>
             {t.privacidad.desc}
           </p>
+          {t.privacidad.secciones.map((s) => (
+            <section key={s.titulo} className="mb-6 last:mb-0">
+              <h2 className="font-display text-lg font-medium mb-2" style={{ color: 'var(--green-deep)' }}>
+                {s.titulo}
+              </h2>
+              <p className="text-sm leading-relaxed" style={{ opacity: 0.8 }}>
+                {s.texto}
+              </p>
+            </section>
+          ))}
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { actualizarAnunciante } from '@/lib/admin/anunciantes';
 import type { Anunciante } from '@/types/supabase';
 import type { Dictionary } from '@/lib/i18n/dictionaries/es';
 import { localePath, locales, localeNames, type Locale } from '@/lib/i18n/config';
+import { ZONAS_ANUNCIANTE as ZONAS } from '@/lib/zonas';
 
 type FormDict = Dictionary['panelAdmin']['anunciantes']['form'];
 type SharedDict = Dictionary['panelAdmin']['shared'];
@@ -14,11 +15,6 @@ type Categorias = Dictionary['common']['categoriasAnunciante'];
 
 const CATEGORIA_VALUES: (keyof Categorias)[] = [
   'inmobiliaria', 'salud', 'legal', 'restauracion', 'comercio', 'otros',
-];
-
-const ZONAS = [
-  'Estepona', 'Sotogrande', 'Duquesa', 'Manilva', 'Casares', 'San Pedro de Alcántara', 'Puerto Banús', 'Benahavís',
-  'Marbella', 'Fuengirola', 'Torremolinos', 'Málaga', 'Otra Costa del Sol',
 ];
 
 const inputClass = 'w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-2';
