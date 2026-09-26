@@ -303,6 +303,28 @@ export async function emailPeticionAsignada(opts: {
   }).catch(console.error);
 }
 
+/** El acompañante liberó la petición: vuelve a la cola (sin importe, sin cobro). */
+export async function emailPeticionLiberada(opts: {
+  toEmail: string;           // email del cliente
+  clienteNombre: string;
+  acompananteNombre: string;
+  fechaStr: string;
+  idioma?: string;           // idioma del cliente
+}) {
+  const t = S.peticionLiberada[loc(opts.idioma)];
+  await sendMail({
+    from: FROM,
+    to: [opts.toEmail],
+    subject: t.subject({ acompananteNombre: opts.acompananteNombre }),
+    html: html(`
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre, acompananteNombre: opts.acompananteNombre, fechaStr: opts.fechaStr })}</p>
+      <p style="color:#555;font-size:13px">${t.note}</p>
+      ${btn(t.button, `${SITE}/cliente/reservas`)}
+    `),
+  }).catch(console.error);
+}
+
 // ── Mensajes (Chat interno) ───────────────────────────────────────────────────────
 
 export async function notificarNuevoMensaje(opts: {

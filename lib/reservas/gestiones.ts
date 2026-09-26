@@ -12,7 +12,11 @@ import {
   zonas as tZonas,
 } from "@/lib/db/schema";
 import { getSessionUser } from "@/lib/auth/session";
-import { locales, type Locale } from "@/lib/i18n/config";
+import { isLocale, locales, type Locale } from "@/lib/i18n/config";
+import { pickLang } from "@/lib/i18n/pick";
+import { fechaHoraMadrid } from "@/lib/tiempo";
+import { enviarPushAPerfil } from "@/lib/push/send";
+import { pushStrings } from "@/lib/push/strings";
 import {
   cargarContextoPrecios,
   calcularPrecio,
@@ -357,6 +361,53 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
       clienteNombre,
       idioma: profile?.idioma ?? undefined,
     });
+
+    // Push de cola (C1.5) a los acompañantes compatibles, en SU idioma.
+    // Fire-and-forget: sin datos del cliente; sin suscripciones es un no-op.
+    let tipoNombre: Record<string, unknown> | null = null;
+    if (tipoGestionKey) {
+      const [tg] = await db
+        .select({ nombre: tiposGestion.nombre })
+        .from(tiposGestion)
+        .where(eq(tiposGestion.key, tipoGestionKey))
+        .limit(1);
+      tipoNombre = (tg?.nombre as Record<string, unknown> | null) ?? null;
+    }
+    const fechaStr = fechaHoraMadrid(fechaHora);
+    const candidatos = await db
+      .select({
+        profileId: acompanantes.profileId,
+        modalidades: acompanantes.modalidades,
+        idioma: profiles.idiomaPreferido,
+      })
+      .from(acompanantes)
+      .leftJoin(profiles, eq(profiles.id, acompanantes.profileId))
+      .where(
+        and(eq(acompanantes.activo, true), eq(acompanantes.aceptaGestiones, true))
+      );
+    await Promise.allSettled(
+      candidatos
+        .filter(
+          (c): c is typeof c & { profileId: string } =>
+            !!c.profileId && modalidadCompatible(c.modalidades, modoGestion)
+        )
+        .map((c) => {
+          const idioma = isLocale(c.idioma) ? c.idioma : "es";
+          const p = pushStrings[idioma];
+          return enviarPushAPerfil(c.profileId, {
+            title: p.nuevaPeticionTitle,
+            body: p.nuevaPeticionBody({
+              tipoGestion:
+                (tipoNombre ? pickLang(tipoNombre, idioma) : "") ||
+                tipoGestionKey ||
+                "",
+              fechaStr,
+            }),
+            url: "/acompanante/peticiones",
+            tag: `peticion-${reserva.id}`,
+          });
+        })
+    );
   } else if (acompEmail) {
     // Notificar al acompañante (fire-and-forget; sin datos sensibles)
     let tipoNombre: string | undefined;
@@ -387,7 +438,8 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
 
   revalidatePath("/cliente/reservas");
   revalidatePath("/admin/reservas");
-  if (!esCola) revalidatePath("/acompanante/reservas");
+  if (esCola) revalidatePath("/acompanante/peticiones");
+  else revalidatePath("/acompanante/reservas");
   redirect("/cliente/reservas");
 }
 

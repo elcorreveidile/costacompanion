@@ -23,6 +23,8 @@ type Plantillas = {
   recordatorioBody: (a: { acompananteNombre: string; fechaStr: string }) => string;
   asignadaTitle: string;
   asignadaBody: (a: { acompananteNombre: string; fechaStr: string }) => string;
+  nuevaPeticionTitle: string;
+  nuevaPeticionBody: (a: { tipoGestion: string; fechaStr: string }) => string;
 };
 
 export const pushStrings: Record<Locale, Plantillas> = {
@@ -39,6 +41,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     asignadaTitle: "Gestión asignada",
     asignadaBody: ({ acompananteNombre, fechaStr }) =>
       `${acompananteNombre} se encargará de tu gestión del ${fechaStr}. Revisa el importe y confírmala.`,
+    nuevaPeticionTitle: "Nueva petición en cola",
+    nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
+      `Nueva petición de ${tipoGestion} para el ${fechaStr}. Revísala y acéptala si encaja.`,
   },
   en: {
     confirmadaTitle: "Booking confirmed",
@@ -53,6 +58,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     asignadaTitle: "Companion assigned",
     asignadaBody: ({ acompananteNombre, fechaStr }) =>
       `${acompananteNombre} will handle your booking on ${fechaStr}. Check the amount and confirm.`,
+    nuevaPeticionTitle: "New request in the queue",
+    nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
+      `New ${tipoGestion} request for ${fechaStr}. Review it and accept it if it suits you.`,
   },
   fr: {
     confirmadaTitle: "Réservation confirmée",
@@ -67,6 +75,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     asignadaTitle: "Accompagnant assigné",
     asignadaBody: ({ acompananteNombre, fechaStr }) =>
       `${acompananteNombre} s’occupera de votre démarche le ${fechaStr}. Vérifiez le montant et confirmez.`,
+    nuevaPeticionTitle: "Nouvelle demande en file d’attente",
+    nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
+      `Nouvelle demande de ${tipoGestion} pour le ${fechaStr}. Consultez-la et acceptez-la si elle vous convient.`,
   },
   de: {
     confirmadaTitle: "Buchung bestätigt",
@@ -81,6 +92,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     asignadaTitle: "Begleitung zugeteilt",
     asignadaBody: ({ acompananteNombre, fechaStr }) =>
       `${acompananteNombre} übernimmt Ihren Termin am ${fechaStr}. Prüfen Sie den Betrag und bestätigen Sie.`,
+    nuevaPeticionTitle: "Neues Anliegen in der Warteschlange",
+    nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
+      `Neues Anliegen (${tipoGestion}) für den ${fechaStr}. Prüfen Sie es und nehmen Sie es an, wenn es passt.`,
   },
   nl: {
     confirmadaTitle: "Reservering bevestigd",
@@ -95,6 +109,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     asignadaTitle: "Begeleider toegewezen",
     asignadaBody: ({ acompananteNombre, fechaStr }) =>
       `${acompananteNombre} zal uw afspraak op ${fechaStr} verzorgen. Bekijk het bedrag en bevestig.`,
+    nuevaPeticionTitle: "Nieuwe aanvraag in de wachtrij",
+    nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
+      `Nieuwe aanvraag (${tipoGestion}) voor ${fechaStr}. Bekijk hem en accepteer hem als hij past.`,
   },
   ru: {
     confirmadaTitle: "Бронирование подтверждено",
@@ -109,6 +126,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     asignadaTitle: "Сопровождающий назначен",
     asignadaBody: ({ acompananteNombre, fechaStr }) =>
       `${acompananteNombre} займётся вашим делом ${fechaStr}. Проверьте сумму и подтвердите.`,
+    nuevaPeticionTitle: "Новый запрос в очереди",
+    nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
+      `Новый запрос (${tipoGestion}) на ${fechaStr}. Просмотрите его и примите, если он вам подходит.`,
   },
   uk: {
     confirmadaTitle: "Бронювання підтверджено",
@@ -123,5 +143,8 @@ export const pushStrings: Record<Locale, Plantillas> = {
     asignadaTitle: "Супровідника призначено",
     asignadaBody: ({ acompananteNombre, fechaStr }) =>
       `${acompananteNombre} займеться вашою справою ${fechaStr}. Перевірте суму та підтвердьте.`,
+    nuevaPeticionTitle: "Новий запит у черзі",
+    nuevaPeticionBody: ({ tipoGestion, fechaStr }) =>
+      `Новий запит (${tipoGestion}) на ${fechaStr}. Перегляньте його та прийміть, якщо він вам підходить.`,
   },
 };

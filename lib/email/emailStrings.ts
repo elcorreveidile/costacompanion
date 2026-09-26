@@ -983,3 +983,83 @@ export const peticionAsignada: Record<Locale, PeticionAsignadaStrings> = {
     button: "Мої бронювання",
   },
 };
+
+// ── Cola C1.5: petición liberada por el acompañante (vuelve a la cola) ──────
+
+export interface PeticionLiberadaStrings {
+  subject: (a: { acompananteNombre: string }) => string;
+  heading: string;
+  intro: (a: {
+    clienteNombre: string;
+    acompananteNombre: string;
+    fechaStr: string;
+  }) => string;
+  note: string;
+  button: string;
+}
+
+export const peticionLiberada: Record<Locale, PeticionLiberadaStrings> = {
+  es: {
+    subject: ({ acompananteNombre }) =>
+      `Tu petición vuelve a estar sin asignar — ${acompananteNombre}`,
+    heading: "Tu petición busca de nuevo acompañante",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hola ${clienteNombre}, <strong>${acompananteNombre}</strong> ya no podrá realizar tu petición del <strong>${fechaStr}</strong>. Vuelve a estar en cola para que otro acompañante pueda aceptarla.`,
+    note: "No se te ha cobrado nada. Cuando otro acompañante la acepte recibirás el importe exacto para confirmar.",
+    button: "Ver mis reservas",
+  },
+  en: {
+    subject: ({ acompananteNombre }) =>
+      `Your request is unassigned again — ${acompananteNombre}`,
+    heading: "Your request is looking for a companion again",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hi ${clienteNombre}, <strong>${acompananteNombre}</strong> will no longer be able to handle your request for <strong>${fechaStr}</strong>. It is back in the queue so another companion can accept it.`,
+    note: "You have not been charged. When another companion accepts it, you will receive the exact amount to confirm.",
+    button: "View my bookings",
+  },
+  fr: {
+    subject: ({ acompananteNombre }) =>
+      `Votre demande est de nouveau non assignée — ${acompananteNombre}`,
+    heading: "Votre demande cherche de nouveau un accompagnant",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Bonjour ${clienteNombre}, <strong>${acompananteNombre}</strong> ne pourra plus réaliser votre demande du <strong>${fechaStr}</strong>. Elle est de nouveau dans la file d’attente pour qu’un autre accompagnant puisse l’accepter.`,
+    note: "Vous n’avez rien été débité. Quand un autre accompagnant l’acceptera, vous recevrez le montant exact à confirmer.",
+    button: "Voir mes réservations",
+  },
+  de: {
+    subject: ({ acompananteNombre }) =>
+      `Ihr Anliegen ist wieder ohne Begleitung — ${acompananteNombre}`,
+    heading: "Ihr Anliegen sucht erneut eine Begleitung",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hallo ${clienteNombre}, <strong>${acompananteNombre}</strong> kann Ihr Anliegen für den <strong>${fechaStr}</strong> nicht mehr übernehmen. Es ist zurück in der Warteschlange, damit ein anderer Begleiter es annehmen kann.`,
+    note: "Ihnen wurde nichts abgebucht. Wenn ein anderer Begleiter es annimmt, erhalten Sie den genauen Betrag zur Bestätigung.",
+    button: "Meine Buchungen ansehen",
+  },
+  nl: {
+    subject: ({ acompananteNombre }) =>
+      `Uw aanvraag is weer zonder begeleider — ${acompananteNombre}`,
+    heading: "Uw aanvraag zoekt opnieuw een begeleider",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hallo ${clienteNombre}, <strong>${acompananteNombre}</strong> kan uw aanvraag voor <strong>${fechaStr}</strong> niet meer uitvoeren. Deze staat weer in de wachtrij zodat een andere begeleider hem kan accepteren.`,
+    note: "Er is niets afgeschreven. Wanneer een andere begeleider hem accepteert, ontvangt u het exacte bedrag om te bevestigen.",
+    button: "Mijn boekingen bekijken",
+  },
+  ru: {
+    subject: ({ acompananteNombre }) =>
+      `Ваш запрос снова без сопровождающего — ${acompananteNombre}`,
+    heading: "Ваш запрос снова ищет сопровождающего",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Здравствуйте, ${clienteNombre}! <strong>${acompananteNombre}</strong> больше не сможет выполнить ваш запрос на <strong>${fechaStr}</strong>. Он снова в очереди, и другой сопровождающий сможет его принять.`,
+    note: "С вас ничего не списано. Когда другой сопровождающий примет запрос, вы получите точную сумму для подтверждения.",
+    button: "Мои бронирования",
+  },
+  uk: {
+    subject: ({ acompananteNombre }) =>
+      `Ваш запит знову без супровідника — ${acompananteNombre}`,
+    heading: "Ваш запит знову шукає супровідника",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Вітаємо, ${clienteNombre}! <strong>${acompananteNombre}</strong> більше не зможе виконати ваш запит на <strong>${fechaStr}</strong>. Він знову в черзі, й інший супровідник зможе його прийняти.`,
+    note: "З вас нічого не списано. Коли інший супровідник прийме запит, ви отримаєте точну суму для підтвердження.",
+    button: "Мої бронювання",
+  },
+};
