@@ -38,7 +38,8 @@ export async function iniciarPagoReserva(formData: FormData): Promise<void> {
       acompNombre: acompanantes.nombrePublico,
     })
     .from(reservas)
-    .innerJoin(acompanantes, eq(acompanantes.id, reservas.acompananteId))
+    // leftJoin: una petición en cola (sin acompañante) existe pero no es pagable
+    .leftJoin(acompanantes, eq(acompanantes.id, reservas.acompananteId))
     .where(eq(reservas.id, reservaId))
     .limit(1);
 
@@ -70,7 +71,7 @@ export async function iniciarPagoReserva(formData: FormData): Promise<void> {
           currency: "eur",
           unit_amount: row.precioTotalCents,
           product_data: {
-            name: `Acompañamiento lingüístico · ${row.acompNombre}`,
+            name: `Acompañamiento lingüístico · ${row.acompNombre ?? "Costa Companion"}`,
           },
         },
       },

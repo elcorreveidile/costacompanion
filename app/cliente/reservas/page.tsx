@@ -168,14 +168,23 @@ function ReservaCard({
     >
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
-          {/* Acompañante */}
-          {reserva.acompanantes && (
+          {/* Acompañante / petición en cola (Fase C1) */}
+          {reserva.acompanantes ? (
             <Link
               href={localePath(locale, `/${reserva.acompanantes.slug}`)}
               className="font-display text-lg font-medium text-(--green) hover:opacity-80 transition-opacity"
             >
               {reserva.acompanantes.nombre_publico}
             </Link>
+          ) : (
+            esGestion && (
+              <span
+                className="inline-block text-xs font-medium px-3 py-1 rounded-full"
+                style={{ background: 'var(--terra-soft)', color: 'var(--terra)' }}
+              >
+                {t.reservas.sinAsignar}
+              </span>
+            )
           )}
 
           {/* Servicio / modo de gestión */}
@@ -200,6 +209,9 @@ function ReservaCard({
               </>
             )}
           </div>
+          {esGestion && !reserva.acompanantes && reserva.estado === 'pendiente' && (
+            <p className="text-xs text-(--ink)/50 mt-2">{t.reservas.sinAsignarNota}</p>
+          )}
         </div>
 
         {/* Badges: estado de la reserva + estado del pago */}
@@ -266,7 +278,7 @@ function ReservaCard({
       {(canCancel || reserva.estado_pago === 'pendiente_pago') && (
         <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--line)' }}>
           <div className="flex flex-wrap gap-2">
-            {reserva.estado_pago === 'pendiente_pago' && (
+            {reserva.estado_pago === 'pendiente_pago' && reserva.precio_total_cents != null && (
               <form action={iniciarPagoReserva}>
                 <input type="hidden" name="reserva_id" value={reserva.id} />
                 <input type="hidden" name="locale" value={locale} />

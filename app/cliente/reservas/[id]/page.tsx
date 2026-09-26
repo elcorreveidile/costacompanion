@@ -87,6 +87,8 @@ export default async function ReservaDetallePage({
 
   const canCancel = reserva.estado === 'pendiente' || reserva.estado === 'confirmada';
   const desglose = reserva.precio_desglose;
+  // Petición en cola (Fase C1): sin acompañante asignado todavía.
+  const esCola = reserva.tipo_reserva === 'gestion' && !reserva.acompanantes;
   const expirada = reserva.cancelada_motivo === 'expirada_pago';
 
   // Videollamada: botón visible desde 15 min antes hasta 2 h después (server-rendered
@@ -120,7 +122,7 @@ export default async function ReservaDetallePage({
         <div className="flex items-start justify-between gap-4 flex-wrap mb-8">
           <div>
             <h1 className="font-display text-2xl font-semibold text-(--green)">
-              {reserva.acompanantes?.nombre_publico}
+              {reserva.acompanantes?.nombre_publico ?? t.reservas.sinAsignar}
             </h1>
             <p className="text-(--ink)/60 text-sm mt-1">{fechaStr}</p>
           </div>
@@ -148,6 +150,15 @@ export default async function ReservaDetallePage({
             style={{ background: 'var(--terra-soft)', borderColor: 'transparent', color: 'var(--terra)' }}
           >
             {t.detalle.expirada}
+          </div>
+        )}
+
+        {esCola && reserva.estado === 'pendiente' && (
+          <div
+            className="rounded-xl border p-4 mb-6 text-sm"
+            style={{ background: 'var(--terra-soft)', borderColor: 'transparent', color: 'var(--terra)' }}
+          >
+            {t.reservas.sinAsignarNota}
           </div>
         )}
 
@@ -235,6 +246,7 @@ export default async function ReservaDetallePage({
         {/* Documentos de citación (Blob privado; descarga firmada 5 min) */}
         <DocumentosReserva
           reservaId={reserva.id}
+          bloqueado={esCola}
           docs={docs.map((d) => ({
             id: d.id,
             nombre: d.nombre,
@@ -253,7 +265,7 @@ export default async function ReservaDetallePage({
             style={{ background: 'var(--bone-2)', borderColor: 'var(--line)' }}
           >
             <div className="flex flex-wrap gap-2">
-              {reserva.estado_pago === 'pendiente_pago' && (
+              {reserva.estado_pago === 'pendiente_pago' && reserva.precio_total_cents != null && (
                 <form action={iniciarPagoReserva}>
                   <input type="hidden" name="reserva_id" value={reserva.id} />
                   <input type="hidden" name="locale" value={locale} />

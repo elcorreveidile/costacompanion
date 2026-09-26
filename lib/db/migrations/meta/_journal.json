@@ -50,6 +50,13 @@
       "when": 1790433558293,
       "tag": "0006_smooth_madripoor",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790442518224,
+      "tag": "0007_skinny_wildside",
+      "breakpoints": true
     }
   ]
 }

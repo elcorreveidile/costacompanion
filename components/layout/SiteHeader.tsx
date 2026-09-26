@@ -33,6 +33,7 @@ export async function SiteHeader() {
   const navItems = [
     { label: dict.nav.comoFunciona, href: localePath(locale, '/#como-funciona') },
     { label: dict.nav.servicios, href: localePath(locale, '/servicios') },
+    { label: dict.nav.solicitar, href: localePath(locale, '/reservar') },
     { label: dict.nav.paraAcompanantes, href: localePath(locale, '/para-acompanantes') },
     { label: dict.nav.paraNegocios, href: localePath(locale, '/para-negocios') },
   ];

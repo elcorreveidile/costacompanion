@@ -60,6 +60,12 @@ export async function subirDocumento(formData: FormData): Promise<void> {
     volverConError(reservaId, locale, "permiso");
   }
 
+  // Petición en cola (Fase C1): sin acompañante asignado no hay citación a quién
+  // entregar — bloquear la subida hasta que el superadmin asigne.
+  if (!reserva.acompananteId) {
+    volverConError(reservaId, locale, "sin_asignar");
+  }
+
   // Nombre legible sin caracteres problemáticos (uuid delante evita colisiones).
   const nombreSeguro =
     (file.name || "documento")

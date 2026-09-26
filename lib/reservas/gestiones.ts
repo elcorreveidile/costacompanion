@@ -17,11 +17,15 @@ import {
   cargarContextoPrecios,
   calcularPrecio,
   getZonaBaseAcompanante,
+  modalidadCompatible,
   PrecioError,
   type DesglosePrecio,
   type ModoGestion,
 } from "@/lib/precios";
-import { emailNuevaReserva } from "@/lib/email";
+import {
+  emailNuevaReserva,
+  emailPeticionRecibida,
+} from "@/lib/email";
 
 /**
  * Reserva de GESTIONES con la tarjeta de precios de la plataforma.
@@ -67,18 +71,6 @@ async function getAcompananteReserva(acompananteId: string) {
   return row ?? null;
 }
 
-/** La acompañante ofrece la modalidad que exige el modo elegido. */
-function modalidadCompatible(
-  modalidades: ("presencial" | "remoto" | "ambos")[] | null,
-  modo: ModoGestion
-): boolean {
-  if (!modalidades || modalidades.length === 0) return true; // sin restricción declarada
-  if (modo === "remota") {
-    return modalidades.includes("remoto") || modalidades.includes("ambos");
-  }
-  return modalidades.includes("presencial") || modalidades.includes("ambos");
-}
-
 // ── Preview de precio (debounce del formulario) ──────────────────────────────
 
 export type CodigoErrorPreview =
@@ -90,11 +82,18 @@ export type CodigoErrorPreview =
   | "tarifa_no_configurada";
 
 export type ResultadoPreview =
-  | { ok: true; desglose: DesglosePrecio; zonaBase: string | null }
+  | {
+      ok: true;
+      desglose: DesglosePrecio;
+      zonaBase: string | null;
+      /** true = estimado de cola sin acompañante (sin recargo de zona). */
+      aproximado: boolean;
+    }
   | { ok: false; codigo: CodigoErrorPreview };
 
 export interface EntradaPreview {
-  acompananteId: string;
+  /** null = petición en cola (Fase C1): estimado sin acompañante. */
+  acompananteId: string | null;
   modo: ModoGestion;
   horas?: number;
   zonaKey: string | null;
@@ -106,17 +105,49 @@ export async function previewPrecioGestion(
 ): Promise<ResultadoPreview> {
   if (!esModoGestion(entrada.modo)) return { ok: false, codigo: "modo_invalido" };
 
+  const fechaHora = new Date(entrada.fechaHoraISO);
+  if (Number.isNaN(fechaHora.getTime()) || fechaHora.getTime() <= Date.now()) {
+    return { ok: false, codigo: "fecha_invalida" };
+  }
+
+  // ── Cola (Fase C1): estimado base + urgencia, sin recargo de zona ──
+  if (!entrada.acompananteId) {
+    try {
+      const ctx = await cargarContextoPrecios();
+      // Zona presencial: debe existir en el catálogo activo; el recargo exacto
+      // depende del acompañante que se asigne y se fija al asignar.
+      if (entrada.modo !== "remota") {
+        if (!entrada.zonaKey || ctx.zonas[entrada.zonaKey] === undefined) {
+          return { ok: false, codigo: "zona_fuera_provincia" };
+        }
+      }
+      // zonaBaseAcompanante = zonaKey ⇒ recargo 0: importe orientativo.
+      const desglose = calcularPrecio(
+        {
+          modo: entrada.modo,
+          horas: entrada.horas,
+          zonaKey: entrada.modo === "remota" ? null : entrada.zonaKey,
+          zonaBaseAcompanante:
+            entrada.modo === "remota" ? null : entrada.zonaKey,
+          fechaHora,
+          ahora: new Date(),
+        },
+        ctx
+      );
+      return { ok: true, desglose, zonaBase: null, aproximado: true };
+    } catch (e) {
+      if (e instanceof PrecioError) return { ok: false, codigo: e.codigo };
+      console.error("previewPrecioGestion (cola):", e);
+      return { ok: false, codigo: "tarifa_no_configurada" };
+    }
+  }
+
   const acomp = await getAcompananteReserva(entrada.acompananteId);
   if (!acomp || !acomp.activo || !acomp.aceptaGestiones) {
     return { ok: false, codigo: "acompanante_invalido" };
   }
   if (!modalidadCompatible(acomp.modalidades, entrada.modo)) {
     return { ok: false, codigo: "modo_invalido" };
-  }
-
-  const fechaHora = new Date(entrada.fechaHoraISO);
-  if (Number.isNaN(fechaHora.getTime()) || fechaHora.getTime() <= Date.now()) {
-    return { ok: false, codigo: "fecha_invalida" };
   }
 
   try {
@@ -135,7 +166,7 @@ export async function previewPrecioGestion(
       },
       ctx
     );
-    return { ok: true, desglose, zonaBase };
+    return { ok: true, desglose, zonaBase, aproximado: false };
   } catch (e) {
     if (e instanceof PrecioError) return { ok: false, codigo: e.codigo };
     console.error("previewPrecioGestion:", e);
@@ -145,28 +176,75 @@ export async function previewPrecioGestion(
 
 // ── Creación de la reserva ───────────────────────────────────────────────────
 
+/**
+ * Recálculo íntegro para el flujo directo (con acompañante). Si el precio no
+ * se puede calcular, redirige de vuelta al formulario.
+ */
+async function recalcularPrecioDirecta(opts: {
+  acompananteId: string;
+  modo: ModoGestion;
+  horas?: number;
+  zonaKey: string | null;
+  fechaHora: Date;
+  volver: string;
+}): Promise<DesglosePrecio> {
+  try {
+    const [ctx, zonaBase] = await Promise.all([
+      cargarContextoPrecios(),
+      getZonaBaseAcompanante(opts.acompananteId),
+    ]);
+    return calcularPrecio(
+      {
+        modo: opts.modo,
+        horas: opts.horas,
+        zonaKey: opts.zonaKey,
+        zonaBaseAcompanante: zonaBase,
+        fechaHora: opts.fechaHora,
+        ahora: new Date(),
+      },
+      ctx
+    );
+  } catch (e) {
+    if (e instanceof PrecioError) redirect(opts.volver);
+    console.error("crearReservaGestion (precio):", e);
+    redirect(opts.volver);
+  }
+}
+
 export async function crearReservaGestion(formData: FormData): Promise<void> {
   const user = await getSessionUser();
   if (!user) redirect("/auth/login");
 
-  const acompananteId = formData.get("acompanante_id") as string;
+  // Fase C1: sin acompañante en el form ⇒ petición en cola (gratis hasta asignar)
+  const acompananteId =
+    ((formData.get("acompanante_id") as string | null) || "").trim() || null;
+  const esCola = acompananteId === null;
+
   const modo = formData.get("modo");
   const modoGestion = esModoGestion(modo) ? modo : null;
   if (!modoGestion) redirect(`/cliente/reservas`);
 
-  const acomp = await getAcompananteReserva(acompananteId);
-  const volver = `/${acomp?.slug ?? ""}/reservar`;
-  if (!acomp || !acomp.activo || !acomp.aceptaGestiones) {
-    redirect(volver);
-  }
-  if (!modalidadCompatible(acomp.modalidades, modoGestion)) {
-    redirect(volver);
-  }
-
   const fechaHora = new Date(formData.get("fecha_hora") as string);
   if (Number.isNaN(fechaHora.getTime()) || fechaHora.getTime() <= Date.now()) {
-    redirect(volver);
+    redirect("/cliente/reservas");
   }
+
+  // Validaciones de acompañante: solo en el flujo directo /[slug]/reservar
+  let slug = "";
+  let acompNombre = "";
+  let acompEmail: string | null = null;
+  let acompIdioma: string | null = null;
+  if (!esCola) {
+    const a = await getAcompananteReserva(acompananteId);
+    const volverA = `/${a?.slug ?? ""}/reservar`;
+    if (!a || !a.activo || !a.aceptaGestiones) redirect(volverA);
+    if (!modalidadCompatible(a.modalidades, modoGestion)) redirect(volverA);
+    slug = a.slug;
+    acompNombre = a.nombrePublico;
+    acompEmail = a.emailContacto;
+    acompIdioma = a.idioma;
+  }
+  const volver = esCola ? "/reservar" : `/${slug}/reservar`;
 
   // Estructura opcional
   const horasRaw = formData.get("horas");
@@ -198,7 +276,11 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
 
   // Método de pago: remota ⇒ siempre tarjeta; efectivo solo presencial ∧ no bloqueado
   const [profile] = await db
-    .select({ efectivoBloqueado: profiles.efectivoBloqueado })
+    .select({
+      efectivoBloqueado: profiles.efectivoBloqueado,
+      idioma: profiles.idiomaPreferido,
+      nombre: profiles.nombre,
+    })
     .from(profiles)
     .where(eq(profiles.id, user.id))
     .limit(1);
@@ -210,39 +292,41 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
       : "tarjeta";
 
   // ── Recálculo íntegro en el servidor (snapshot inmutable) ──
-  const [ctx, zonaBase] = await Promise.all([
-    cargarContextoPrecios(),
-    getZonaBaseAcompanante(acompananteId),
-  ]);
-
-  let desglose: DesglosePrecio;
-  try {
-    desglose = calcularPrecio(
-      {
-        modo: modoGestion,
-        horas: modoGestion === "horas" ? horas : undefined,
-        zonaKey: modoGestion === "remota" ? null : zonaKey,
-        zonaBaseAcompanante: zonaBase,
-        fechaHora,
-        ahora: new Date(),
-      },
-      ctx
-    );
-  } catch (e) {
-    if (e instanceof PrecioError) redirect(volver);
-    console.error("crearReservaGestion (precio):", e);
-    redirect(volver);
+  // Cola: NO se calcula precio (null hasta asignar); solo se valida la zona
+  // presencial contra el catálogo activo.
+  let desglose: DesglosePrecio | null = null;
+  if (esCola) {
+    const ctx = await cargarContextoPrecios();
+    if (modoGestion !== "remota") {
+      if (!zonaKey || ctx.zonas[zonaKey] === undefined) redirect(volver);
+    }
+    if (
+      modoGestion === "horas" &&
+      (!horas || !Number.isInteger(horas) || horas < 1)
+    ) {
+      redirect(volver);
+    }
+  } else {
+    desglose = await recalcularPrecioDirecta({
+      acompananteId,
+      modo: modoGestion,
+      horas: modoGestion === "horas" ? horas : undefined,
+      zonaKey: modoGestion === "remota" ? null : zonaKey,
+      fechaHora,
+      volver,
+    });
   }
 
   const estadoPago = metodoPago === "tarjeta" ? "pendiente_pago" : "pendiente_cobro";
 
   // INSERT antes de cobrar (Neon HTTP sin transacciones). El pago (Etapa 2)
   // parte de esta fila; `estadoPago='pendiente_pago'` en el WHERE condicional
-  // hace idempotente todo el ciclo posterior.
+  // hace idempotente todo el ciclo posterior. En cola: precio null y sin
+  // acompañante — se fijan en la asignación manual.
   const [reserva] = await db
     .insert(reservas)
     .values({
-      acompananteId,
+      acompananteId: esCola ? null : acompananteId,
       clienteId: user.id,
       disponibilidadId: null,
       fechaHora,
@@ -252,18 +336,29 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
       estado: "pendiente",
       tipoReserva: "gestion",
       modoGestion,
+      horas: modoGestion === "horas" && horas ? horas : null,
       tipoGestionKey,
       idiomaGestion,
       metodoPago,
       estadoPago,
-      precioTotalCents: desglose.totalCents,
-      precioDesglose: desglose,
+      precioTotalCents: esCola ? null : desglose!.totalCents, // ! : rama directa siempre asigna o redirige
+      precioDesglose: esCola ? null : desglose,
       moneda: "eur",
     })
     .returning({ id: reservas.id });
 
-  // Notificar al acompañante (fire-and-forget; sin datos sensibles)
-  if (acomp.emailContacto) {
+  const clienteNombre = profile?.nombre ?? user.email ?? "Un cliente";
+
+  if (esCola) {
+    // Cola: confirmación al cliente (gratis hasta asignar). Sin email al
+    // acompañante: aún no existe.
+    emailPeticionRecibida({
+      toEmail: user.email ?? "",
+      clienteNombre,
+      idioma: profile?.idioma ?? undefined,
+    });
+  } else if (acompEmail) {
+    // Notificar al acompañante (fire-and-forget; sin datos sensibles)
     let tipoNombre: string | undefined;
     if (tipoGestionKey) {
       const [tg] = await db
@@ -273,15 +368,10 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
         .limit(1);
       tipoNombre = (tg?.nombre as { es?: string } | undefined)?.es;
     }
-    const [cliente] = await db
-      .select({ nombre: profiles.nombre })
-      .from(profiles)
-      .where(eq(profiles.id, user.id))
-      .limit(1);
     emailNuevaReserva({
-      toEmail: acomp.emailContacto,
-      clienteNombre: cliente?.nombre ?? user.email ?? "Un cliente",
-      acompananteNombre: acomp.nombrePublico,
+      toEmail: acompEmail,
+      clienteNombre,
+      acompananteNombre: acompNombre,
       fechaStr: fechaHora.toLocaleString("es-ES", {
         weekday: "long",
         day: "numeric",
@@ -291,12 +381,13 @@ export async function crearReservaGestion(formData: FormData): Promise<void> {
         minute: "2-digit",
       }),
       servicioNombre: tipoNombre,
-      idioma: acomp.idioma ?? undefined,
+      idioma: acompIdioma ?? undefined,
     });
   }
 
   revalidatePath("/cliente/reservas");
-  revalidatePath("/acompanante/reservas");
+  revalidatePath("/admin/reservas");
+  if (!esCola) revalidatePath("/acompanante/reservas");
   redirect("/cliente/reservas");
 }
 

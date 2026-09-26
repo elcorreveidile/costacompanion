@@ -7,6 +7,7 @@ const fr: Dictionary = {
     paraAcompanantes: "Pour les accompagnateurs linguistiques",
     paraNegocios: "Pour les entreprises",
     directorio: "Annuaire",
+    solicitar: "Demander un accompagnant",
   },
   account: {
     login: "Se connecter",
@@ -169,6 +170,7 @@ const fr: Dictionary = {
         "Une personne de confiance qui vous accompagne chez le médecin, à la police, chez le notaire ou à la banque — et qui parle pour vous quand la langue devient un obstacle. En personne ou à distance, à Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares et dans toute la Costa del Sol occidentale.",
       ctaFind: "Trouver mon accompagnateur linguistique",
       ctaHow: "Comment ça marche",
+      ctaSolicitar: "Demander un accompagnant",
     },
     problema: {
       h2: "Vivre ici ne devrait pas vous laisser sans voix",
@@ -427,6 +429,16 @@ const fr: Dictionary = {
       errorGenerico: "Impossible de calculer le prix. Veuillez réessayer.",
       enviar: "Confirmer la réservation",
       aviso: "Costa Companion agit uniquement comme plateforme d’intermédiation. Le prix est fixé par la plateforme selon le mode, la zone et le délai, et est toujours détaillé avant confirmation. Les services sont fournis directement par les accompagnateurs linguistiques, professionnels indépendants.",
+      colaH1: "Demander une démarche",
+      colaSubtitulo:
+        "Décrivez votre besoin et notre équipe assignera l’accompagnant linguistique le mieux adapté à votre démarche. C’est gratuit : vous ne payez qu’une fois l’accompagnant assigné et le prix confirmé.",
+      colaVolver: "← Retour à l’accueil",
+      colaDesgloseTitulo: "Prix estimé",
+      colaEstimadoNota:
+        "Montant indicatif sans supplément de zone : le prix exact est fixé lors de l’assignation de l’accompagnant, et vous le validez avant de payer.",
+      colaEnviar: "Envoyer la demande",
+      colaAviso:
+        "Costa Companion agit uniquement comme plateforme d’intermédiation. L’envoi de la demande est gratuit : l’équipe de la plateforme l’assigne à un accompagnant linguistique, fixe le prix exact et vous prévient pour que vous le confirmiez avant de payer. Les services sont fournis directement par les accompagnateurs linguistiques, professionnels indépendants.",
     },
     solicitar: {
       h1: "Demande sur mesure",
@@ -662,6 +674,9 @@ const fr: Dictionary = {
         reembolsada: "Remboursée",
       },
       pagar: "Payer maintenant",
+      sinAsignar: "En attente d’assignation",
+      sinAsignarNota:
+        "Votre demande est en cours d’examen : nous vous assignerons un accompagnant et vous préviendrons par email. Vous ne paierez qu’à ce moment-là, au prix exact.",
       verDetalle: "Voir les détails",
       proximas: "À venir",
       historial: "Historique",
@@ -698,6 +713,8 @@ const fr: Dictionary = {
       titulo: "Documents de la démarche",
       intro: "Téléversez le rendez-vous, la lettre ou le contrat (PDF ou image, max. 10 Mo). Seuls vous, votre accompagnant assigné et l’équipe de la plateforme peuvent les voir ; ils sont automatiquement supprimés 12 mois après la clôture de la réservation.",
       vacio: "Aucun document pour le moment.",
+      sinAsignar:
+        "Les documents s’activent dès qu’un accompagnant vous est assigné ; d’ici là, inutile d’en téléverser.",
       subir: "Téléverser un document",
       descargar: "Télécharger",
       borrar: "Supprimer",
@@ -707,6 +724,8 @@ const fr: Dictionary = {
         tamano: "Le fichier dépasse 10 Mo.",
         tipo: "Format non autorisé : utilisez PDF, JPEG, PNG ou WebP.",
         permiso: "Vous n’êtes pas autorisé à téléverser des documents pour cette réservation.",
+        sin_asignar:
+          "Cette demande n’a pas encore d’accompagnant assigné : les documents se téléversent après l’assignation.",
       },
     },
     solicitudes: {
@@ -1021,6 +1040,41 @@ const fr: Dictionary = {
       },
       motivoExpirada: "Paiement expiré",
       noShowTag: "No-show",
+      colaAsignacion: {
+        titulo: "Demandes non assignées",
+        desc: "Demandes de démarche en attente d’assignation. Lors de l’assignation, le prix exact est fixé et le client est prévenu pour payer.",
+        vacio: "Aucune demande en attente d’assignation.",
+        horas: "Heures",
+        elegirCandidato: "Assigner à…",
+        sinCandidatos:
+          "Aucun accompagnant compatible avec cette demande (actif et acceptant les démarches).",
+        asignar: "Assigner",
+        reasignar: "Réassigner",
+        descartar: "Écarter",
+        sinAsignar: "Non assignée",
+        errorPrecio:
+          "Impossible de fixer le prix de cette assignation. Vérifiez la grille tarifaire et réessayez.",
+      },
+    },
+    analiticas: {
+      h1: "Statistiques",
+      desc: "Réservations, revenus et indicateurs des accompagnements.",
+      kpiReservas: "Accompagnements réservés",
+      kpiCompletadas: "Terminées",
+      kpiIngresos: "Revenus nets",
+      kpiTicket: "Panier moyen",
+      kpiReembolsado: "Remboursé",
+      porEstado: "Réservations par statut",
+      porMetodo: "Par moyen de paiement",
+      evolucion: "6 derniers mois",
+      serieReservas: "Réservations",
+      serieIngresos: "Revenus",
+      topTitulo: "Top accompagnateurs",
+      thReservas: "Réservations",
+      thIngresos: "Revenus",
+      tarjeta: "Carte",
+      efectivo: "Espèces",
+      sinDatos: "Pas encore assez de données pour afficher des indicateurs.",
     },
     equipo: {
       titulo: "Équipe",
@@ -1079,7 +1133,7 @@ const fr: Dictionary = {
       cardResenasTitulo: "Avis",
       cardResenasDesc: "Modérez et approuvez les avis des clients vérifiés.",
       cardAnaliticasTitulo: "Statistiques",
-      cardAnaliticasDesc: "Bientôt : réservations, revenus et indicateurs.",
+      cardAnaliticasDesc: "Réservations, revenus et indicateurs des accompagnements.",
       cuentaTitulo: "Informations de votre compte",
     },
     acompanantes: {

@@ -178,6 +178,18 @@ export async function getZonaBaseAcompanante(
   return row?.zonaBase ?? null;
 }
 
+/** La acompañante ofrece la modalidad que exige el modo elegido. */
+export function modalidadCompatible(
+  modalidades: ("presencial" | "remoto" | "ambos")[] | null,
+  modo: ModoGestion
+): boolean {
+  if (!modalidades || modalidades.length === 0) return true; // sin restricción declarada
+  if (modo === "remota") {
+    return modalidades.includes("remoto") || modalidades.includes("ambos");
+  }
+  return modalidades.includes("presencial") || modalidades.includes("ambos");
+}
+
 /** Formatea céntimos como euros con Intl (para desgloses y paneles). */
 export function formatEuros(cents: number, locale = "es-ES"): string {
   return new Intl.NumberFormat(locale, {

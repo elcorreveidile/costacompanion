@@ -7,6 +7,7 @@ const de: Dictionary = {
     paraAcompanantes: "Für Sprachbegleiter",
     paraNegocios: "Für Unternehmen",
     directorio: "Verzeichnis",
+    solicitar: "Begleitung anfragen",
   },
   account: {
     login: "Anmelden",
@@ -169,6 +170,7 @@ const de: Dictionary = {
         "Eine Vertrauensperson, die Sie zum Arzt, zur Polizei, zum Notar oder zur Bank begleitet — und für Sie spricht, wenn die Sprache im Weg steht. Persönlich oder aus der Ferne, in Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares und an der gesamten westlichen Costa del Sol.",
       ctaFind: "Meine Sprachbegleitung finden",
       ctaHow: "So funktioniert es",
+      ctaSolicitar: "Begleitung anfragen",
     },
     problema: {
       h2: "Hier zu leben sollte nicht bedeuten, sprachlos zu sein",
@@ -427,6 +429,16 @@ const de: Dictionary = {
       errorGenerico: "Der Preis konnte nicht berechnet werden. Bitte versuchen Sie es erneut.",
       enviar: "Buchung bestätigen",
       aviso: "Costa Companion agiert ausschließlich als Vermittlungsplattform. Den Preis legt die Plattform je nach Modus, Zone und Vorlauf fest; er wird vor der Bestätigung immer aufgeschlüsselt angezeigt. Die Leistungen werden direkt von den Sprachbegleitern erbracht, die selbstständige Fachkräfte sind.",
+      colaH1: "Begleitung anfragen",
+      colaSubtitulo:
+        "Schildern Sie uns, was Sie brauchen, und unser Team weist die Sprachbegleitung zu, die am besten zu Ihrem Anliegen passt. Kostenlos: Sie zahlen erst, wenn wir jemanden zugeteilt haben und Sie den Preis bestätigen.",
+      colaVolver: "← Zurück zur Startseite",
+      colaDesgloseTitulo: "Geschätzter Preis",
+      colaEstimadoNota:
+        "Richtbetrag ohne Zonenzuschlag: Der genaue Preis wird bei der Zuteilung der Begleitung festgelegt und von Ihnen vor der Zahlung bestätigt.",
+      colaEnviar: "Anfrage senden",
+      colaAviso:
+        "Costa Companion agiert ausschließlich als Vermittlungsplattform. Das Senden der Anfrage ist kostenlos: Das Team der Plattform weist sie einer Sprachbegleitung zu, legt den genauen Preis fest und benachrichtigt Sie zur Bestätigung vor der Zahlung. Die Leistungen werden direkt von den Sprachbegleitern erbracht, die selbstständige Fachkräfte sind.",
     },
     solicitar: {
       h1: "Individuelle Anfrage",
@@ -662,6 +674,9 @@ const de: Dictionary = {
         reembolsada: "Erstattet",
       },
       pagar: "Jetzt bezahlen",
+      sinAsignar: "Warte auf Zuteilung",
+      sinAsignarNota:
+        "Ihre Anfrage wird geprüft: Wir weisen Ihnen eine Begleitung zu und benachrichtigen Sie per E-Mail. Erst dann zahlen Sie, zum genauen Preis.",
       verDetalle: "Details ansehen",
       proximas: "Kommende",
       historial: "Verlauf",
@@ -698,6 +713,8 @@ const de: Dictionary = {
       titulo: "Dokumente des Termins",
       intro: "Laden Sie den Termin, das Schreiben oder den Vertrag hoch (PDF oder Bild, max. 10 MB). Nur Sie, Ihr zugewiesener Begleiter und das Plattformteam können sie sehen; sie werden automatisch 12 Monate nach Abschluss der Buchung gelöscht.",
       vacio: "Noch keine Dokumente.",
+      sinAsignar:
+        "Dokumente werden freigeschaltet, sobald wir Ihnen eine Begleitung zugeteilt haben; bis dahin müssen Sie nichts hochladen.",
       subir: "Dokument hochladen",
       descargar: "Herunterladen",
       borrar: "Löschen",
@@ -707,6 +724,8 @@ const de: Dictionary = {
         tamano: "Die Datei überschreitet 10 MB.",
         tipo: "Format nicht erlaubt: Bitte PDF, JPEG, PNG oder WebP verwenden.",
         permiso: "Sie dürfen für diese Buchung keine Dokumente hochladen.",
+        sin_asignar:
+          "Diese Anfrage hat noch keine zugewiesene Begleitung: Dokumente werden erst nach der Zuteilung hochgeladen.",
       },
     },
     solicitudes: {
@@ -1021,6 +1040,41 @@ const de: Dictionary = {
       },
       motivoExpirada: "Zahlung abgelaufen",
       noShowTag: "No-Show",
+      colaAsignacion: {
+        titulo: "Nicht zugeteilte Anfragen",
+        desc: "Anfragen, die noch zugeteilt werden müssen. Bei der Zuteilung wird der genaue Preis festgelegt und der Kunde zur Zahlung benachrichtigt.",
+        vacio: "Keine Anfragen, die auf Zuteilung warten.",
+        horas: "Stunden",
+        elegirCandidato: "Zuteilen an…",
+        sinCandidatos:
+          "Keine kompatiblen Begleitungen für diese Anfrage (aktiv und mit Annahme von Begleitungen).",
+        asignar: "Zuteilen",
+        reasignar: "Neu zuteilen",
+        descartar: "Verwerfen",
+        sinAsignar: "Nicht zugeteilt",
+        errorPrecio:
+          "Der Preis für diese Zuteilung konnte nicht festgelegt werden. Bitte Tarife prüfen und erneut versuchen.",
+      },
+    },
+    analiticas: {
+      h1: "Analysen",
+      desc: "Buchungen, Einnahmen und Kennzahlen der Begleitungen.",
+      kpiReservas: "Begleitungen gebucht",
+      kpiCompletadas: "Abgeschlossen",
+      kpiIngresos: "Nettoeinnahmen",
+      kpiTicket: "Durchschnittlicher Auftrag",
+      kpiReembolsado: "Erstattet",
+      porEstado: "Buchungen nach Status",
+      porMetodo: "Nach Zahlungsmethode",
+      evolucion: "Letzte 6 Monate",
+      serieReservas: "Buchungen",
+      serieIngresos: "Einnahmen",
+      topTitulo: "Top-Begleiter",
+      thReservas: "Buchungen",
+      thIngresos: "Einnahmen",
+      tarjeta: "Karte",
+      efectivo: "Barzahlung",
+      sinDatos: "Noch nicht genügend Daten für Kennzahlen.",
     },
     equipo: {
       titulo: "Team",
@@ -1079,7 +1133,7 @@ const de: Dictionary = {
       cardResenasTitulo: "Bewertungen",
       cardResenasDesc: "Moderieren und genehmigen Sie die Bewertungen verifizierter Kunden.",
       cardAnaliticasTitulo: "Analysen",
-      cardAnaliticasDesc: "Demnächst: Buchungen, Einnahmen und Kennzahlen.",
+      cardAnaliticasDesc: "Buchungen, Einnahmen und Kennzahlen der Begleitungen.",
       cuentaTitulo: "Ihre Kontoinformationen",
     },
     acompanantes: {

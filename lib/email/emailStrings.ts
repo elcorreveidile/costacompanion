@@ -818,3 +818,168 @@ export const recordatorio: Record<Locale, RecordatorioStrings> = {
     button: "Мої бронювання",
   },
 };
+
+// ── Cola C1: petición recibida (al cliente, al crear) ───────────────────────
+
+export interface PeticionRecibidaStrings {
+  subject: string;
+  heading: string;
+  intro: (a: { clienteNombre: string }) => string;
+  note: string;
+  button: string;
+}
+
+export const peticionRecibida: Record<Locale, PeticionRecibidaStrings> = {
+  es: {
+    subject: "Hemos recibido tu solicitud",
+    heading: "Solicitud recibida",
+    intro: ({ clienteNombre }) =>
+      `Hola ${clienteNombre}, hemos recibido tu solicitud de gestión. Nuestro equipo te asignará al acompañante lingüístico más adecuado y te avisaremos por email.`,
+    note: "No pagas nada todavía: el precio exacto se fija al asignarte acompañante y lo apruebas antes de pagar.",
+    button: "Ver mis reservas",
+  },
+  en: {
+    subject: "We've received your request",
+    heading: "Request received",
+    intro: ({ clienteNombre }) =>
+      `Hi ${clienteNombre}, we've received your assistance request. Our team will assign the best-suited language companion and notify you by email.`,
+    note: "You don't pay anything yet: the exact price is set once a companion is assigned, and you approve it before paying.",
+    button: "View my bookings",
+  },
+  fr: {
+    subject: "Nous avons bien reçu votre demande",
+    heading: "Demande reçue",
+    intro: ({ clienteNombre }) =>
+      `Bonjour ${clienteNombre}, nous avons reçu votre demande de démarche. Notre équipe vous assignera l’accompagnant linguistique le mieux adapté et vous préviendra par email.`,
+    note: "Vous ne payez rien pour l’instant : le prix exact est fixé lors de l’assignation de l’accompagnant, et vous le validez avant de payer.",
+    button: "Voir mes réservations",
+  },
+  de: {
+    subject: "Ihre Anfrage ist bei uns eingegangen",
+    heading: "Anfrage erhalten",
+    intro: ({ clienteNombre }) =>
+      `Hallo ${clienteNombre}, wir haben Ihre Anfrage erhalten. Unser Team weist Ihnen die am besten geeignete Sprachbegleitung zu und benachrichtigt Sie per E-Mail.`,
+    note: "Sie zahlen noch nichts: Der genaue Preis wird bei der Zuteilung der Begleitung festgelegt und von Ihnen vor der Zahlung bestätigt.",
+    button: "Meine Buchungen ansehen",
+  },
+  nl: {
+    subject: "We hebben uw aanvraag ontvangen",
+    heading: "Aanvraag ontvangen",
+    intro: ({ clienteNombre }) =>
+      `Hallo ${clienteNombre}, we hebben uw aanvraag ontvangen. Ons team wijst u de meest geschikte taalbegeleider toe en laat het u per e-mail weten.`,
+    note: "U betaalt nog niets: de exacte prijs wordt vastgesteld bij de toewijzing van een begeleider, en u keurt deze goed vóór de betaling.",
+    button: "Mijn boekingen bekijken",
+  },
+  ru: {
+    subject: "Мы получили ваш запрос",
+    heading: "Запрос получен",
+    intro: ({ clienteNombre }) =>
+      `Здравствуйте, ${clienteNombre}! Мы получили ваш запрос на сопровождение. Наша команда назначит наиболее подходящего языкового сопровождающего и сообщит вам по email.`,
+    note: "Пока вы ничего не платите: точная цена фиксируется при назначении сопровождающего, и вы подтверждаете её до оплаты.",
+    button: "Мои бронирования",
+  },
+  uk: {
+    subject: "Ми отримали ваш запит",
+    heading: "Запит отримано",
+    intro: ({ clienteNombre }) =>
+      `Вітаємо, ${clienteNombre}! Ми отримали ваш запит на супровід. Наша команда призначить найбільш підходящого мовного супровідника та повідомить вас на email.`,
+    note: "Поки що ви нічого не платите: точна ціна фіксується під час призначення супровідника, і ви підтверджуєте її до оплати.",
+    button: "Мої бронювання",
+  },
+};
+
+// ── Cola C1: petición asignada (al cliente, al asignar) ─────────────────────
+
+export interface PeticionAsignadaStrings {
+  subject: (a: { acompananteNombre: string }) => string;
+  heading: string;
+  intro: (a: {
+    clienteNombre: string;
+    acompananteNombre: string;
+    fechaStr: string;
+  }) => string;
+  labelFecha: string;
+  labelImporte: string;
+  note: string;
+  button: string;
+}
+
+export const peticionAsignada: Record<Locale, PeticionAsignadaStrings> = {
+  es: {
+    subject: ({ acompananteNombre }) =>
+      `Tu gestión tiene acompañante — ${acompananteNombre}`,
+    heading: "¡Te hemos asignado acompañante!",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hola ${clienteNombre}, tu solicitud del <strong>${fechaStr}</strong> ha sido asignada a <strong>${acompananteNombre}</strong>.`,
+    labelFecha: "Fecha:",
+    labelImporte: "Importe:",
+    note: "Revisa el importe en tus reservas: si es con tarjeta, confirma el pago desde ahí; si es en efectivo, pagarás en mano al terminar la gestión.",
+    button: "Ver mis reservas",
+  },
+  en: {
+    subject: ({ acompananteNombre }) =>
+      `Your booking has a companion — ${acompananteNombre}`,
+    heading: "Companion assigned!",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hi ${clienteNombre}, your request for <strong>${fechaStr}</strong> has been assigned to <strong>${acompananteNombre}</strong>.`,
+    labelFecha: "Date:",
+    labelImporte: "Amount:",
+    note: "Check the amount in your bookings: if it's card, confirm the payment there; if cash, you pay in hand at the end of the session.",
+    button: "View my bookings",
+  },
+  fr: {
+    subject: ({ acompananteNombre }) =>
+      `Votre démarche a un accompagnant — ${acompananteNombre}`,
+    heading: "Accompagnant assigné !",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Bonjour ${clienteNombre}, votre demande du <strong>${fechaStr}</strong> a été assignée à <strong>${acompananteNombre}</strong>.`,
+    labelFecha: "Date :",
+    labelImporte: "Montant :",
+    note: "Vérifiez le montant dans vos réservations : par carte, confirmez le paiement depuis cette page ; en espèces, vous payez en main à la fin de la prestation.",
+    button: "Voir mes réservations",
+  },
+  de: {
+    subject: ({ acompananteNombre }) =>
+      `Ihr Termin hat eine Begleitung — ${acompananteNombre}`,
+    heading: "Begleitung zugeteilt!",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hallo ${clienteNombre}, Ihre Anfrage für den <strong>${fechaStr}</strong> wurde <strong>${acompananteNombre}</strong> zugeteilt.`,
+    labelFecha: "Datum:",
+    labelImporte: "Betrag:",
+    note: "Prüfen Sie den Betrag in Ihren Buchungen: bei Karte bestätigen Sie die Zahlung dort; bei Barzahlung zahlen Sie am Ende persönlich.",
+    button: "Meine Buchungen ansehen",
+  },
+  nl: {
+    subject: ({ acompananteNombre }) =>
+      `Uw afspraak heeft een begeleider — ${acompananteNombre}`,
+    heading: "Begeleider toegewezen!",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Hallo ${clienteNombre}, uw aanvraag voor <strong>${fechaStr}</strong> is toegewezen aan <strong>${acompananteNombre}</strong>.`,
+    labelFecha: "Datum:",
+    labelImporte: "Bedrag:",
+    note: "Bekijk het bedrag in uw boekingen: bij kaart bevestigt u de betaling daar; bij contant geld betaalt u persoonlijk aan het einde.",
+    button: "Mijn boekingen bekijken",
+  },
+  ru: {
+    subject: ({ acompananteNombre }) =>
+      `У вашего дела есть сопровождающий — ${acompananteNombre}`,
+    heading: "Сопровождающий назначен!",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Здравствуйте, ${clienteNombre}! Ваш запрос на <strong>${fechaStr}</strong> назначен <strong>${acompananteNombre}</strong>.`,
+    labelFecha: "Дата:",
+    labelImporte: "Сумма:",
+    note: "Проверьте сумму в ваших бронированиях: при оплате картой подтвердите платёж там; при наличных вы заплатите лично по окончании.",
+    button: "Мои бронирования",
+  },
+  uk: {
+    subject: ({ acompananteNombre }) =>
+      `У вашої справи є супровідник — ${acompananteNombre}`,
+    heading: "Супровідника призначено!",
+    intro: ({ clienteNombre, acompananteNombre, fechaStr }) =>
+      `Вітаємо, ${clienteNombre}! Ваш запит на <strong>${fechaStr}</strong> призначено <strong>${acompananteNombre}</strong>.`,
+    labelFecha: "Дата:",
+    labelImporte: "Сума:",
+    note: "Перевірте суму у ваших бронюваннях: при оплаті карткою підтвердьте платіж там; при готівці ви заплатите особисто по завершенні.",
+    button: "Мої бронювання",
+  },
+};

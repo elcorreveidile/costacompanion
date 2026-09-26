@@ -291,9 +291,10 @@ export const reservas = pgTable(
   "reservas",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    acompananteId: uuid("acompanante_id")
-      .notNull()
-      .references(() => acompanantes.id, { onDelete: "restrict" }),
+    // NULL = petición en cola de asignación (Fase C1); se fija al asignar
+    acompananteId: uuid("acompanante_id").references(() => acompanantes.id, {
+      onDelete: "restrict",
+    }),
     clienteId: uuid("cliente_id")
       .notNull()
       .references(() => profiles.id, { onDelete: "restrict" }),
@@ -314,6 +315,9 @@ export const reservas = pgTable(
     // tipoReserva NULL ⇒ reserva de clases/legacy (sin pago, precio decimal).
     tipoReserva: tipoReserva("tipo_reserva"),
     modoGestion: modoGestion("modo_gestion"),
+    // horas pedidas en modo 'horas' (se fijan al crear; el precio final se
+    // recalcula al asignar — Fase C1)
+    horas: integer("horas"),
     // metadata del catálogo de gestiones (tipos_gestion.key)
     tipoGestionKey: text("tipo_gestion_key"),
     // idioma en el que se acompaña (code ISO de profiles.idiomaPreferido)
@@ -350,6 +354,8 @@ export const reservas = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    // momento de la asignación manual (Fase C1)
+    asignadoAt: timestamp("asignado_at", { withTimezone: true }),
     canceladaAt: timestamp("cancelada_at", { withTimezone: true }),
   },
   (t) => [
@@ -358,6 +364,12 @@ export const reservas = pgTable(
     index("reservas_cliente_fecha_idx").on(t.clienteId, t.fechaHora),
     index("reservas_acompanante_fecha_idx").on(t.acompananteId, t.fechaHora),
     index("reservas_recordatorio_idx").on(t.estado, t.fechaHora),
+    // cola de asignación C1: peticiones de gestión sin acompañante
+    index("reservas_cola_asignacion_idx")
+      .on(t.createdAt)
+      .where(
+        sql`${t.acompananteId} IS NULL AND ${t.tipoReserva} = 'gestion' AND ${t.estado} = 'pendiente'`
+      ),
   ]
 );
 

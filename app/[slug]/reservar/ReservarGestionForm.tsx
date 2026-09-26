@@ -29,6 +29,8 @@ interface Props {
     idioma: string | null;
     zonaKey: string | null;
   } | null;
+  /** true = petición en cola (Fase C1): sin acompañante, precio estimado. */
+  modoCola?: boolean;
 }
 
 const HORAS_SELECTOR = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -46,6 +48,7 @@ export function ReservarGestionForm({
   zonaBaseKey,
   idiomas,
   precarga,
+  modoCola = false,
 }: Props) {
   const [modo, setModo] = useState<ModoGestion | ''>(
     precarga?.modo ?? modosDisponibles[0] ?? ''
@@ -58,8 +61,12 @@ export function ReservarGestionForm({
   const [metodo, setMetodo] = useState<'tarjeta' | 'efectivo'>('tarjeta');
 
   const [desglose, setDesglose] = useState<DesglosePrecio | null>(null);
+  const [aproximado, setAproximado] = useState(false);
   const [errorCodigo, setErrorCodigo] = useState<string | null>(null);
   const [calculando, setCalculando] = useState(false);
+
+  // En cola el preview es un estimado: se calcula SIN acompañante (recargo 0).
+  const previewAcompId = modoCola ? null : acompananteId;
 
   const today = new Date();
   const presencial = modo !== '' && modo !== 'remota';
@@ -75,6 +82,7 @@ export function ReservarGestionForm({
   useEffect(() => {
     if (!modo || !fechaHora) {
       setDesglose(null);
+      setAproximado(false);
       setErrorCodigo(null);
       return;
     }
@@ -84,7 +92,7 @@ export function ReservarGestionForm({
     const timer = setTimeout(async () => {
       try {
         const r = await previewPrecioGestion({
-          acompananteId,
+          acompananteId: previewAcompId,
           modo,
           horas: modo === 'horas' ? horas : undefined,
           zonaKey: modo === 'remota' ? null : zonaKey || null,
@@ -93,13 +101,16 @@ export function ReservarGestionForm({
         if (seq.current !== miSeq) return;
         if (r.ok) {
           setDesglose(r.desglose);
+          setAproximado(r.aproximado);
         } else {
           setDesglose(null);
+          setAproximado(false);
           setErrorCodigo(r.codigo);
         }
       } catch {
         if (seq.current === miSeq) {
           setDesglose(null);
+          setAproximado(false);
           setErrorCodigo('tarifa_no_configurada');
         }
       } finally {
@@ -107,7 +118,7 @@ export function ReservarGestionForm({
       }
     }, 400);
     return () => clearTimeout(timer);
-  }, [acompananteId, modo, horas, zonaKey, fechaHora]);
+  }, [previewAcompId, modo, horas, zonaKey, fechaHora]);
 
   const eur = (cents: number) =>
     new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(cents / 100);
@@ -129,21 +140,24 @@ export function ReservarGestionForm({
         {/* Encabezado */}
         <div className="mb-8">
           <Link
-            href={localePath(locale, `/${slug}`)}
+            href={localePath(locale, modoCola ? '/' : `/${slug}`)}
             className="inline-flex items-center gap-1.5 text-sm text-(--ink)/60 hover:opacity-80 transition-opacity mb-4"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            {t.volverAlPerfil}
+            {modoCola ? t.colaVolver : t.volverAlPerfil}
           </Link>
           <h1 className="font-display text-3xl font-semibold text-(--green)">
-            {t.h1}
+            {modoCola ? t.colaH1 : t.h1}
           </h1>
-          <p className="text-(--ink)/60 mt-1">{t.con.replace('{nombre}', nombrePublico)}</p>
+          <p className="text-(--ink)/60 mt-1">
+            {modoCola ? t.colaSubtitulo : t.con.replace('{nombre}', nombrePublico)}
+          </p>
         </div>
 
-        {/* Conmutador gestión / clase */}
+        {/* Conmutador gestión / clase (solo perfil de acompañante) */}
+        {!modoCola && (
         <div className="flex gap-2 mb-8">
           <span
             className="px-4 py-2 rounded-full text-sm font-medium"
@@ -159,9 +173,10 @@ export function ReservarGestionForm({
             {t.tabClase}
           </Link>
         </div>
+        )}
 
         <form action={crearReservaGestion} className="space-y-6">
-          <input type="hidden" name="acompanante_id" value={acompananteId} />
+          <input type="hidden" name="acompanante_id" value={modoCola ? '' : acompananteId} />
           <input type="hidden" name="modo" value={modo} />
           {modo === 'horas' && <input type="hidden" name="horas" value={horas} />}
           <input type="hidden" name="tipo_gestion_key" value={tipoKey} />
@@ -360,7 +375,7 @@ export function ReservarGestionForm({
             style={{ borderColor: 'var(--line)', background: 'var(--bone-2)' }}
           >
             <p className="font-display text-sm font-semibold text-(--green) mb-3">
-              {t.desgloseTitulo}
+              {modoCola ? t.colaDesgloseTitulo : t.desgloseTitulo}
             </p>
             {calculando && !desglose && (
               <p className="text-sm text-(--ink)/50">{t.calculando}</p>
@@ -402,6 +417,9 @@ export function ReservarGestionForm({
                 {desglose.urgencia && (
                   <p className="text-xs text-(--ink)/50 pt-1">{t.urgenciaAviso}</p>
                 )}
+                {modoCola && (
+                  <p className="text-xs text-(--ink)/50 pt-1">{t.colaEstimadoNota}</p>
+                )}
               </div>
             )}
           </div>
@@ -413,7 +431,7 @@ export function ReservarGestionForm({
             className="w-full py-3 rounded-lg font-medium text-sm transition-opacity hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
             style={{ background: 'var(--green)', color: 'var(--bone)' }}
           >
-            {t.enviar}
+            {modoCola ? t.colaEnviar : t.enviar}
           </button>
         </form>
 
@@ -422,7 +440,7 @@ export function ReservarGestionForm({
           className="text-xs text-(--ink)/30 leading-relaxed mt-8 pt-6 border-t"
           style={{ borderColor: 'var(--line)' }}
         >
-          {t.aviso}
+          {modoCola ? t.colaAviso : t.aviso}
         </p>
       </div>
     </div>

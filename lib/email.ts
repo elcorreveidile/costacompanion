@@ -254,6 +254,55 @@ export async function emailSolicitudRechazada(opts: {
   }).catch(console.error);
 }
 
+// ── Cola C1: peticiones sin acompañante ───────────────────────────────────────
+
+/** Al crear la petición en cola: aviso al cliente (gratis hasta asignar). */
+export async function emailPeticionRecibida(opts: {
+  toEmail: string;           // email del cliente
+  clienteNombre: string;
+  idioma?: string;           // idioma del cliente
+}) {
+  const t = S.peticionRecibida[loc(opts.idioma)];
+  await sendMail({
+    from: FROM,
+    to: [opts.toEmail],
+    subject: t.subject,
+    html: html(`
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre })}</p>
+      <p style="color:#555;font-size:13px">${t.note}</p>
+      ${btn(t.button, `${SITE}/cliente/reservas`)}
+    `),
+  }).catch(console.error);
+}
+
+/** Al asignar: precio exacto + instrucciones de pago al cliente. */
+export async function emailPeticionAsignada(opts: {
+  toEmail: string;           // email del cliente
+  clienteNombre: string;
+  acompananteNombre: string;
+  fechaStr: string;
+  importeStr: string;        // p. ej. «58,50 €»
+  idioma?: string;           // idioma del cliente
+}) {
+  const t = S.peticionAsignada[loc(opts.idioma)];
+  await sendMail({
+    from: FROM,
+    to: [opts.toEmail],
+    subject: t.subject({ acompananteNombre: opts.acompananteNombre }),
+    html: html(`
+      <h2 style="margin:0 0 14px;font-size:20px">${t.heading}</h2>
+      <p>${t.intro({ clienteNombre: opts.clienteNombre, acompananteNombre: opts.acompananteNombre, fechaStr: opts.fechaStr })}</p>
+      <ul style="padding-left:18px;line-height:1.8">
+        <li><strong>${t.labelFecha}</strong> ${opts.fechaStr}</li>
+        <li><strong>${t.labelImporte}</strong> ${opts.importeStr}</li>
+      </ul>
+      <p style="color:#555;font-size:13px">${t.note}</p>
+      ${btn(t.button, `${SITE}/cliente/reservas`)}
+    `),
+  }).catch(console.error);
+}
+
 // ── Mensajes (Chat interno) ───────────────────────────────────────────────────────
 
 export async function notificarNuevoMensaje(opts: {

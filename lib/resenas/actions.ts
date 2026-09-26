@@ -37,7 +37,8 @@ export async function crearResena(
     )
     .limit(1);
 
-  if (!reserva) {
+  // Sin acompañante (petición en cola, Fase C1) no hay a quién reseñar.
+  if (!reserva || !reserva.acompananteId) {
     return { error: "No tienes una reserva completada que puedas reseñar." };
   }
 

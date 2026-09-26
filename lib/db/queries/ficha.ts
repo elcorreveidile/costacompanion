@@ -204,7 +204,7 @@ export async function getReservaResenable(
       )
     )
     .limit(1);
-  if (!row) return null;
+  if (!row || !row.acompananteId) return null;
   return {
     acompananteId: row.acompananteId,
     nombrePublico: row.nombre ?? "",

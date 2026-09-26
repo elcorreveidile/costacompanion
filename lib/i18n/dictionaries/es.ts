@@ -8,6 +8,7 @@ const es = {
     paraAcompanantes: "Para acompañantes lingüísticos",
     paraNegocios: "Para negocios",
     directorio: "Directorio",
+    solicitar: "Solicitar acompañante",
   },
   account: {
     login: "Entrar",
@@ -170,6 +171,7 @@ const es = {
         "Alguien de confianza que te acompaña al médico, a la policía, al notario o al banco — y habla por ti cuando el idioma se interpone. Presencial o a distancia, en Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares y toda la Costa del Sol occidental.",
       ctaFind: "Encontrar a mi acompañante lingüístico",
       ctaHow: "Cómo funciona",
+      ctaSolicitar: "Solicitar acompañante",
     },
     problema: {
       h2: "Vivir aquí no debería significar quedarse sin palabras",
@@ -428,6 +430,16 @@ const es = {
       errorGenerico: "No se pudo calcular el precio. Inténtalo de nuevo.",
       enviar: "Confirmar reserva",
       aviso: "Costa Companion actúa exclusivamente como plataforma de intermediación. El precio lo fija la plataforma según el modo, la zona y la antelación, y se muestra siempre desglosado antes de confirmar. Los servicios son prestados directamente por los acompañantes lingüísticos, profesionales autónomos.",
+      colaH1: "Solicitar una gestión",
+      colaSubtitulo:
+        "Cuéntanos qué necesitas y nuestro equipo asignará al acompañante lingüístico más adecuado para tu gestión. Es gratis: solo pagas cuando te asignamos y confirmas el precio.",
+      colaVolver: "← Volver al inicio",
+      colaDesgloseTitulo: "Precio estimado",
+      colaEstimadoNota:
+        "Importe orientativo sin suplemento de zona: el precio exacto se fija al asignarte acompañante y lo apruebas antes de pagar.",
+      colaEnviar: "Enviar solicitud",
+      colaAviso:
+        "Costa Companion actúa exclusivamente como plataforma de intermediación. Enviar la solicitud es gratuito: el equipo de la plataforma la asigna a un acompañante lingüístico, fija el precio exacto y te avisa para que lo confirmes antes de pagar. Los servicios son prestados directamente por los acompañantes lingüísticos, profesionales autónomos.",
     },
     solicitar: {
       h1: "Solicitud a medida",
@@ -663,6 +675,9 @@ const es = {
         reembolsada: "Reembolsada",
       },
       pagar: "Pagar ahora",
+      sinAsignar: "Esperando asignación",
+      sinAsignarNota:
+        "Tu solicitud está en revisión: te asignaremos acompañante y te avisaremos por email. Solo entonces pagarás, con el precio exacto.",
       verDetalle: "Ver detalle",
       proximas: "Próximas",
       historial: "Historial",
@@ -699,6 +714,8 @@ const es = {
       titulo: "Documentos de la gestión",
       intro: "Sube la cita, carta o contrato (PDF o imagen, máx. 10 MB). Solo tú, tu acompañante asignado y el equipo de la plataforma pueden verlos; se eliminan automáticamente 12 meses después de cerrar la reserva.",
       vacio: "Aún no hay documentos.",
+      sinAsignar:
+        "Los documentos se activan cuando te asignemos acompañante; hasta entonces no hace falta que subas nada.",
       subir: "Subir documento",
       descargar: "Descargar",
       borrar: "Borrar",
@@ -708,6 +725,8 @@ const es = {
         tamano: "El archivo supera los 10 MB.",
         tipo: "Formato no permitido: usa PDF, JPEG, PNG o WebP.",
         permiso: "No tienes permiso para subir documentos a esta reserva.",
+        sin_asignar:
+          "Esta solicitud aún no tiene acompañante asignado: los documentos se suben después de la asignación.",
       },
     },
     solicitudes: {
@@ -1022,6 +1041,41 @@ const es = {
       },
       motivoExpirada: "Pago expirado",
       noShowTag: "No-show",
+      colaAsignacion: {
+        titulo: "Solicitudes sin asignar",
+        desc: "Peticiones de gestión pendientes de asignar. Al asignar se fija el precio exacto y se avisa al cliente para pagar.",
+        vacio: "No hay solicitudes pendientes de asignar.",
+        horas: "Horas",
+        elegirCandidato: "Asignar a…",
+        sinCandidatos:
+          "No hay acompañantes compatibles con esta solicitud (activos y que acepten gestiones).",
+        asignar: "Asignar",
+        reasignar: "Reasignar",
+        descartar: "Descartar",
+        sinAsignar: "Sin asignar",
+        errorPrecio:
+          "No se pudo fijar el precio de esta asignación. Revisa las tarifas e inténtalo de nuevo.",
+      },
+    },
+    analiticas: {
+      h1: "Analíticas",
+      desc: "Reservas, ingresos y métricas de las gestiones.",
+      kpiReservas: "Gestiones reservadas",
+      kpiCompletadas: "Completadas",
+      kpiIngresos: "Ingresos netos",
+      kpiTicket: "Ticket medio",
+      kpiReembolsado: "Reembolsado",
+      porEstado: "Reservas por estado",
+      porMetodo: "Por método de pago",
+      evolucion: "Últimos 6 meses",
+      serieReservas: "Reservas",
+      serieIngresos: "Ingresos",
+      topTitulo: "Top acompañantes",
+      thReservas: "Reservas",
+      thIngresos: "Ingresos",
+      tarjeta: "Tarjeta",
+      efectivo: "Efectivo",
+      sinDatos: "Aún no hay datos suficientes para mostrar métricas.",
     },
     equipo: {
       titulo: "Equipo",
@@ -1080,7 +1134,7 @@ const es = {
       cardResenasTitulo: "Reseñas",
       cardResenasDesc: "Modera y aprueba las reseñas de clientes verificados.",
       cardAnaliticasTitulo: "Analíticas",
-      cardAnaliticasDesc: "Próximamente: reservas, ingresos y métricas.",
+      cardAnaliticasDesc: "Reservas, ingresos y métricas de las gestiones.",
       cuentaTitulo: "Información de tu cuenta",
     },
     acompanantes: {

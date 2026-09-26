@@ -63,6 +63,13 @@ export default async function Home() {
             >
               {t.hero.ctaFind}
             </Link>
+            <Link
+              href={lp('/reservar')}
+              className="px-8 py-4 rounded-lg text-base font-medium transition-opacity hover:opacity-85"
+              style={{ background: 'var(--bone)', color: 'var(--green)' }}
+            >
+              {t.hero.ctaSolicitar}
+            </Link>
             <a
               href="#como-funciona"
               className="px-8 py-4 rounded-lg text-base font-medium border transition-opacity hover:opacity-75"

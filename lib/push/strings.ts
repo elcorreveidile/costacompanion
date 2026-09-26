@@ -21,6 +21,8 @@ type Plantillas = {
   canceladaBody: (a: { acompananteNombre: string; fechaStr: string }) => string;
   recordatorioTitle: string;
   recordatorioBody: (a: { acompananteNombre: string; fechaStr: string }) => string;
+  asignadaTitle: string;
+  asignadaBody: (a: { acompananteNombre: string; fechaStr: string }) => string;
 };
 
 export const pushStrings: Record<Locale, Plantillas> = {
@@ -34,6 +36,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     recordatorioTitle: "Mañana tienes una gestión",
     recordatorioBody: ({ acompananteNombre, fechaStr }) =>
       `Recuerda: ${acompananteNombre} te acompañará el ${fechaStr}.`,
+    asignadaTitle: "Gestión asignada",
+    asignadaBody: ({ acompananteNombre, fechaStr }) =>
+      `${acompananteNombre} se encargará de tu gestión del ${fechaStr}. Revisa el importe y confírmala.`,
   },
   en: {
     confirmadaTitle: "Booking confirmed",
@@ -45,6 +50,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     recordatorioTitle: "Your session is tomorrow",
     recordatorioBody: ({ acompananteNombre, fechaStr }) =>
       `Reminder: ${acompananteNombre} will accompany you on ${fechaStr}.`,
+    asignadaTitle: "Companion assigned",
+    asignadaBody: ({ acompananteNombre, fechaStr }) =>
+      `${acompananteNombre} will handle your booking on ${fechaStr}. Check the amount and confirm.`,
   },
   fr: {
     confirmadaTitle: "Réservation confirmée",
@@ -56,6 +64,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     recordatorioTitle: "Votre démarche est demain",
     recordatorioBody: ({ acompananteNombre, fechaStr }) =>
       `Rappel : ${acompananteNombre} vous accompagnera le ${fechaStr}.`,
+    asignadaTitle: "Accompagnant assigné",
+    asignadaBody: ({ acompananteNombre, fechaStr }) =>
+      `${acompananteNombre} s’occupera de votre démarche le ${fechaStr}. Vérifiez le montant et confirmez.`,
   },
   de: {
     confirmadaTitle: "Buchung bestätigt",
@@ -67,6 +78,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     recordatorioTitle: "Morgen ist Ihr Termin",
     recordatorioBody: ({ acompananteNombre, fechaStr }) =>
       `Erinnerung: ${acompananteNombre} begleitet Sie am ${fechaStr}.`,
+    asignadaTitle: "Begleitung zugeteilt",
+    asignadaBody: ({ acompananteNombre, fechaStr }) =>
+      `${acompananteNombre} übernimmt Ihren Termin am ${fechaStr}. Prüfen Sie den Betrag und bestätigen Sie.`,
   },
   nl: {
     confirmadaTitle: "Reservering bevestigd",
@@ -78,6 +92,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     recordatorioTitle: "Morgen heb je een afspraak",
     recordatorioBody: ({ acompananteNombre, fechaStr }) =>
       `Herinnering: ${acompananteNombre} begeleidt je op ${fechaStr}.`,
+    asignadaTitle: "Begeleider toegewezen",
+    asignadaBody: ({ acompananteNombre, fechaStr }) =>
+      `${acompananteNombre} zal uw afspraak op ${fechaStr} verzorgen. Bekijk het bedrag en bevestig.`,
   },
   ru: {
     confirmadaTitle: "Бронирование подтверждено",
@@ -89,6 +106,9 @@ export const pushStrings: Record<Locale, Plantillas> = {
     recordatorioTitle: "Завтра у вас встреча",
     recordatorioBody: ({ acompananteNombre, fechaStr }) =>
       `Напоминание: ${acompananteNombre} сопровождит вас ${fechaStr}.`,
+    asignadaTitle: "Сопровождающий назначен",
+    asignadaBody: ({ acompananteNombre, fechaStr }) =>
+      `${acompananteNombre} займётся вашим делом ${fechaStr}. Проверьте сумму и подтвердите.`,
   },
   uk: {
     confirmadaTitle: "Бронювання підтверджено",
@@ -100,5 +120,8 @@ export const pushStrings: Record<Locale, Plantillas> = {
     recordatorioTitle: "Завтра у вас зустріч",
     recordatorioBody: ({ acompananteNombre, fechaStr }) =>
       `Нагадування: ${acompananteNombre} супроводжуватиме вас ${fechaStr}.`,
+    asignadaTitle: "Супровідника призначено",
+    asignadaBody: ({ acompananteNombre, fechaStr }) =>
+      `${acompananteNombre} займеться вашою справою ${fechaStr}. Перевірте суму та підтвердьте.`,
   },
 };

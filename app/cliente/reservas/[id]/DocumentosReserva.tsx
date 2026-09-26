@@ -11,6 +11,7 @@ export interface DocumentosLabels {
   titulo: string;
   intro: string;
   vacio: string;
+  sinAsignar: string;
   subir: string;
   descargar: string;
   borrar: string;
@@ -33,12 +34,15 @@ export default function DocumentosReserva({
   t,
   locale,
   errorKey,
+  bloqueado = false,
 }: {
   reservaId: string;
   docs: DocumentoItem[];
   t: DocumentosLabels;
   locale: string;
   errorKey?: string;
+  /** true = petición en cola (Fase C1): sin acompañante no hay citación a quién entregar. */
+  bloqueado?: boolean;
 }) {
   return (
     <div
@@ -106,6 +110,14 @@ export default function DocumentosReserva({
         </ul>
       )}
 
+      {bloqueado ? (
+        <p
+          className="text-sm text-(--ink)/50 mt-4 pt-4 border-t"
+          style={{ borderColor: "var(--line)" }}
+        >
+          {t.sinAsignar}
+        </p>
+      ) : (
       <form
         action={subirDocumento}
         className="mt-4 pt-4 border-t flex flex-wrap items-center gap-3"
@@ -129,6 +141,7 @@ export default function DocumentosReserva({
         </button>
         <p className="text-xs text-(--ink)/40 w-full">{t.intro}</p>
       </form>
+      )}
     </div>
   );
 }

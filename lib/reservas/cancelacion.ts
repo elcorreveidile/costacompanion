@@ -92,7 +92,8 @@ export async function cancelarReservaGestion(formData: FormData): Promise<void> 
       acompProfileId: acompanantes.profileId,
     })
     .from(reservas)
-    .innerJoin(acompanantes, eq(acompanantes.id, reservas.acompananteId))
+    // leftJoin: una petición en cola (sin acompañante, Fase C1) también se puede cancelar
+    .leftJoin(acompanantes, eq(acompanantes.id, reservas.acompananteId))
     .where(and(eq(reservas.id, reservaId), eq(reservas.clienteId, user.id)))
     .limit(1);
 
@@ -175,7 +176,7 @@ export async function cancelarReservaGestion(formData: FormData): Promise<void> 
     emailReservaCancelada({
       toEmail: cliente.email,
       clienteNombre: cliente.nombre ?? "Cliente",
-      acompananteNombre: r.acompNombre,
+      acompananteNombre: r.acompNombre ?? "Costa Companion", // cola: aún sin acompañante
       fechaStr: fechaHoraMadrid(r.fechaHora),
       importeReembolsadoStr:
         reembolsoCents > 0 ? formatEuros(reembolsoCents) : undefined,
@@ -189,7 +190,10 @@ export async function cancelarReservaGestion(formData: FormData): Promise<void> 
     pushStrings[isLocale(cliente?.idioma) ? cliente.idioma : "es"];
   enviarPushAPerfil(user.id, {
     title: pCliente.canceladaTitle,
-    body: pCliente.canceladaBody({ acompananteNombre: r.acompNombre, fechaStr }),
+    body: pCliente.canceladaBody({
+      acompananteNombre: r.acompNombre ?? "Costa Companion",
+      fechaStr,
+    }),
     url: "/cliente/reservas",
     tag: `reserva-${reservaId}`,
   }).catch((e) => console.error("push cancelación (cliente):", e));
@@ -204,7 +208,10 @@ export async function cancelarReservaGestion(formData: FormData): Promise<void> 
       pushStrings[isLocale(acompProfile?.idioma) ? acompProfile.idioma : "es"];
     enviarPushAPerfil(r.acompProfileId, {
       title: pAcomp.canceladaTitle,
-      body: pAcomp.canceladaBody({ acompananteNombre: r.acompNombre, fechaStr }),
+      body: pAcomp.canceladaBody({
+        acompananteNombre: r.acompNombre ?? "Costa Companion",
+        fechaStr,
+      }),
       url: "/acompanante/reservas",
       tag: `reserva-${reservaId}`,
     }).catch((e) => console.error("push cancelación (acompañante):", e));

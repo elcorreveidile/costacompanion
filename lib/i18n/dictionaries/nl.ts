@@ -7,6 +7,7 @@ const nl: Dictionary = {
     paraAcompanantes: "Voor taalbegeleiders",
     paraNegocios: "Voor bedrijven",
     directorio: "Gids",
+    solicitar: "Begeleider aanvragen",
   },
   account: {
     login: "Inloggen",
@@ -169,6 +170,7 @@ const nl: Dictionary = {
         "Iemand die u vertrouwt en die met u meegaat naar de dokter, de politie, de notaris of de bank — en die voor u spreekt wanneer de taal in de weg zit. Persoonlijk of op afstand, in Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares en de hele westelijke Costa del Sol.",
       ctaFind: "Mijn taalbegeleider vinden",
       ctaHow: "Hoe het werkt",
+      ctaSolicitar: "Begeleider aanvragen",
     },
     problema: {
       h2: "Hier wonen zou niet mogen betekenen dat u met de mond vol tanden staat",
@@ -427,6 +429,16 @@ const nl: Dictionary = {
       errorGenerico: "De prijs kon niet worden berekend. Probeer het opnieuw.",
       enviar: "Boeking bevestigen",
       aviso: "Costa Companion treedt uitsluitend op als bemiddelingsplatform. De prijs wordt door het platform vastgesteld op basis van modus, zone en doorlooptijd en wordt vóór bevestiging altijd gespecificeerd weergegeven. De diensten worden rechtstreeks geleverd door de taalbegeleiders, die zelfstandige professionals zijn.",
+      colaH1: "Begeleiding aanvragen",
+      colaSubtitulo:
+        "Vertel ons wat u nodig hebt en ons team wijst de taalbegeleider aan die het beste bij uw afspraak past. Gratis: u betaalt pas zodra wij iemand toewijzen en u de prijs bevestigt.",
+      colaVolver: "← Terug naar de startpagina",
+      colaDesgloseTitulo: "Geschatte prijs",
+      colaEstimadoNota:
+        "Indicatief bedrag zonder zonetoeslag: de exacte prijs wordt vastgesteld zodra een begeleider is toegewezen, en u keurt deze goed vóór de betaling.",
+      colaEnviar: "Aanvraag verzenden",
+      colaAviso:
+        "Costa Companion treedt uitsluitend op als bemiddelingsplatform. Het verzenden van de aanvraag is gratis: het platformteam wijst een taalbegeleider toe, stelt de exacte prijs vast en laat u weten dat u deze vóór betaling bevestigt. De diensten worden rechtstreeks geleverd door de taalbegeleiders, die zelfstandige professionals zijn.",
     },
     solicitar: {
       h1: "Verzoek op maat",
@@ -662,6 +674,9 @@ const nl: Dictionary = {
         reembolsada: "Terugbetaald",
       },
       pagar: "Nu betalen",
+      sinAsignar: "Wachten op toewijzing",
+      sinAsignarNota:
+        "Uw aanvraag wordt bekeken: wij wijzen een begeleider toe en laten het u per e-mail weten. Pas dan betaalt u, tegen de exacte prijs.",
       verDetalle: "Details bekijken",
       proximas: "Aankomend",
       historial: "Geschiedenis",
@@ -698,6 +713,8 @@ const nl: Dictionary = {
       titulo: "Documenten van de afspraak",
       intro: "Upload de afspraak, brief of overeenkomst (PDF of afbeelding, max. 10 MB). Alleen u, uw toegewezen begeleider en het platformteam kunnen ze zien; ze worden automatisch verwijderd 12 maanden na afsluiting van de reservering.",
       vacio: "Nog geen documenten.",
+      sinAsignar:
+        "Documenten worden beschikbaar zodra wij u een begeleider toewijzen; tot dan hoeft u niets te uploaden.",
       subir: "Document uploaden",
       descargar: "Downloaden",
       borrar: "Verwijderen",
@@ -707,6 +724,8 @@ const nl: Dictionary = {
         tamano: "Het bestand overschrijdt 10 MB.",
         tipo: "Formaat niet toegestaan: gebruik PDF, JPEG, PNG of WebP.",
         permiso: "U mag geen documenten uploaden voor deze reservering.",
+        sin_asignar:
+          "Deze aanvraag heeft nog geen toegewezen begeleider: documenten worden pas na de toewijzing geüpload.",
       },
     },
     solicitudes: {
@@ -1021,6 +1040,41 @@ const nl: Dictionary = {
       },
       motivoExpirada: "Betaling verlopen",
       noShowTag: "No-show",
+      colaAsignacion: {
+        titulo: "Niet-toegewezen aanvragen",
+        desc: "Aanvragen die nog toegewezen moeten worden. Bij toewijzing wordt de exacte prijs vastgesteld en wordt de klant geïnformeerd om te betalen.",
+        vacio: "Geen aanvragen die op toewijzing wachten.",
+        horas: "Uren",
+        elegirCandidato: "Toewijzen aan…",
+        sinCandidatos:
+          "Geen compatibele begeleiders voor deze aanvraag (actief en die begeleidingen accepteren).",
+        asignar: "Toewijzen",
+        reasignar: "Opnieuw toewijzen",
+        descartar: "Verwerpen",
+        sinAsignar: "Niet toegewezen",
+        errorPrecio:
+          "De prijs voor deze toewijzing kon niet worden vastgesteld. Controleer de tarieven en probeer het opnieuw.",
+      },
+    },
+    analiticas: {
+      h1: "Analyses",
+      desc: "Boekingen, inkomsten en statistieken van de begeleidingen.",
+      kpiReservas: "Begeleidingen geboekt",
+      kpiCompletadas: "Voltooid",
+      kpiIngresos: "Netto-inkomsten",
+      kpiTicket: "Gemiddelde order",
+      kpiReembolsado: "Terugbetaald",
+      porEstado: "Boekingen per status",
+      porMetodo: "Per betaalmethode",
+      evolucion: "Laatste 6 maanden",
+      serieReservas: "Boekingen",
+      serieIngresos: "Inkomsten",
+      topTitulo: "Topbegeleiders",
+      thReservas: "Boekingen",
+      thIngresos: "Inkomsten",
+      tarjeta: "Kaart",
+      efectivo: "Contant",
+      sinDatos: "Nog niet genoeg gegevens om statistieken te tonen.",
     },
     equipo: {
       titulo: "Team",
@@ -1079,7 +1133,7 @@ const nl: Dictionary = {
       cardResenasTitulo: "Reviews",
       cardResenasDesc: "Modereer en keur de reviews van geverifieerde klanten goed.",
       cardAnaliticasTitulo: "Analyses",
-      cardAnaliticasDesc: "Binnenkort: boekingen, inkomsten en statistieken.",
+      cardAnaliticasDesc: "Boekingen, inkomsten en statistieken van de begeleidingen.",
       cuentaTitulo: "Je accountgegevens",
     },
     acompanantes: {

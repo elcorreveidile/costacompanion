@@ -5,11 +5,16 @@ import { db } from '@/lib/db';
 import { acompanantes, profiles, reservas } from '@/lib/db/schema';
 import { getSessionUser } from '@/lib/auth/session';
 import { reembolsarReserva } from '@/lib/reservas/cancelacion';
-import { formatEuros } from '@/lib/precios';
+import {
+  listarCandidatos,
+  reasignarReserva,
+} from '@/lib/reservas/asignaciones';
+import { modalidadCompatible, formatEuros } from '@/lib/precios';
 import { fechaHoraMadrid } from '@/lib/tiempo';
 import { getI18n } from '@/lib/i18n/server';
 import { localePath } from '@/lib/i18n/config';
 import type { EstadoReserva } from '@/types/supabase';
+import ColaAsignacion from './ColaAsignacion';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +34,11 @@ const PAGO_BADGE: Record<string, { bg: string; color: string }> = {
   reembolsada: { bg: 'rgba(43,39,36,0.08)', color: 'rgba(43,39,36,0.5)' },
 };
 
-export default async function AdminReservasPage() {
+export default async function AdminReservasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error_asignacion?: string }>;
+}) {
   const user = await getSessionUser();
   if (!user) redirect('/auth/login');
   if (user.rol !== 'superadmin') redirect('/');
@@ -37,31 +46,37 @@ export default async function AdminReservasPage() {
   const { locale, dict } = await getI18n();
   const t = dict.panelAdmin.reservas;
   const admin = dict.panelAdmin;
+  const { error_asignacion: errorAsignacion } = await searchParams;
 
-  const rows = await db
-    .select({
-      id: reservas.id,
-      estado: reservas.estado,
-      estadoPago: reservas.estadoPago,
-      metodoPago: reservas.metodoPago,
-      modoGestion: reservas.modoGestion,
-      precioTotalCents: reservas.precioTotalCents,
-      reembolsoCents: reservas.reembolsoCents,
-      politicaAplicada: reservas.politicaAplicada,
-      noShow: reservas.noShow,
-      canceladaMotivo: reservas.canceladaMotivo,
-      fechaHora: reservas.fechaHora,
-      acompNombre: acompanantes.nombrePublico,
-      acompSlug: acompanantes.slug,
-      clienteNombre: profiles.nombre,
-      clienteEmail: profiles.email,
-    })
-    .from(reservas)
-    .innerJoin(acompanantes, eq(acompanantes.id, reservas.acompananteId))
-    .innerJoin(profiles, eq(profiles.id, reservas.clienteId))
-    .where(eq(reservas.tipoReserva, 'gestion'))
-    .orderBy(desc(reservas.createdAt))
-    .limit(200);
+  const [rows, candidatos] = await Promise.all([
+    db
+      .select({
+        id: reservas.id,
+        estado: reservas.estado,
+        estadoPago: reservas.estadoPago,
+        metodoPago: reservas.metodoPago,
+        modoGestion: reservas.modoGestion,
+        precioTotalCents: reservas.precioTotalCents,
+        reembolsoCents: reservas.reembolsoCents,
+        politicaAplicada: reservas.politicaAplicada,
+        noShow: reservas.noShow,
+        canceladaMotivo: reservas.canceladaMotivo,
+        fechaHora: reservas.fechaHora,
+        // leftJoin: una petición en cola (Fase C1) no tiene acompañante.
+        acompaId: reservas.acompananteId,
+        acompNombre: acompanantes.nombrePublico,
+        acompSlug: acompanantes.slug,
+        clienteNombre: profiles.nombre,
+        clienteEmail: profiles.email,
+      })
+      .from(reservas)
+      .leftJoin(acompanantes, eq(acompanantes.id, reservas.acompananteId))
+      .innerJoin(profiles, eq(profiles.id, reservas.clienteId))
+      .where(eq(reservas.tipoReserva, 'gestion'))
+      .orderBy(desc(reservas.createdAt))
+      .limit(200),
+    listarCandidatos(),
+  ]);
 
   // Cola de reembolsos: se cobró y la política exige devolver dinero, pero el
   // reembolso automático falló (estadoPago sigue en «pagada»).
@@ -86,6 +101,18 @@ export default async function AdminReservasPage() {
         </div>
 
         <h1 className="font-display text-3xl font-semibold text-(--green) mb-8">{t.h1}</h1>
+
+        {errorAsignacion && (
+          <div
+            className="rounded-xl border p-4 mb-6 text-sm"
+            style={{ background: 'var(--terra-soft)', borderColor: 'transparent', color: 'var(--terra)' }}
+          >
+            {t.colaAsignacion.errorPrecio}
+          </div>
+        )}
+
+        {/* Cola de asignación manual (Fase C1): peticiones sin acompañante */}
+        <ColaAsignacion candidatos={candidatos} dict={dict} locale={locale} />
 
         {/* Cola de reembolsos pendientes */}
         {cola.length > 0 && (
@@ -141,6 +168,11 @@ export default async function AdminReservasPage() {
               const badge = ESTADO_BADGE[r.estado] ?? ESTADO_BADGE.pendiente;
               const pagoBadge = PAGO_BADGE[r.estadoPago];
               const enCola = cola.some((c) => c.id === r.id);
+              // Reasignación solo pre-pago y con acompañante previo.
+              const puedeReasignar =
+                !!r.acompSlug &&
+                r.estado === 'pendiente' &&
+                (r.estadoPago === 'pendiente_pago' || r.estadoPago === 'pendiente_cobro');
               return (
                 <div
                   key={r.id}
@@ -154,12 +186,21 @@ export default async function AdminReservasPage() {
                         <span className="text-(--ink)/40 font-normal text-sm"> · {r.clienteEmail}</span>
                       </p>
                       <p className="text-sm text-(--ink)/60 mt-0.5">
-                        <Link
-                          href={localePath(locale, `/${r.acompSlug}`)}
-                          className="hover:text-(--ink) transition-colors"
-                        >
-                          {r.acompNombre}
-                        </Link>
+                        {r.acompSlug ? (
+                          <Link
+                            href={localePath(locale, `/${r.acompSlug}`)}
+                            className="hover:text-(--ink) transition-colors"
+                          >
+                            {r.acompNombre}
+                          </Link>
+                        ) : (
+                          <span
+                            className="text-xs font-medium px-2.5 py-1 rounded-full"
+                            style={{ background: 'var(--terra-soft)', color: 'var(--terra)' }}
+                          >
+                            {t.colaAsignacion.sinAsignar}
+                          </span>
+                        )}
                         {r.modoGestion && <> · {t.modos[r.modoGestion]}</>}
                         {r.metodoPago === 'efectivo' && <> · {dict.panelCliente.detalle.metodos.efectivo}</>}
                       </p>
@@ -210,6 +251,47 @@ export default async function AdminReservasPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Reasignación pre-pago: recalcula el precio con el nuevo asignado */}
+                  {puedeReasignar && (
+                    <form
+                      action={reasignarReserva}
+                      className="mt-3 pt-3 border-t flex flex-wrap items-center gap-2"
+                      style={{ borderColor: 'var(--line)' }}
+                    >
+                      <input type="hidden" name="reserva_id" value={r.id} />
+                      <select
+                        name="acompanante_id"
+                        required
+                        defaultValue=""
+                        className="px-3 py-1.5 rounded-lg border text-xs bg-(--bone)"
+                        style={{ borderColor: 'var(--line)', color: 'var(--ink)' }}
+                      >
+                        <option value="" disabled>
+                          {t.colaAsignacion.reasignar}…
+                        </option>
+                        {candidatos
+                          .filter(
+                            (cd) =>
+                              cd.id !== r.acompaId &&
+                              !!r.modoGestion &&
+                              modalidadCompatible(cd.modalidades, r.modoGestion)
+                          )
+                          .map((cd) => (
+                            <option key={cd.id} value={cd.id}>
+                              {cd.nombrePublico}
+                            </option>
+                          ))}
+                      </select>
+                      <button
+                        type="submit"
+                        className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-opacity hover:opacity-70"
+                        style={{ borderColor: 'var(--line)', color: 'var(--ink)', background: 'transparent' }}
+                      >
+                        {t.colaAsignacion.reasignar}
+                      </button>
+                    </form>
+                  )}
                 </div>
               );
             })}

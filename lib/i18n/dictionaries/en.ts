@@ -7,6 +7,7 @@ const en: Dictionary = {
     paraAcompanantes: "For language companions",
     paraNegocios: "For businesses",
     directorio: "Directory",
+    solicitar: "Request a companion",
   },
   account: {
     login: "Log in",
@@ -169,6 +170,7 @@ const en: Dictionary = {
         "Someone you can trust who goes with you to the doctor, the police, the notary or the bank — and speaks for you when language gets in the way. In person or remotely, in Estepona, Marbella, San Pedro, Benahavís, Manilva, Casares and all of the western Costa del Sol.",
       ctaFind: "Find my language companion",
       ctaHow: "How it works",
+      ctaSolicitar: "Request a companion",
     },
     problema: {
       h2: "Living here shouldn’t mean being lost for words",
@@ -427,6 +429,16 @@ const en: Dictionary = {
       errorGenerico: "The price could not be calculated. Please try again.",
       enviar: "Confirm booking",
       aviso: "Costa Companion acts solely as an intermediation platform. The price is set by the platform according to mode, zone and lead time, and is always shown itemised before confirming. Services are provided directly by the language companions, who are self-employed professionals.",
+      colaH1: "Request assistance",
+      colaSubtitulo:
+        "Tell us what you need and our team will assign the language companion best suited to your errand. It's free: you only pay once we assign someone and you confirm the price.",
+      colaVolver: "← Back to home",
+      colaDesgloseTitulo: "Estimated price",
+      colaEstimadoNota:
+        "Indicative amount without zone surcharge: the exact price is set once a companion is assigned, and you approve it before paying.",
+      colaEnviar: "Send request",
+      colaAviso:
+        "Costa Companion acts solely as an intermediation platform. Sending the request is free: the platform team assigns it to a language companion, sets the exact price and notifies you to confirm it before paying. Services are provided directly by the language companions, who are self-employed professionals.",
     },
     solicitar: {
       h1: "Custom request",
@@ -662,6 +674,9 @@ const en: Dictionary = {
         reembolsada: "Refunded",
       },
       pagar: "Pay now",
+      sinAsignar: "Awaiting assignment",
+      sinAsignarNota:
+        "Your request is being reviewed: we will assign a companion and notify you by email. Only then will you pay, with the exact price.",
       verDetalle: "View details",
       proximas: "Upcoming",
       historial: "History",
@@ -698,6 +713,8 @@ const en: Dictionary = {
       titulo: "Booking documents",
       intro: "Upload the appointment, letter or contract (PDF or image, max. 10 MB). Only you, your assigned companion and the platform team can see them; they are automatically deleted 12 months after the booking is closed.",
       vacio: "No documents yet.",
+      sinAsignar:
+        "Documents open up once we assign you a companion; until then there's no need to upload anything.",
       subir: "Upload document",
       descargar: "Download",
       borrar: "Delete",
@@ -707,6 +724,8 @@ const en: Dictionary = {
         tamano: "The file exceeds 10 MB.",
         tipo: "Format not allowed: use PDF, JPEG, PNG or WebP.",
         permiso: "You are not allowed to upload documents to this booking.",
+        sin_asignar:
+          "This request does not have an assigned companion yet: documents are uploaded after assignment.",
       },
     },
     solicitudes: {
@@ -1021,6 +1040,41 @@ const en: Dictionary = {
       },
       motivoExpirada: "Payment expired",
       noShowTag: "No-show",
+      colaAsignacion: {
+        titulo: "Unassigned requests",
+        desc: "Assistance requests waiting to be assigned. On assignment the exact price is set and the client is notified to pay.",
+        vacio: "No requests waiting to be assigned.",
+        horas: "Hours",
+        elegirCandidato: "Assign to…",
+        sinCandidatos:
+          "No companions are compatible with this request (active and accepting assistance bookings).",
+        asignar: "Assign",
+        reasignar: "Reassign",
+        descartar: "Discard",
+        sinAsignar: "Unassigned",
+        errorPrecio:
+          "The price for this assignment could not be set. Check the rate card and try again.",
+      },
+    },
+    analiticas: {
+      h1: "Analytics",
+      desc: "Bookings, revenue and metrics for companion requests.",
+      kpiReservas: "Requests booked",
+      kpiCompletadas: "Completed",
+      kpiIngresos: "Net revenue",
+      kpiTicket: "Average order",
+      kpiReembolsado: "Refunded",
+      porEstado: "Bookings by status",
+      porMetodo: "By payment method",
+      evolucion: "Last 6 months",
+      serieReservas: "Bookings",
+      serieIngresos: "Revenue",
+      topTitulo: "Top companions",
+      thReservas: "Bookings",
+      thIngresos: "Revenue",
+      tarjeta: "Card",
+      efectivo: "Cash",
+      sinDatos: "Not enough data yet to show metrics.",
     },
     equipo: {
       titulo: "Team",
@@ -1079,7 +1133,7 @@ const en: Dictionary = {
       cardResenasTitulo: "Reviews",
       cardResenasDesc: "Moderate and approve reviews from verified clients.",
       cardAnaliticasTitulo: "Analytics",
-      cardAnaliticasDesc: "Coming soon: bookings, revenue and metrics.",
+      cardAnaliticasDesc: "Bookings, revenue and metrics for companion requests.",
       cuentaTitulo: "Your account information",
     },
     acompanantes: {
