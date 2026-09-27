@@ -89,7 +89,7 @@ export function MobileMenu({ accountHref, accountLabel, groups }: MobileMenuProp
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className="py-3 text-base font-medium border-b transition-opacity hover:opacity-70"
+                  className="block py-3 text-base font-medium border-b transition-opacity hover:opacity-70"
                   style={{ color: 'var(--bone)', borderColor: 'rgba(247,244,239,0.12)' }}
                 >
                   {item.label}
