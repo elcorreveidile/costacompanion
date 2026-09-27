@@ -1,3 +1,4 @@
+/// <reference types="@capacitor/splash-screen" />
 import type { CapacitorConfig } from "@capacitor/cli";
 
 /**
@@ -19,6 +20,17 @@ const config: CapacitorConfig = {
     // El shell nativo carga la PWA publicada (cambiar aquí si cambia el dominio).
     url: "https://www.costacompanion.com",
     cleartext: false,
+  },
+  plugins: {
+    // Con shell de URL remota, el splash debe persistir hasta que la página
+    // pinte; el fondo iguala resources/splash.png para que el splash de
+    // sistema (Android 12+) y el del plugin sean una sola superficie.
+    SplashScreen: {
+      launchShowDuration: 500,
+      launchAutoHide: true,
+      backgroundColor: "#F7F4EF",
+      androidScaleType: "CENTER_CROP",
+    },
   },
 };
 

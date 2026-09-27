@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -17,6 +17,14 @@ const OG_LOCALE: Record<Locale, string> = {
   uk: "uk_UA",
 };
 
+// Colores del manifest (app/manifest.ts). Sin viewport-fit=cover: el CSS aún
+// no gestiona env(safe-area-inset-*) y la cabecera quedaría bajo el notch.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#2C4A3B",
+};
+
 export async function generateMetadata(): Promise<Metadata> {
   const h = await headers();
   const locale = (isLocale(h.get("x-locale")) ? h.get("x-locale") : "es") as Locale;
@@ -32,6 +40,11 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       "Plataforma de acompañamiento lingüístico para residentes y visitantes de la Costa del Sol.",
     alternates: { canonical, languages },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "Costa Companion",
+    },
     icons: {
       icon: [{ url: "/icon?v=2", type: "image/png", sizes: "32x32" }],
       shortcut: "/icon?v=2",

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Costa Companion</string>
+    <string name="title_activity_main">Costa Companion</string>
+    <string name="package_name">com.costacompanion.app</string>
+    <string name="custom_url_scheme">com.costacompanion.app</string>
+</resources>

@@ -1,6 +1,8 @@
-// Genera public/icons/icon-192.png y public/icons/icon-512.png (icono PWA).
+// Genera los iconos PWA (public/icons/icon-192.png, icon-512.png) y las fuentes
+// de tienda para @capacitor/assets (resources/icon-only.png, icon-background.png,
+// icon-foreground.png, splash.png, splash-dark.png).
 // PNG puro con zlib (Node stdlib): fondo verde de marca + arco «C» crema + punto
-// terra. Réplica a gran escala del diseño de app/icon.tsx. Uso: node scripts/gen-icons.mjs
+// terra. Réplica a gran escala del diseño de app/icon.tsx. Uso: npm run icons
 import zlib from "node:zlib";
 import fs from "node:fs";
 import path from "node:path";
@@ -66,9 +68,9 @@ function png(anchura, altura, pixelFn) {
 // Fondo cuadrado a sangre (válido como maskable) + anillo C con la abertura a la
 // derecha + punto terra arriba a la derecha. 2×2 supersampling para suavizar.
 
-function pixelEn(x, y, s) {
-  const gx = x / s;
-  const gy = y / s;
+// Geometría pura de la marca: «punto» | «anillo» | null (fondo), según dónde
+// caiga (gx,gy). Compartida por todos los renderers.
+function geometriaMarca(gx, gy) {
   // Anillo: centro (16,16), radio 5.5–8; abertura derecha (|ángulo| < 45°).
   const dx = gx - 16;
   const dy = gy - 16;
@@ -76,29 +78,82 @@ function pixelEn(x, y, s) {
   const enAnillo = d >= 5.5 && d <= 8 && Math.abs(dx) / (d || 1) <= 0.707;
   // Punto terra: centro (21.5, 15.5), radio 2.5.
   const enPunto = Math.hypot(gx - 21.5, gy - 15.5) <= 2.5;
-  return enPunto ? TERRA : enAnillo ? CREMA : VERDE;
+  return enPunto ? "punto" : enAnillo ? "anillo" : null;
+}
+
+function pixelEn(x, y, s) {
+  const c = geometriaMarca(x / s, y / s);
+  return c === "punto" ? TERRA : c === "anillo" ? CREMA : VERDE;
+}
+
+// Media de 4 submuestras (2×2); promedia RGB y alfa.
+function supermuestrear(tam, porSubmuestra) {
+  return png(tam, tam, (x, y) => {
+    let r = 0, g = 0, b = 0, a = 0;
+    for (const ox of [0.25, 0.75]) {
+      for (const oy of [0.25, 0.75]) {
+        const [pr, pg, pb, pa] = porSubmuestra(x + ox, y + oy);
+        r += pr;
+        g += pg;
+        b += pb;
+        a += pa;
+      }
+    }
+    return [Math.round(r / 4), Math.round(g / 4), Math.round(b / 4), Math.round(a / 4)];
+  });
 }
 
 function icono(tam) {
   const s = tam / 32;
-  return png(tam, tam, (x, y) => {
-    // Supersampling 2×2: media de las 4 submuestras.
-    let r = 0, g = 0, b = 0;
-    for (const ox of [0.25, 0.75]) {
-      for (const oy of [0.25, 0.75]) {
-        const [pr, pg, pb] = pixelEn(x + ox, y + oy, s);
-        r += pr;
-        g += pg;
-        b += pb;
-      }
-    }
-    return [Math.round(r / 4), Math.round(g / 4), Math.round(b / 4), 255];
+  return supermuestrear(tam, (x, y) => {
+    const [r, g, b] = pixelEn(x, y, s);
+    return [r, g, b, 255];
   });
 }
 
+// Marca escalada y centrada sobre un fondo (fondoAlfa 0 ⇒ fondo transparente;
+// el RGB del fondo se mantiene para que el antialias no genere halo oscuro).
+// Colores del anillo/punto parametrizables: sobre fondo claro el anillo es verde
+// (variante LogoSymbol); sobre fondo verde, crema (variante icono).
+function marca({
+  fondo,
+  fondoAlfa = 255,
+  escala = 1,
+  colorAnillo = CREMA,
+  colorPunto = TERRA,
+}) {
+  return (tam) => {
+    const s = (tam * escala) / 32;
+    const offset = (tam * (1 - escala)) / 2;
+    return supermuestrear(tam, (x, y) => {
+      const c = geometriaMarca((x - offset) / s, (y - offset) / s);
+      const color = c === "punto" ? colorPunto : c === "anillo" ? colorAnillo : null;
+      return color
+        ? [color[0], color[1], color[2], 255]
+        : [fondo[0], fondo[1], fondo[2], fondoAlfa];
+    });
+  };
+}
+
+// ── Iconos PWA ─────────────────────────────────────────────────────────────────
 const dir = path.join(process.cwd(), "public", "icons");
 fs.mkdirSync(dir, { recursive: true });
 for (const tam of [192, 512]) {
   fs.writeFileSync(path.join(dir, `icon-${tam}.png`), icono(tam));
   console.log(`public/icons/icon-${tam}.png`);
 }
+
+// ── Fuentes para @capacitor/assets (recursos de tienda) ────────────────────────
+const recursos = path.join(process.cwd(), "resources");
+fs.mkdirSync(recursos, { recursive: true });
+const escribir = (nombre, buf) => {
+  fs.writeFileSync(path.join(recursos, nombre), buf);
+  console.log(`resources/${nombre}`);
+};
+
+escribir("icon-only.png", icono(1024)); // verde a sangre, sin máscara
+escribir("icon-background.png", png(1024, 1024, () => [...VERDE, 255]));
+// Escala 0.8: el contenido queda a ~20 % del radio, dentro del círculo seguro (~30 %) del adaptive icon.
+escribir("icon-foreground.png", marca({ fondo: VERDE, fondoAlfa: 0, escala: 0.8 })(1024));
+escribir("splash.png", marca({ fondo: CREMA, escala: 0.2, colorAnillo: VERDE })(2732));
+escribir("splash-dark.png", marca({ fondo: VERDE, escala: 0.2 })(2732));
